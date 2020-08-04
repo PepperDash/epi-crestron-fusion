@@ -83,7 +83,7 @@ namespace PDTDynFusionEPI
 			}
 			catch (Exception ex)
 			{
-				Debug.Console(2, this, "Exception DynFusion Initializw {0}", ex);
+				Debug.Console(2, this, "Exception DynFusion Initialize {0}", ex);
 			}
 
 		}
@@ -162,8 +162,14 @@ namespace PDTDynFusionEPI
 				case FusionEventIds.UserConfiguredBoolSigChangeEventId:
 					{
 						var sigDetails = args.UserConfiguredSigDetail as BooleanSigData;
-						Debug.Console(2, this, "DynFusion UserAttribute Digital Join:{0} Name:{1} Value:{2}", sigDetails.Number, sigDetails.Name, sigDetails.OutputSig.UShortValue);
-						DigitalAttributes[sigDetails.OutputSig.Number + FusionJoinOffset].BoolValue = sigDetails.OutputSig.BoolValue;
+						uint joinNumber = (uint)(sigDetails.Number + FusionJoinOffset);
+						DynFusionDigitalAttribute output;
+						Debug.Console(2, this, "DynFusion UserAttribute Digital Join:{0} Name:{1} Value:{2}", joinNumber, sigDetails.Name, sigDetails.OutputSig.UShortValue);
+
+						if (DigitalAttributes.TryGetValue(joinNumber, out output))
+						{
+							output.BoolValue = sigDetails.OutputSig.BoolValue;
+						}
 						break;
 					}
 				/*
@@ -239,7 +245,7 @@ namespace PDTDynFusionEPI
 				{
 					trilist.SetBoolSigAction(attLocal.JoinNumber, (b) => { attLocal.BoolValue = b; });
 				}
-				if (attLocal.RwType == eReadWrite.Write || attLocal.RwType == eReadWrite.Write)
+				if (attLocal.RwType == eReadWrite.ReadWrite || attLocal.RwType == eReadWrite.Write)
 				{
 					attLocal.BoolValueFeedback.LinkInputSig(trilist.BooleanInput[attLocal.JoinNumber]);
 				}
