@@ -6,39 +6,52 @@ using Crestron.SimplSharp;
 using PepperDash.Essentials.Core;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Converters;
+using Crestron.SimplSharpPro;
+using PepperDash.Core;
 
-namespace PDT.DynFusion.EPI
+namespace PDTDynFusionEPI
 {
-	public class DynFusionAttribute
-	{
-		[JsonProperty("SignalType")]
-		[JsonConverter(typeof(StringEnumConverter))]
-		public eJoinType	SignalType { get; set; }
 
-		[JsonProperty("JoinNumber")]
-		public UInt32		JoinNumber { get; set; }
-		
-		[JsonProperty("Name")]
-		public string		Name { get; set; }
-		[JsonProperty("RwType")]
-		[JsonConverter(typeof(StringEnumConverter))]
-		public string		RwType { get; set; }
-		public string		StringValue
+	public class DynFusionDigitalAttribute : DynFusionAttributeBase
+	{
+		public DynFusionDigitalAttribute(string name, UInt32 joinNumber, eReadWrite rw)
+			: base(name, eSigType.Bool, joinNumber, rw)
+		{
+			BoolValueFeedback = new BoolFeedback(() => { return BoolValue; });
+			Debug.Console(2, "Creating DigitalAttribute {0} {1} {2}", this.JoinNumber, this.Name, this.RwType);
+		}
+		public BoolFeedback BoolValueFeedback { get; set; }
+		private bool _BoolValue { get; set; }
+		public bool BoolValue
 		{
 			get
 			{
-				return _StringValue;
+				
+				return _BoolValue;
 
 			}
 			set
 			{
-				_StringValue = value;
-				StringValueFeedback.FireUpdate();
+				_BoolValue = value;
+				BoolValueFeedback.FireUpdate();
+				Debug.Console(2, "Changed Value of DigitalAttribute {0} {1} {2}", this.JoinNumber, this.Name, value);
+
 			}
 		}
+	}
+	public class DynFusionAnalogAttribute : DynFusionAttributeBase
+	{
+		public DynFusionAnalogAttribute(string name, UInt32 joinNumber, eReadWrite rw)
+			: base(name, eSigType.UShort, joinNumber, rw)
+		{
+			UShortValueFeedback = new IntFeedback( () => { return (int)UShortValue; });
+		}
+
+		public IntFeedback UShortValueFeedback { get; set; }
+		private UInt32 _UShortValue { get; set; }
 		public UInt32 UShortValue
 		{
-			get	
+			get
 			{
 				return _UShortValue;
 
@@ -50,26 +63,55 @@ namespace PDT.DynFusion.EPI
 
 			}
 		}
-		public bool	BoolValue 
-		{ 
+	}
+	public class DynFusionSerialAttribute : DynFusionAttributeBase
+	{
+		public DynFusionSerialAttribute(string name, UInt32 joinNumber, eReadWrite rw)
+			: base(name, eSigType.String, joinNumber, rw)
+		{
+			StringValueFeedback = new StringFeedback(() => { return StringValue; });
+		}
+		public StringFeedback StringValueFeedback { get; set; }
+		private String _StringValue { get; set; }
+		public String StringValue
+		{
 			get
 			{
-				return _BoolValue;
-				
+				return _StringValue;
+
 			}
 			set
 			{
-				_BoolValue = value;
-				BoolValueFeedback.FireUpdate();
+				_StringValue = value;
+				StringValueFeedback.FireUpdate();
 
 			}
 		}
-		public string	_StringValue { get; set; }
-		public UInt32	_UShortValue { get; set; }
-		public bool		_BoolValue { get; set; }
-		public StringFeedback	StringValueFeedback { get; set; }
-		public IntFeedback		UShortValueFeedback { get; set; }
-		public BoolFeedback		BoolValueFeedback { get; set; }
+	}
+	public class DynFusionAttributeBase
+	{
+		public DynFusionAttributeBase (string name, eSigType type, UInt32 joinNumber, eReadWrite rw)
+		{
+			Name = name; 
+			SignalType = type;
+			JoinNumber = joinNumber;
+			RwType = rw;
+		}
+
+		[JsonProperty("SignalType")]
+		[JsonConverter(typeof(StringEnumConverter))]
+		public eSigType	SignalType { get; set; }
+
+		[JsonProperty("JoinNumber")]
+		public UInt32		JoinNumber { get; set; }
+		
+		[JsonProperty("Name")]
+		public string		Name { get; set; }
+
+		[JsonProperty("RwType")]
+		[JsonConverter(typeof(StringEnumConverter))]
+		public eReadWrite		RwType { get; set; }
+
 
 	}
 	public enum eReadWrite
@@ -78,7 +120,7 @@ namespace PDT.DynFusion.EPI
 		Write = 2,
 		R = 1, 
 		W = 2,
-		ReadWrite = Read | Write,
-		RW = R | W
+		ReadWrite = 3,
+		RW = 3
 	}
 }

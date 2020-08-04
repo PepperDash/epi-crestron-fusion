@@ -1,0 +1,82 @@
+{
+    "system": {},
+    "system_url": "http://portal-QA.devcloud.pepperdash.com/templates/0f50640b-bc89-42d5-998f-81d137d3fc98#/template_summary",
+    "template": {
+        "joinMaps": [
+            {
+            "TempGuageJoinMap":
+               {
+
+                "IsOnline": 1,
+                "TemperatureFormat": 1,
+                "Temperature": 1,
+                "Humidity": 2,
+                "Name": 1
+                }
+            }],
+
+        "devices": [
+
+            {
+                "key": "DynFusion01",
+                "uid": 1,
+                "name": "DynFusion",
+                "type": "DynFusion",
+                "group": "Fusion",
+                "properties": {
+                    "control": {
+                        "ipid": "AA",
+                        "method": "ipidTcp",
+                        "tcpSshProperties": {
+                            "address": "127.0.0.2",
+                            "port": 0
+                        }
+                    },
+                    "CustomAttributes": 
+                    {
+                        "DigitalAttributes" : 
+                        [
+                            {"name": "testAttribute", "joinNumber": 51, "RwType": "RW"}
+                        ],
+                        "AnalogAttributes" : 
+                        [
+                            
+                        ],
+                        "SerialAttributes" : 
+                        [
+                            
+                        ]
+
+                    }
+
+                  
+                }
+            },
+
+            {
+                "group": "api",
+                "key": "DynFuisonBridge",
+                "name": "eisc-Bridge",
+                "properties": {
+                    "control": {
+                        "ipid": "AB",
+                        "method": "ipidTcp",
+                        "tcpSshProperties": {
+                            "address": "127.0.0.2",
+                            "port": 0
+                        }
+                    },
+                    "devices": [
+                        {
+                            "deviceKey": "DynFusion01",
+                            "joinStart": 1
+                        }
+                    ]
+                },
+                "type": "eiscApiAdvanced",
+                "uid": 4
+            }
+            
+        ]
+    }
+}

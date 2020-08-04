@@ -1,6 +1,6 @@
 ﻿using PepperDash.Essentials.Core;
 
-namespace DynFusionEPI
+namespace PDTDynFusionEPI
 {
 	public class EssentialsPluginBridgeJoinMapTemplate : JoinMapBaseAdvanced
 	{
