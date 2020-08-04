@@ -45,6 +45,8 @@ namespace PDTDynFusionEPI
 			: base(name, eSigType.UShort, joinNumber, rw)
 		{
 			UShortValueFeedback = new IntFeedback( () => { return (int)UShortValue; });
+
+			Debug.Console(2, "Creating AnalogAttribute {0} {1} {2}", this.JoinNumber, this.Name, this.RwType);
 		}
 
 		public IntFeedback UShortValueFeedback { get; set; }
@@ -70,6 +72,8 @@ namespace PDTDynFusionEPI
 			: base(name, eSigType.String, joinNumber, rw)
 		{
 			StringValueFeedback = new StringFeedback(() => { return StringValue; });
+
+			Debug.Console(2, "Creating StringAttribute {0} {1} {2}", this.JoinNumber, this.Name, this.RwType);
 		}
 		public StringFeedback StringValueFeedback { get; set; }
 		private String _StringValue { get; set; }

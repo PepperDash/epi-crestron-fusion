@@ -61,24 +61,25 @@ namespace PDTDynFusionEPI
 
 				foreach (var att in _Config.CustomAttributes.DigitalAttributes)
 				{
-					Debug.Console(2, "Creating DigitalAttribute {0} {1} {2}", att.Name, att.JoinNumber, att.RwType);
 					DigitalAttributes.Add(att.JoinNumber, new DynFusionDigitalAttribute(att.Name, att.JoinNumber, att.RwType));
 					FusionSymbol.AddSig(eSigType.Bool, att.JoinNumber - FusionJoinOffset, att.Name, GetIOMask(att.RwType));
 					DigitalAttributes[att.JoinNumber].BoolValueFeedback.LinkInputSig(FusionSymbol.UserDefinedBooleanSigDetails[att.JoinNumber - FusionJoinOffset].InputSig);
-
 				}
-				/*
+				
 				foreach (var att in _Config.CustomAttributes.AnalogAttributes)
 				{
-					Debug.Console(2, "Creating AnalogAttribute {0} {1} {2}", att.Name, att.JoinNumber, att.RwType);
-					AnalogAttributes.Add(att.JoinNumber, new DynFusionAnalogAttribute(att.Name, eJoinType.Analog, att.JoinNumber - FusionJoinOffset, att.RwType));
+					AnalogAttributes.Add(att.JoinNumber, new DynFusionAnalogAttribute(att.Name, att.JoinNumber, att.RwType));
+					FusionSymbol.AddSig(eSigType.UShort, att.JoinNumber - FusionJoinOffset, att.Name, GetIOMask(att.RwType));
+					AnalogAttributes[att.JoinNumber].UShortValueFeedback.LinkInputSig(FusionSymbol.UserDefinedUShortSigDetails[att.JoinNumber - FusionJoinOffset].InputSig);
+
 				}
-				foreach (var att in _Config.CustomAttributes.DigitalAttributes)
+				foreach (var att in _Config.CustomAttributes.SerialAttributes)
 				{
-					Debug.Console(2, "Creating SerialAttributes {0} {1} {2}", att.Name, att.JoinNumber, att.RwType);
-					SerialAttributes.Add(att.JoinNumber, new DynFusionSerialAttribute(att.Name, eJoinType.Serial, att.JoinNumber - FusionJoinOffset, att.RwType));
+					SerialAttributes.Add(att.JoinNumber, new DynFusionSerialAttribute(att.Name, att.JoinNumber, att.RwType));
+					FusionSymbol.AddSig(eSigType.String, att.JoinNumber - FusionJoinOffset, att.Name, GetIOMask(att.RwType));
+					SerialAttributes[att.JoinNumber].StringValueFeedback.LinkInputSig(FusionSymbol.UserDefinedStringSigDetails[att.JoinNumber - FusionJoinOffset].InputSig);
 				}
-				 */
+				 
 				FusionRVI.GenerateFileForAllFusionDevices();
 			}
 			catch (Exception ex)
@@ -164,7 +165,7 @@ namespace PDTDynFusionEPI
 						var sigDetails = args.UserConfiguredSigDetail as BooleanSigData;
 						uint joinNumber = (uint)(sigDetails.Number + FusionJoinOffset);
 						DynFusionDigitalAttribute output;
-						Debug.Console(2, this, "DynFusion UserAttribute Digital Join:{0} Name:{1} Value:{2}", joinNumber, sigDetails.Name, sigDetails.OutputSig.UShortValue);
+						Debug.Console(2, this, "DynFusion UserAttribute Digital Join:{0} Name:{1} Value:{2}", joinNumber, sigDetails.Name, sigDetails.OutputSig.BoolValue);
 
 						if (DigitalAttributes.TryGetValue(joinNumber, out output))
 						{
@@ -172,22 +173,34 @@ namespace PDTDynFusionEPI
 						}
 						break;
 					}
-				/*
+				
 				case FusionEventIds.UserConfiguredUShortSigChangeEventId:
 					{
 						var sigDetails = args.UserConfiguredSigDetail as UShortSigData;
-						ControlSystem.debug.TraceEvent(string.Format("DynFusion UserAttribute Analog {0} {1} {2}", sigDetails.Number, sigDetails.Name, sigDetails.OutputSig.UShortValue));
-						API.EISC.UShortInput[sigDetails.Number + Constants.FusionJoinOffset].UShortValue = sigDetails.OutputSig.UShortValue;
+						uint joinNumber = (uint)(sigDetails.Number + FusionJoinOffset);
+						DynFusionAnalogAttribute output;
+						Debug.Console(2, this, "DynFusion UserAttribute Analog Join:{0} Name:{1} Value:{2}", joinNumber, sigDetails.Name, sigDetails.OutputSig.UShortValue);
+
+						if (AnalogAttributes.TryGetValue(joinNumber, out output))
+						{
+							output.UShortValue = sigDetails.OutputSig.UShortValue;
+						}
 						break;
 					}
 				case FusionEventIds.UserConfiguredStringSigChangeEventId:
 					{
 						var sigDetails = args.UserConfiguredSigDetail as StringSigData;
-						ControlSystem.debug.TraceEvent(string.Format("DynFusion UserAttribute Serial {0} {1} {2}", sigDetails.Number, sigDetails.Name, sigDetails.OutputSig.StringValue));
-						API.EISC.StringInput[sigDetails.Number + Constants.FusionJoinOffset].StringValue = sigDetails.OutputSig.StringValue;
+						uint joinNumber = (uint)(sigDetails.Number + FusionJoinOffset);
+						DynFusionSerialAttribute output;
+						Debug.Console(2, this, "DynFusion UserAttribute Analog Join:{0} Name:{1} Value:{2}", joinNumber, sigDetails.Name, sigDetails.OutputSig.StringValue);
+
+						if (SerialAttributes.TryGetValue(joinNumber, out output))
+						{
+							output.StringValue = sigDetails.OutputSig.StringValue;
+						}
 						break;
 					}
-				 */
+				 
 			}
 		}
 
@@ -251,7 +264,32 @@ namespace PDTDynFusionEPI
 				}
 
 			}
+			foreach (var att in AnalogAttributes)
+			{
+				var attLocal = att.Value;
+				if (attLocal.RwType == eReadWrite.ReadWrite || attLocal.RwType == eReadWrite.Read)
+				{
+					trilist.SetUShortSigAction(attLocal.JoinNumber, (a) => { attLocal.UShortValue = a; });
+				}
+				if (attLocal.RwType == eReadWrite.ReadWrite || attLocal.RwType == eReadWrite.Write)
+				{
+					attLocal.UShortValueFeedback.LinkInputSig(trilist.UShortInput[attLocal.JoinNumber]);
+				}
 
+			}
+			foreach (var att in SerialAttributes)
+			{
+				var attLocal = att.Value;
+				if (attLocal.RwType == eReadWrite.ReadWrite || attLocal.RwType == eReadWrite.Read)
+				{
+					trilist.SetStringSigAction(attLocal.JoinNumber, (a) => { attLocal.StringValue = a; });
+				}
+				if (attLocal.RwType == eReadWrite.ReadWrite || attLocal.RwType == eReadWrite.Write)
+				{
+					attLocal.StringValueFeedback.LinkInputSig(trilist.StringInput[attLocal.JoinNumber]);
+				}
+
+			}
 	        trilist.OnlineStatusChange += (o, a) =>
 	        {
 	            if (a.DeviceOnLine)

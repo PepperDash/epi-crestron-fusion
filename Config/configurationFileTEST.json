@@ -36,15 +36,15 @@
                     {
                         "DigitalAttributes" : 
                         [
-                            {"name": "testAttribute", "joinNumber": 51, "RwType": "RW"}
+                            {"name": "testAttributeDig", "joinNumber": 51, "RwType": "RW"}
                         ],
                         "AnalogAttributes" : 
                         [
-                            
+                            {"name": "testAttributeUShort", "joinNumber": 51, "RwType": "RW"}
                         ],
                         "SerialAttributes" : 
                         [
-                            
+                            {"name": "testAttributeString", "joinNumber": 51, "RwType": "RW"}
                         ]
 
                     }
