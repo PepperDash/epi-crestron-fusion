@@ -14,8 +14,8 @@ namespace PDTDynFusionEPI
 
 	public class DynFusionDigitalAttribute : DynFusionAttributeBase
 	{
-		public DynFusionDigitalAttribute(string name, UInt32 joinNumber, eReadWrite rw)
-			: base(name, eSigType.Bool, joinNumber, rw)
+		public DynFusionDigitalAttribute(string name, UInt32 joinNumber)
+			: base(name, eSigType.Bool, joinNumber)
 		{
 			BoolValueFeedback = new BoolFeedback(() => { return BoolValue; });
 			Debug.Console(2, "Creating DigitalAttribute {0} {1} {2}", this.JoinNumber, this.Name, this.RwType);
@@ -41,8 +41,8 @@ namespace PDTDynFusionEPI
 	}
 	public class DynFusionAnalogAttribute : DynFusionAttributeBase
 	{
-		public DynFusionAnalogAttribute(string name, UInt32 joinNumber, eReadWrite rw)
-			: base(name, eSigType.UShort, joinNumber, rw)
+		public DynFusionAnalogAttribute(string name, UInt32 joinNumber)
+			: base(name, eSigType.UShort, joinNumber)
 		{
 			UShortValueFeedback = new IntFeedback( () => { return (int)UShortValue; });
 
@@ -68,8 +68,8 @@ namespace PDTDynFusionEPI
 	}
 	public class DynFusionSerialAttribute : DynFusionAttributeBase
 	{
-		public DynFusionSerialAttribute(string name, UInt32 joinNumber, eReadWrite rw)
-			: base(name, eSigType.String, joinNumber, rw)
+		public DynFusionSerialAttribute(string name, UInt32 joinNumber)
+			: base(name, eSigType.String, joinNumber)
 		{
 			StringValueFeedback = new StringFeedback(() => { return StringValue; });
 
@@ -94,12 +94,11 @@ namespace PDTDynFusionEPI
 	}
 	public class DynFusionAttributeBase
 	{
-		public DynFusionAttributeBase (string name, eSigType type, UInt32 joinNumber, eReadWrite rw)
+		public DynFusionAttributeBase (string name, eSigType type, UInt32 joinNumber)
 		{
 			Name = name; 
 			SignalType = type;
 			JoinNumber = joinNumber;
-			RwType = rw;
 		}
 
 		[JsonProperty("SignalType")]

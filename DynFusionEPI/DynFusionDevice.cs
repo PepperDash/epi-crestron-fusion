@@ -19,9 +19,12 @@ namespace PDTDynFusionEPI
 		//DynFusion Joins
 
 		private DynFusionConfigObjectTemplate _Config;
-		private Dictionary<UInt32, DynFusionDigitalAttribute> DigitalAttributes;
-		private Dictionary<UInt32, DynFusionAnalogAttribute> AnalogAttributes;
-		private Dictionary<UInt32, DynFusionSerialAttribute> SerialAttributes;
+		private Dictionary<UInt32, DynFusionDigitalAttribute> DigitalAttributesToFusion;
+		private Dictionary<UInt32, DynFusionAnalogAttribute> AnalogAttributesToFusion;
+		private Dictionary<UInt32, DynFusionSerialAttribute> SerialAttributesToFusion;
+		private Dictionary<UInt32, DynFusionDigitalAttribute> DigitalAttributesFromFusion;
+		private Dictionary<UInt32, DynFusionAnalogAttribute> AnalogAttributesFromFusion;
+		private Dictionary<UInt32, DynFusionSerialAttribute> SerialAttributesFromFusion;
 		private static DynFusionJoinMap JoinMapStatic;
 
 		public BoolFeedback FusionOnlineFeedback;
@@ -33,10 +36,13 @@ namespace PDTDynFusionEPI
 		{
             Debug.Console(0, this, "Constructing new DynFusionDevice instance");
 		    _Config = config;
-			DigitalAttributes = new Dictionary<UInt32, DynFusionDigitalAttribute>();
-			AnalogAttributes = new Dictionary<UInt32, DynFusionAnalogAttribute>();
-			SerialAttributes = new Dictionary<UInt32, DynFusionSerialAttribute>();
-			
+			DigitalAttributesToFusion = new Dictionary<UInt32, DynFusionDigitalAttribute>();
+			AnalogAttributesToFusion = new Dictionary<UInt32, DynFusionAnalogAttribute>();
+			SerialAttributesToFusion = new Dictionary<UInt32, DynFusionSerialAttribute>();
+			DigitalAttributesFromFusion = new Dictionary<UInt32, DynFusionDigitalAttribute>();
+			AnalogAttributesFromFusion = new Dictionary<UInt32, DynFusionAnalogAttribute>();
+			SerialAttributesFromFusion = new Dictionary<UInt32, DynFusionSerialAttribute>();
+			JoinMapStatic = new DynFusionJoinMap(1);
 
 		}
 
@@ -66,47 +72,70 @@ namespace PDTDynFusionEPI
 				FusionSymbol.OnlineStatusChange += new OnlineStatusChangeEventHandler(FusionSymbol_OnlineStatusChange);
 	
 				// Attribute State Changes 
-				FusionSymbol.FusionStateChange += new FusionStateEventHandler(FusionSymbol_FusionStateChange);	
+				FusionSymbol.FusionStateChange += new FusionStateEventHandler(FusionSymbol_FusionStateChange);
+				//	FusionSymbol.ExtenderFusionRoomDataReservedSigs.DeviceExtenderSigChange += new DeviceExtenderJoinChangeEventHandler(ExtenderFusionRoomDataReservedSigs_DeviceExtenderSigChange);
 
 				// Create Custom Atributes 
 				foreach (var att in _Config.CustomAttributes.DigitalAttributes)
 				{
-					DigitalAttributes.Add(att.JoinNumber, new DynFusionDigitalAttribute(att.Name, att.JoinNumber, att.RwType));
 					FusionSymbol.AddSig(eSigType.Bool, att.JoinNumber - FusionJoinOffset, att.Name, GetIOMask(att.RwType));
-					DigitalAttributes[att.JoinNumber].BoolValueFeedback.LinkInputSig(FusionSymbol.UserDefinedBooleanSigDetails[att.JoinNumber - FusionJoinOffset].InputSig);
+
+					if (att.RwType == eReadWrite.ReadWrite || att.RwType == eReadWrite.Read)
+					{
+						DigitalAttributesToFusion.Add(att.JoinNumber, new DynFusionDigitalAttribute(att.Name, att.JoinNumber));	
+						DigitalAttributesToFusion[att.JoinNumber].BoolValueFeedback.LinkInputSig(FusionSymbol.UserDefinedBooleanSigDetails[att.JoinNumber - FusionJoinOffset].InputSig);
+					}
+					if (att.RwType == eReadWrite.ReadWrite || att.RwType == eReadWrite.Write)
+					{
+						DigitalAttributesFromFusion.Add(att.JoinNumber, new DynFusionDigitalAttribute(att.Name, att.JoinNumber));	
+					}
 				}
 				
 				foreach (var att in _Config.CustomAttributes.AnalogAttributes)
 				{
-					AnalogAttributes.Add(att.JoinNumber, new DynFusionAnalogAttribute(att.Name, att.JoinNumber, att.RwType));
 					FusionSymbol.AddSig(eSigType.UShort, att.JoinNumber - FusionJoinOffset, att.Name, GetIOMask(att.RwType));
-					AnalogAttributes[att.JoinNumber].UShortValueFeedback.LinkInputSig(FusionSymbol.UserDefinedUShortSigDetails[att.JoinNumber - FusionJoinOffset].InputSig);
+
+					if (att.RwType == eReadWrite.ReadWrite || att.RwType == eReadWrite.Read)
+					{
+						AnalogAttributesToFusion.Add(att.JoinNumber, new DynFusionAnalogAttribute(att.Name, att.JoinNumber));
+						AnalogAttributesToFusion[att.JoinNumber].UShortValueFeedback.LinkInputSig(FusionSymbol.UserDefinedUShortSigDetails[att.JoinNumber - FusionJoinOffset].InputSig);
+					}
+					if (att.RwType == eReadWrite.ReadWrite || att.RwType == eReadWrite.Write)
+					{
+						AnalogAttributesFromFusion.Add(att.JoinNumber, new DynFusionAnalogAttribute(att.Name, att.JoinNumber));
+					}
 
 				}
 				foreach (var att in _Config.CustomAttributes.SerialAttributes)
 				{
-					SerialAttributes.Add(att.JoinNumber, new DynFusionSerialAttribute(att.Name, att.JoinNumber, att.RwType));
 					FusionSymbol.AddSig(eSigType.String, att.JoinNumber - FusionJoinOffset, att.Name, GetIOMask(att.RwType));
-					SerialAttributes[att.JoinNumber].StringValueFeedback.LinkInputSig(FusionSymbol.UserDefinedStringSigDetails[att.JoinNumber - FusionJoinOffset].InputSig);
+					if (att.RwType == eReadWrite.ReadWrite || att.RwType == eReadWrite.Read)
+					{
+						SerialAttributesToFusion.Add(att.JoinNumber, new DynFusionSerialAttribute(att.Name, att.JoinNumber));
+						SerialAttributesToFusion[att.JoinNumber].StringValueFeedback.LinkInputSig(FusionSymbol.UserDefinedStringSigDetails[att.JoinNumber - FusionJoinOffset].InputSig);
+					}
+					if (att.RwType == eReadWrite.ReadWrite || att.RwType == eReadWrite.Write)
+					{
+						SerialAttributesFromFusion.Add(att.JoinNumber, new DynFusionSerialAttribute(att.Name, att.JoinNumber));
+					}
+
 				}
 
 				// Create Links for Statndard joins 
-				var tempJoinMap = new DynFusionJoinMap(1);
-				
-				CreateStandardJoin(tempJoinMap.SystemPowerOn, FusionSymbol.SystemPowerOn);
-				CreateStandardJoin(tempJoinMap.SystemPowerOff, FusionSymbol.SystemPowerOff);
-				CreateStandardJoin(tempJoinMap.DisplayPowerOn, FusionSymbol.DisplayPowerOn);
-				CreateStandardJoin(tempJoinMap.DisplayPowerOff, FusionSymbol.DisplayPowerOff);
-				CreateStandardJoin(tempJoinMap.MsgBroadcastEnabled, FusionSymbol.MessageBroadcastEnabled);
-				CreateStandardJoin(tempJoinMap.AuthenticationSucceeded, FusionSymbol.AuthenticateSucceeded);
-				CreateStandardJoin(tempJoinMap.AuthenticationFailed, FusionSymbol.AuthenticateFailed);
+				CreateStandardJoin(JoinMapStatic.SystemPowerOn, FusionSymbol.SystemPowerOn);
+				CreateStandardJoin(JoinMapStatic.SystemPowerOff, FusionSymbol.SystemPowerOff);
+				CreateStandardJoin(JoinMapStatic.DisplayPowerOn, FusionSymbol.DisplayPowerOn);
+				CreateStandardJoin(JoinMapStatic.DisplayPowerOff, FusionSymbol.DisplayPowerOff);
+				CreateStandardJoin(JoinMapStatic.MsgBroadcastEnabled, FusionSymbol.MessageBroadcastEnabled);
+				CreateStandardJoin(JoinMapStatic.AuthenticationSucceeded, FusionSymbol.AuthenticateSucceeded);
+				CreateStandardJoin(JoinMapStatic.AuthenticationFailed, FusionSymbol.AuthenticateFailed);
 
-				CreateStandardJoin(tempJoinMap.DeviceUsage, FusionSymbol.DisplayUsage);
-				CreateStandardJoin(tempJoinMap.BoradcasetMsgType, FusionSymbol.BroadcastMessageType);
+				CreateStandardJoin(JoinMapStatic.DeviceUsage, FusionSymbol.DisplayUsage);
+				CreateStandardJoin(JoinMapStatic.BoradcasetMsgType, FusionSymbol.BroadcastMessageType);
 
-				CreateStandardJoin(tempJoinMap.HelpMsg, FusionSymbol.Help);
-				CreateStandardJoin(tempJoinMap.ErrorMsg, FusionSymbol.ErrorMessage);
-				CreateStandardJoin(tempJoinMap.LogText, FusionSymbol.LogText);
+				CreateStandardJoin(JoinMapStatic.HelpMsg, FusionSymbol.Help);
+				CreateStandardJoin(JoinMapStatic.ErrorMsg, FusionSymbol.ErrorMessage);
+				CreateStandardJoin(JoinMapStatic.LogText, FusionSymbol.LogText);
 		
 
 				// DigitalAttributes[tempJoinMap.SystemPowerOff.JoinNumber].BoolValueFeedback.LinkInputSig(FusionSymbol.SystemPowerOff.InputSig);
@@ -132,32 +161,45 @@ namespace PDTDynFusionEPI
 		}
 		void CreateStandardJoin(JoinDataComplete join, BooleanSigDataFixedName Sig)
 		{
+			if (join.Metadata.JoinCapabilities == eJoinCapabilities.ToFromSIMPL || join.Metadata.JoinCapabilities == eJoinCapabilities.ToSIMPL)
+			{
+				DigitalAttributesFromFusion.Add(join.JoinNumber, new DynFusionDigitalAttribute(join.Metadata.Description, join.JoinNumber));
+			}
 
-			DigitalAttributes.Add(join.JoinNumber, new DynFusionDigitalAttribute(join.Metadata.Description, join.JoinNumber, GeteReadWrite(join.Metadata.JoinCapabilities)));
-			
 			if (join.Metadata.JoinCapabilities == eJoinCapabilities.ToFromSIMPL || join.Metadata.JoinCapabilities == eJoinCapabilities.FromSIMPL)
 			{
-				DigitalAttributes[join.JoinNumber].BoolValueFeedback.LinkInputSig(Sig.InputSig);
+				DigitalAttributesToFusion.Add(join.JoinNumber, new DynFusionDigitalAttribute(join.Metadata.Description, join.JoinNumber));
+				DigitalAttributesToFusion[join.JoinNumber].BoolValueFeedback.LinkInputSig(Sig.InputSig);
 			}
 		}
 		void CreateStandardJoin(JoinDataComplete join, UShortSigDataFixedName Sig)
 		{
-			AnalogAttributes.Add(join.JoinNumber, new DynFusionAnalogAttribute(join.Metadata.Description, join.JoinNumber, GeteReadWrite(join.Metadata.JoinCapabilities)));
+
+			if (join.Metadata.JoinCapabilities == eJoinCapabilities.ToFromSIMPL || join.Metadata.JoinCapabilities == eJoinCapabilities.ToSIMPL)
+			{
+				AnalogAttributesFromFusion.Add(join.JoinNumber, new DynFusionAnalogAttribute(join.Metadata.Description, join.JoinNumber));
+			}
 
 			if (join.Metadata.JoinCapabilities == eJoinCapabilities.ToFromSIMPL || join.Metadata.JoinCapabilities == eJoinCapabilities.FromSIMPL)
 			{
-				AnalogAttributes[join.JoinNumber].UShortValueFeedback.LinkInputSig(Sig.InputSig);
+				AnalogAttributesToFusion.Add(join.JoinNumber, new DynFusionAnalogAttribute(join.Metadata.Description, join.JoinNumber));
+				AnalogAttributesToFusion[join.JoinNumber].UShortValueFeedback.LinkInputSig(Sig.InputSig);
 			}
 		}
 		void CreateStandardJoin(JoinDataComplete join, StringSigDataFixedName Sig)
 		{
-			SerialAttributes.Add(join.JoinNumber, new DynFusionSerialAttribute(join.Metadata.Description, join.JoinNumber, GeteReadWrite(join.Metadata.JoinCapabilities)));
+			if (join.Metadata.JoinCapabilities == eJoinCapabilities.ToFromSIMPL || join.Metadata.JoinCapabilities == eJoinCapabilities.ToSIMPL)
+			{
+				SerialAttributesFromFusion.Add(join.JoinNumber, new DynFusionSerialAttribute(join.Metadata.Description, join.JoinNumber));
+			}
 
 			if (join.Metadata.JoinCapabilities == eJoinCapabilities.ToFromSIMPL || join.Metadata.JoinCapabilities == eJoinCapabilities.FromSIMPL)
 			{
-				SerialAttributes[join.JoinNumber].StringValueFeedback.LinkInputSig(Sig.InputSig);
+				SerialAttributesToFusion.Add(join.JoinNumber, new DynFusionSerialAttribute(join.Metadata.Description, join.JoinNumber));
+				SerialAttributesToFusion[join.JoinNumber].StringValueFeedback.LinkInputSig(Sig.InputSig);
 			}
 		}
+
 		void FusionSymbol_FusionStateChange(FusionBase device, FusionStateEventArgs args)
 		{
 			Debug.Console(2, this, "DynFusion FusionStateChange {0} {1}", args.EventId, args.UserConfiguredSigDetail.ToString());
@@ -169,7 +211,7 @@ namespace PDTDynFusionEPI
 						
 						var sigDetails = args.UserConfiguredSigDetail as BooleanSigDataFixedName;
 						DynFusionDigitalAttribute output;
-						if (DigitalAttributes.TryGetValue(JoinMapStatic.SystemPowerOn.JoinNumber, out output))
+						if (DigitalAttributesFromFusion.TryGetValue(JoinMapStatic.SystemPowerOn.JoinNumber, out output))
 						{
 							output.BoolValue = sigDetails.OutputSig.BoolValue;
 						}
@@ -179,7 +221,7 @@ namespace PDTDynFusionEPI
 					{
 						var sigDetails = args.UserConfiguredSigDetail as BooleanSigDataFixedName;
 						DynFusionDigitalAttribute output;
-						if (DigitalAttributes.TryGetValue(JoinMapStatic.SystemPowerOff.JoinNumber, out output))
+						if (DigitalAttributesFromFusion.TryGetValue(JoinMapStatic.SystemPowerOff.JoinNumber, out output))
 						{
 							output.BoolValue = sigDetails.OutputSig.BoolValue;
 						}
@@ -189,7 +231,7 @@ namespace PDTDynFusionEPI
 					{
 						var sigDetails = args.UserConfiguredSigDetail as BooleanSigDataFixedName;
 						DynFusionDigitalAttribute output;
-						if (DigitalAttributes.TryGetValue(JoinMapStatic.DisplayPowerOn.JoinNumber, out output))
+						if (DigitalAttributesFromFusion.TryGetValue(JoinMapStatic.DisplayPowerOn.JoinNumber, out output))
 						{
 							output.BoolValue = sigDetails.OutputSig.BoolValue;
 						}
@@ -199,7 +241,7 @@ namespace PDTDynFusionEPI
 					{
 						var sigDetails = args.UserConfiguredSigDetail as BooleanSigDataFixedName;
 						DynFusionDigitalAttribute output;
-						if (DigitalAttributes.TryGetValue(JoinMapStatic.DisplayPowerOff.JoinNumber, out output))
+						if (DigitalAttributesFromFusion.TryGetValue(JoinMapStatic.DisplayPowerOff.JoinNumber, out output))
 						{
 							output.BoolValue = sigDetails.OutputSig.BoolValue;
 						}
@@ -209,7 +251,7 @@ namespace PDTDynFusionEPI
 					{
 						var sigDetails = args.UserConfiguredSigDetail as UShortSigDataFixedName;
 						DynFusionAnalogAttribute output;
-						if (AnalogAttributes.TryGetValue(JoinMapStatic.BoradcasetMsgType.JoinNumber, out output))
+						if (AnalogAttributesFromFusion.TryGetValue(JoinMapStatic.BoradcasetMsgType.JoinNumber, out output))
 						{
 							output.UShortValue = sigDetails.OutputSig.UShortValue;
 						}
@@ -219,7 +261,7 @@ namespace PDTDynFusionEPI
 					{
 						var sigDetails = args.UserConfiguredSigDetail as UShortSigDataFixedName;
 						DynFusionSerialAttribute output;
-						if (SerialAttributes.TryGetValue(JoinMapStatic.SystemPowerOn.JoinNumber, out output))
+						if (SerialAttributesFromFusion.TryGetValue(JoinMapStatic.SystemPowerOn.JoinNumber, out output))
 						{
 							output.StringValue = sigDetails.OutputSig.StringValue;
 						}
@@ -229,7 +271,7 @@ namespace PDTDynFusionEPI
 					{
 						var sigDetails = args.UserConfiguredSigDetail as UShortSigDataFixedName;
 						DynFusionSerialAttribute output;
-						if (SerialAttributes.TryGetValue(JoinMapStatic.TextMessage.JoinNumber, out output))
+						if (SerialAttributesFromFusion.TryGetValue(JoinMapStatic.TextMessage.JoinNumber, out output))
 						{
 							output.StringValue = sigDetails.OutputSig.StringValue;
 						}
@@ -239,7 +281,7 @@ namespace PDTDynFusionEPI
 					{
 						var sigDetails = args.UserConfiguredSigDetail as UShortSigDataFixedName;
 						DynFusionSerialAttribute output;
-						if (SerialAttributes.TryGetValue(JoinMapStatic.BroadcastMsg.JoinNumber, out output))
+						if (SerialAttributesFromFusion.TryGetValue(JoinMapStatic.BroadcastMsg.JoinNumber, out output))
 						{
 							output.StringValue = sigDetails.OutputSig.StringValue;
 						}
@@ -249,7 +291,7 @@ namespace PDTDynFusionEPI
 					{
 						var sigDetails = args.UserConfiguredSigDetail as UShortSigDataFixedName;
 						DynFusionSerialAttribute output;
-						if (SerialAttributes.TryGetValue(JoinMapStatic.GroupMembership.JoinNumber, out output))
+						if (SerialAttributesFromFusion.TryGetValue(JoinMapStatic.GroupMembership.JoinNumber, out output))
 						{
 							output.StringValue = sigDetails.OutputSig.StringValue;
 						}
@@ -263,7 +305,7 @@ namespace PDTDynFusionEPI
 						DynFusionDigitalAttribute output;
 						Debug.Console(2, this, "DynFusion UserAttribute Digital Join:{0} Name:{1} Value:{2}", joinNumber, sigDetails.Name, sigDetails.OutputSig.BoolValue);
 
-						if (DigitalAttributes.TryGetValue(joinNumber, out output))
+						if (DigitalAttributesFromFusion.TryGetValue(joinNumber, out output))
 						{
 							output.BoolValue = sigDetails.OutputSig.BoolValue;
 						}
@@ -277,7 +319,7 @@ namespace PDTDynFusionEPI
 						DynFusionAnalogAttribute output;
 						Debug.Console(2, this, "DynFusion UserAttribute Analog Join:{0} Name:{1} Value:{2}", joinNumber, sigDetails.Name, sigDetails.OutputSig.UShortValue);
 
-						if (AnalogAttributes.TryGetValue(joinNumber, out output))
+						if (AnalogAttributesFromFusion.TryGetValue(joinNumber, out output))
 						{
 							output.UShortValue = sigDetails.OutputSig.UShortValue;
 						}
@@ -290,7 +332,7 @@ namespace PDTDynFusionEPI
 						DynFusionSerialAttribute output;
 						Debug.Console(2, this, "DynFusion UserAttribute Analog Join:{0} Name:{1} Value:{2}", joinNumber, sigDetails.Name, sigDetails.OutputSig.StringValue);
 
-						if (SerialAttributes.TryGetValue(joinNumber, out output))
+						if (SerialAttributesFromFusion.TryGetValue(joinNumber, out output))
 						{
 							output.StringValue = sigDetails.OutputSig.StringValue;
 						}
@@ -367,44 +409,36 @@ namespace PDTDynFusionEPI
 
 			
 
-			foreach (var att in DigitalAttributes)
+			foreach (var att in DigitalAttributesToFusion)
 			{
 				var attLocal = att.Value;
-				if (attLocal.RwType == eReadWrite.ReadWrite || attLocal.RwType == eReadWrite.Read)
-				{
-					trilist.SetBoolSigAction(attLocal.JoinNumber, (b) => { attLocal.BoolValue = b; });
-				}
-				if (attLocal.RwType == eReadWrite.ReadWrite || attLocal.RwType == eReadWrite.Write)
-				{
-					attLocal.BoolValueFeedback.LinkInputSig(trilist.BooleanInput[attLocal.JoinNumber]);
-				}
-
+				trilist.SetBoolSigAction(attLocal.JoinNumber, (b) => { attLocal.BoolValue = b; });
 			}
-			foreach (var att in AnalogAttributes)
+			foreach (var att in DigitalAttributesFromFusion)
 			{
 				var attLocal = att.Value;
-				if (attLocal.RwType == eReadWrite.ReadWrite || attLocal.RwType == eReadWrite.Read)
-				{
-					trilist.SetUShortSigAction(attLocal.JoinNumber, (a) => { attLocal.UShortValue = a; });
-				}
-				if (attLocal.RwType == eReadWrite.ReadWrite || attLocal.RwType == eReadWrite.Write)
-				{
-					attLocal.UShortValueFeedback.LinkInputSig(trilist.UShortInput[attLocal.JoinNumber]);
-				}
-
+				attLocal.BoolValueFeedback.LinkInputSig(trilist.BooleanInput[attLocal.JoinNumber]);
 			}
-			foreach (var att in SerialAttributes)
+			foreach (var att in AnalogAttributesToFusion)
 			{
 				var attLocal = att.Value;
-				if (attLocal.RwType == eReadWrite.ReadWrite || attLocal.RwType == eReadWrite.Read)
-				{
-					trilist.SetStringSigAction(attLocal.JoinNumber, (a) => { attLocal.StringValue = a; });
-				}
-				if (attLocal.RwType == eReadWrite.ReadWrite || attLocal.RwType == eReadWrite.Write)
-				{
-					attLocal.StringValueFeedback.LinkInputSig(trilist.StringInput[attLocal.JoinNumber]);
-				}
+				trilist.SetUShortSigAction(attLocal.JoinNumber, (a) => { attLocal.UShortValue = a; });
+			}
+			foreach (var att in AnalogAttributesFromFusion)
+			{
+				var attLocal = att.Value;
+				attLocal.UShortValueFeedback.LinkInputSig(trilist.UShortInput[attLocal.JoinNumber]);	
+			}
 
+			foreach (var att in SerialAttributesToFusion)
+			{
+				var attLocal = att.Value;
+				trilist.SetStringSigAction(attLocal.JoinNumber, (a) => { attLocal.StringValue = a; });
+			}
+			foreach(var att in SerialAttributesFromFusion)
+			{
+				var attLocal = att.Value;
+				attLocal.StringValueFeedback.LinkInputSig(trilist.StringInput[attLocal.JoinNumber]);
 			}
 	        trilist.OnlineStatusChange += (o, a) =>
 	        {
