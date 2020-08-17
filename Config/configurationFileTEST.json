@@ -47,9 +47,38 @@
                             {"name": "testAttributeString", "joinNumber": 51, "RwType": "RW"}
                         ]
 
+                    },
+                    "CustomProperties": 
+                    {
+                        "DigitalProperties" : 
+                        [
+                            {"ID": "AdHocEnable", "joinNumber": 55}
+                        ],
+                        "AnalogProperties" : 
+                        [
+                            {"ID": "ForceOrgCheckInDuringRes", "joinNumber": 55}
+                        ],
+                        "SerialProperties" : 
+                        [
+                            {"ID": "BackgroundReserved", "joinNumber": 55}
+                        ]
+                    },
+                    "EssentialsDevices": 
+                    {
+                        "DigitalProperties" : 
+                        [
+                            {"key": "EssentialsDevice", "Interface": "IPower", "Method": "Method", "Feedback": "BoolFB", "JoinNumber": 77, "comment": "devMethods, devFeedback"}
+                            
+                        ],
+                        "AnalogProperties" : 
+                        [
+                            {"ID": "ForceOrgCheckInDuringRes", "joinNumber": 55}
+                        ],
+                        "SerialProperties" : 
+                        [
+                            {"ID": "BackgroundReserved", "joinNumber": 55}
+                        ]
                     }
-
-                  
                 }
             },
 

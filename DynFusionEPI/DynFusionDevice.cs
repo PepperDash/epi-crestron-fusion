@@ -10,6 +10,9 @@ using System.Linq;
 using System.Text; 
 using Crestron.SimplSharpPro.Fusion;
 using Crestron.SimplSharpPro;
+using Crestron.SimplSharp.CrestronXml;
+using Crestron.SimplSharp.CrestronXml.Serialization;
+using Crestron.SimplSharp.CrestronXmlLinq;
 
 namespace PDTDynFusionEPI 
 {
@@ -28,6 +31,7 @@ namespace PDTDynFusionEPI
 		private static DynFusionJoinMap JoinMapStatic;
 
 		public BoolFeedback FusionOnlineFeedback;
+		public RoomInformation roomInformation;
 
 		public FusionRoom FusionSymbol;
 
@@ -73,7 +77,7 @@ namespace PDTDynFusionEPI
 	
 				// Attribute State Changes 
 				FusionSymbol.FusionStateChange += new FusionStateEventHandler(FusionSymbol_FusionStateChange);
-				//	FusionSymbol.ExtenderFusionRoomDataReservedSigs.DeviceExtenderSigChange += new DeviceExtenderJoinChangeEventHandler(ExtenderFusionRoomDataReservedSigs_DeviceExtenderSigChange);
+				FusionSymbol.ExtenderFusionRoomDataReservedSigs.DeviceExtenderSigChange += new DeviceExtenderJoinChangeEventHandler(FusionSymbol_RoomDataDeviceExtenderSigChange);
 
 				// Create Custom Atributes 
 				foreach (var att in _Config.CustomAttributes.DigitalAttributes)
@@ -137,7 +141,36 @@ namespace PDTDynFusionEPI
 				CreateStandardJoin(JoinMapStatic.ErrorMsg, FusionSymbol.ErrorMessage);
 				CreateStandardJoin(JoinMapStatic.LogText, FusionSymbol.LogText);
 		
+				// Room Data Extender 
+				CreateStandardJoin(JoinMapStatic.ActionQuery, FusionSymbol.ExtenderFusionRoomDataReservedSigs.ActionQuery);
+				CreateStandardJoin(JoinMapStatic.RoomConfig, FusionSymbol.ExtenderFusionRoomDataReservedSigs.RoomConfigQuery);
 
+				if (_Config.CustomProperties != null)
+				{
+					if (_Config.CustomProperties.DigitalProperties != null)
+					{
+						foreach (var att in _Config.CustomProperties.DigitalProperties)
+						{
+							DigitalAttributesFromFusion.Add(att.JoinNumber, new DynFusionDigitalAttribute(att.ID, att.JoinNumber));
+						}
+					}
+					if (_Config.CustomProperties.AnalogProperties != null)
+					{
+
+						foreach (var att in _Config.CustomProperties.AnalogProperties)
+						{
+							AnalogAttributesFromFusion.Add(att.JoinNumber, new DynFusionAnalogAttribute(att.ID, att.JoinNumber));
+						}
+					}
+					if (_Config.CustomProperties.SerialProperties != null)
+					{
+
+						foreach (var att in _Config.CustomProperties.SerialProperties)
+						{
+							SerialAttributesFromFusion.Add(att.JoinNumber, new DynFusionSerialAttribute(att.ID, att.JoinNumber));
+						}
+					}
+				}
 				// DigitalAttributes[tempJoinMap.SystemPowerOff.JoinNumber].BoolValueFeedback.LinkInputSig(FusionSymbol.SystemPowerOff.InputSig);
 
 				
@@ -198,6 +231,61 @@ namespace PDTDynFusionEPI
 				SerialAttributesToFusion.Add(join.JoinNumber, new DynFusionSerialAttribute(join.Metadata.Description, join.JoinNumber));
 				SerialAttributesToFusion[join.JoinNumber].StringValueFeedback.LinkInputSig(Sig.InputSig);
 			}
+		}
+		void CreateStandardJoin(JoinDataComplete join, StringInputSig Sig)
+		{
+			if (join.Metadata.JoinCapabilities == eJoinCapabilities.ToFromSIMPL || join.Metadata.JoinCapabilities == eJoinCapabilities.ToSIMPL)
+			{
+				SerialAttributesFromFusion.Add(join.JoinNumber, new DynFusionSerialAttribute(join.Metadata.Description, join.JoinNumber));
+			}
+
+			if (join.Metadata.JoinCapabilities == eJoinCapabilities.ToFromSIMPL || join.Metadata.JoinCapabilities == eJoinCapabilities.FromSIMPL)
+			{
+				SerialAttributesToFusion.Add(join.JoinNumber, new DynFusionSerialAttribute(join.Metadata.Description, join.JoinNumber));
+				SerialAttributesToFusion[join.JoinNumber].StringValueFeedback.LinkInputSig(Sig);
+			}
+		}
+
+		void FusionSymbol_RoomDataDeviceExtenderSigChange(DeviceExtender currentDeviceExtender, SigEventArgs args)
+		{
+			Debug.Console(2, this, string.Format("DynFusion DeviceExtenderChange {0} {1} {2} {3}", currentDeviceExtender.ToString(), args.Sig.Number, args.Sig.Type, args.Sig.StringValue));
+			ushort joinNumber = (ushort)args.Sig.Number;
+			
+			switch (args.Sig.Type)
+			{
+				case eSigType.Bool:
+					{
+
+						break;
+					}
+				case eSigType.UShort:
+					{
+
+						break;
+					}
+
+				case eSigType.String:
+					{
+						//var sigDetails = args.UserConfiguredSigDetail as BooleanSigDataFixedName;
+						DynFusionSerialAttribute output;
+
+
+						
+						if (SerialAttributesFromFusion.TryGetValue(args.Sig.Number, out output))
+						{
+							output.StringValue = args.Sig.StringValue;
+						}
+						
+						if (args.Sig == FusionSymbol.ExtenderFusionRoomDataReservedSigs.RoomConfigResponse && args.Sig.StringValue != null)
+						{
+							RoomConfigParseData(args.Sig.StringValue);
+						}
+						 
+
+						break;
+					}
+			}
+
 		}
 
 		void FusionSymbol_FusionStateChange(FusionBase device, FusionStateEventArgs args)
@@ -297,7 +385,28 @@ namespace PDTDynFusionEPI
 						}
 						break;
 					}
-				
+				case FusionEventIds.AuthenticateFailedReceivedEventId:
+					{
+						var sigDetails = args.UserConfiguredSigDetail as UShortSigDataFixedName;
+						DynFusionSerialAttribute output;
+						if (SerialAttributesFromFusion.TryGetValue(JoinMapStatic.AuthenticationFailed.JoinNumber, out output))
+						{
+							output.StringValue = sigDetails.OutputSig.StringValue;
+						}
+						break;
+					
+					}
+				case FusionEventIds.AuthenticateSucceededReceivedEventId:
+					{
+						var sigDetails = args.UserConfiguredSigDetail as UShortSigDataFixedName;
+						DynFusionSerialAttribute output;
+						if (SerialAttributesFromFusion.TryGetValue(JoinMapStatic.AuthenticationSucceeded.JoinNumber, out output))
+						{
+							output.StringValue = sigDetails.OutputSig.StringValue;
+						}
+						break;
+
+					}
 				case FusionEventIds.UserConfiguredBoolSigChangeEventId:
 					{
 						var sigDetails = args.UserConfiguredSigDetail as BooleanSigData;
@@ -337,6 +446,7 @@ namespace PDTDynFusionEPI
 							output.StringValue = sigDetails.OutputSig.StringValue;
 						}
 						break;
+					
 					}
 
 				 
@@ -346,6 +456,7 @@ namespace PDTDynFusionEPI
 		void FusionSymbol_OnlineStatusChange(GenericBase currentDevice, OnlineOfflineEventArgs args)
 		{
 			FusionOnlineFeedback.FireUpdate();
+			GetRoomConfig();
 		}
 		private static eSigIoMask GetIOMask(eReadWrite mask)
 		{
@@ -385,6 +496,98 @@ namespace PDTDynFusionEPI
 		}
 	    #region Overrides of EssentialsBridgeableDevice
 
+		public void GetRoomConfig()
+		{
+			try
+			{
+				if (FusionSymbol.IsOnline)
+				{
+
+					string fusionRoomConfigRequest = String.Format("<RequestRoomConfiguration><RequestID>RoomConfigurationRequest</RequestID><CustomProperties><Property></Property></CustomProperties></RequestRoomConfiguration>");
+
+					Debug.Console(2, this, "Room Request: {0}", fusionRoomConfigRequest);
+					SerialAttributesToFusion[JoinMapStatic.RoomConfig.JoinNumber].StringValue = fusionRoomConfigRequest;
+				}
+			}
+			catch (Exception e)
+			{
+				Debug.Console(2, this, "GetRoomConfig Error {0}", e);
+			}
+
+		}
+
+		private void RoomConfigParseData(string data)
+		{
+                data = data.Replace("&", "and");
+
+                try
+                {
+                    XmlDocument roomConfigResponse = new XmlDocument();
+
+                    roomConfigResponse.LoadXml(data);
+
+                    var requestRoomConfiguration = roomConfigResponse["RoomConfigurationResponse"];
+
+                    if (requestRoomConfiguration != null)
+                    {
+                        foreach (XmlElement e in roomConfigResponse.FirstChild.ChildNodes)
+                        {
+                            if (e.Name == "RoomInformation")
+                            {
+                                XmlReader roomInfo = new XmlReader(e.OuterXml);
+
+                                roomInformation = CrestronXMLSerialization.DeSerializeObject<RoomInformation>(roomInfo);
+                            }
+                            else if (e.Name == "CustomFields")
+                            {
+								foreach (XmlElement el in e)
+                                {
+									var id = el.Attributes["ID"].Value;
+				
+									var type = el.SelectSingleNode("CustomFieldType").InnerText;
+									var val = el.SelectSingleNode("CustomFieldValue").InnerText;
+									if (type == "Boolean")
+									{
+										
+										var attirbute = DigitalAttributesFromFusion.SingleOrDefault(x => x.Value.Name == id);
+
+										if (attirbute.Value != null)
+										{
+											attirbute.Value.BoolValue = Boolean.Parse(val);
+										}
+										
+									}
+									else if (type == "Integer")
+									{
+										var attirbute = AnalogAttributesFromFusion.SingleOrDefault(x => x.Value.Name == id);
+
+										if (attirbute.Value != null)
+										{
+											attirbute.Value.UShortValue = uint.Parse(val);
+										}
+									}
+									else if (type == "String" || type == "Text" || type == "URL")
+									{
+										var attirbute = SerialAttributesFromFusion.SingleOrDefault(x => x.Value.Name == id);
+
+										if (attirbute.Value != null)
+										{
+											attirbute.Value.StringValue = val;
+										}
+									}
+									Debug.Console(2, this, "RoomConfigParseData {0} {1} {2}", type, id, val); 
+									}
+							
+							
+                            }
+                        }
+                    }
+                }
+				catch (Exception e)
+				{
+					Debug.Console(2, this, "GetRoomConfig Error {0}", e);
+				}
+		}
 	    public override void LinkToApi(BasicTriList trilist, uint joinStart, string joinMapKey, EiscApiAdvanced bridge)
 	    {
 	        /*
@@ -445,12 +648,31 @@ namespace PDTDynFusionEPI
 	            if (a.DeviceOnLine)
 	            {
 	                // trilist.SetString(joinMap.DeviceName.JoinNumber, Name);
+					GetRoomConfig();
 	            }
 	        };
 	    }
 
 
 	    #endregion
+	}
+	public class RoomInformation
+	{
+		public string ID { get; set; }
+		public string Name { get; set; }
+		public string Location { get; set; }
+		public string Description { get; set; }
+		public string TimeZone { get; set; }
+		public string WebcamURL { get; set; }
+		public string BacklogMsg { get; set; }
+		public string SubErrorMsg { get; set; }
+		public string EmailInfo { get; set; }
+		public List<FusionCustomProperty> FusionCustomProperties { get; set; }
+
+		public RoomInformation()
+		{
+			FusionCustomProperties = new List<FusionCustomProperty>();
+		}
 	}
 }
 
