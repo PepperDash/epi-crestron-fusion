@@ -9,7 +9,7 @@ using Newtonsoft.Json.Converters;
 using Crestron.SimplSharpPro;
 using PepperDash.Core;
 
-namespace PDTDynFusionEPI
+namespace DynFusion
 {
 
 	public class DynFusionDigitalAttribute : DynFusionAttributeBase

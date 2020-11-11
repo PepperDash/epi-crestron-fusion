@@ -16,7 +16,6 @@
             }],
 
         "devices": [
-
             {
                 "key": "DynFusion01",
                 "uid": 1,
@@ -63,18 +62,17 @@
                             {"ID": "BackgroundReserved", "joinNumber": 55}
                         ]
                     },
-                    "EssentialsDevices": 
+                    "Assets": 
                     {
-                        "DigitalProperties" : 
+                        "OccupancySensors" : 
                         [
-                            {"key": "EssentialsDevice", "Interface": "IPower", "Method": "Method", "Feedback": "BoolFB", "JoinNumber": 77, "comment": "devMethods, devFeedback"}
-                            
+                            {"Key": "Occ01", "LinkDeviceKey": "Simpl"}  
                         ],
-                        "AnalogProperties" : 
+                        "AnalogLinks" : 
                         [
                             {"ID": "ForceOrgCheckInDuringRes", "joinNumber": 55}
                         ],
-                        "SerialProperties" : 
+                        "SerialLinks" : 
                         [
                             {"ID": "BackgroundReserved", "joinNumber": 55}
                         ]
@@ -100,6 +98,9 @@
                             "deviceKey": "DynFusion01",
                             "joinStart": 1
                         }
+
+
+
                     ]
                 },
                 "type": "eiscApiAdvanced",

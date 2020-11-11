@@ -9,7 +9,7 @@ using PepperDash.Essentials.Core;
 
 using Newtonsoft.Json;
 
-namespace PDTDynFusionEPI
+namespace DynFusion
 {
     public class EssentialsPluginFactoryTemplate : EssentialsPluginDeviceFactory<DynFusionDevice>
     {

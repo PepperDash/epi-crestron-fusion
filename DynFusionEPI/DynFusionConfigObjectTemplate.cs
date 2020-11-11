@@ -7,7 +7,7 @@ using PepperDash.Essentials.Core;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Converters;
 
-namespace PDTDynFusionEPI
+namespace DynFusion
 {
 	public class DynFusionConfigObjectTemplate
 	{
@@ -17,7 +17,10 @@ namespace PDTDynFusionEPI
 		public CustomAttributes CustomAttributes { get; set; }
 
 		[JsonProperty("customProperties")]
-		public CustomProperties CustomProperties { get; set; } 
+		public CustomProperties CustomProperties { get; set; }
+
+		[JsonProperty("Assets")]
+		public AssetsClass Assets { get; set; } 
 
 	}
 
@@ -34,6 +37,13 @@ namespace PDTDynFusionEPI
 		public List<FusionCustomProperty> SerialProperties { get; set; }
 	}
 
+	public class AssetsClass
+	{
+		public List<FusionOccupancyAsset> OccupancySensors { get; set; }
+		public List<FusionEssentialsAsset> AnalogLinks { get; set; }
+		public List<FusionEssentialsAsset> SerialLinks { get; set; }
+	}
+
 	public class FusionCustomProperty
 	{
 		[JsonProperty("ID")]
@@ -41,5 +51,28 @@ namespace PDTDynFusionEPI
 		[JsonProperty("JoinNumber")]
 		public UInt32 JoinNumber { get; set; }
 
+	}
+	public class FusionOccupancyAsset
+	{
+		[JsonProperty("Key")]
+		public string Key { get; set; }
+
+		[JsonProperty("LinkToDeviceKey")]
+		public string LinkToDeviceKey { get; set; }
+
+	}
+	public class FusionEssentialsAsset
+	{
+		[JsonProperty("DeviceKey")]
+		public string DeviceKey { get; set; }
+
+		[JsonProperty("JoinNumber")]
+		public UInt32 JoinNumber { get; set; }
+
+		[JsonProperty("FeedbackName")]
+		public string Feedback { get; set; }
+
+		[JsonProperty("Name")]
+		public string Name { get; set; }
 	}
 }

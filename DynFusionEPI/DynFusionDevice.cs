@@ -13,8 +13,9 @@ using Crestron.SimplSharpPro;
 using Crestron.SimplSharp.CrestronXml;
 using Crestron.SimplSharp.CrestronXml.Serialization;
 using Crestron.SimplSharp.CrestronXmlLinq;
+using DynFusion.Assets;
 
-namespace PDTDynFusionEPI 
+namespace DynFusion 
 {
 	public class DynFusionDevice : EssentialsBridgeableDevice
 	{
@@ -125,7 +126,7 @@ namespace PDTDynFusionEPI
 
 				}
 
-				// Create Links for Statndard joins 
+				// Create Links for Standard joins 
 				CreateStandardJoin(JoinMapStatic.SystemPowerOn, FusionSymbol.SystemPowerOn);
 				CreateStandardJoin(JoinMapStatic.SystemPowerOff, FusionSymbol.SystemPowerOff);
 				CreateStandardJoin(JoinMapStatic.DisplayPowerOn, FusionSymbol.DisplayPowerOn);
@@ -144,7 +145,7 @@ namespace PDTDynFusionEPI
 				// Room Data Extender 
 				CreateStandardJoin(JoinMapStatic.ActionQuery, FusionSymbol.ExtenderFusionRoomDataReservedSigs.ActionQuery);
 				CreateStandardJoin(JoinMapStatic.RoomConfig, FusionSymbol.ExtenderFusionRoomDataReservedSigs.RoomConfigQuery);
-
+				Debug.Console(2, this, "Big Message!!!");
 				if (_Config.CustomProperties != null)
 				{
 					if (_Config.CustomProperties.DigitalProperties != null)
@@ -171,9 +172,22 @@ namespace PDTDynFusionEPI
 						}
 					}
 				}
-				// DigitalAttributes[tempJoinMap.SystemPowerOff.JoinNumber].BoolValueFeedback.LinkInputSig(FusionSymbol.SystemPowerOff.InputSig);
 
-				
+				if (_Config.Assets != null)
+				{
+					if (_Config.Assets.OccupancySensors != null)
+					{
+						foreach (var occSensorConfig in _Config.Assets.OccupancySensors)
+						{
+							uint tempAssetNumber = GetNextAvailableAssetNumber(FusionSymbol);
+							Debug.Console(2, this, string.Format("Creating occSensor: {0}, {1}", tempAssetNumber, occSensorConfig.Key));
+							FusionSymbol.AddAsset(eAssetType.OccupancySensor, tempAssetNumber, occSensorConfig.Key, "Occupancy Sensor", Guid.NewGuid().ToString());
+							DynFusionAssetOccupancySensor OccSensor = new DynFusionAssetOccupancySensor(occSensorConfig.Key, occSensorConfig.LinkToDeviceKey, FusionSymbol, tempAssetNumber);
+							//API.StringActionDict[(ushort)occSensorConfig.join] = (args) => OccSensor.sendChange(args.Sig.StringValue);
+						}
+					}
+
+				}
 
 				// Scheduling Bits for Future 
 				//FusionSymbol.ExtenderRoomViewSchedulingDataReservedSigs.Use();
@@ -494,6 +508,24 @@ namespace PDTDynFusionEPI
 			}
 			return (type);
 		}
+		public static uint GetNextAvailableAssetNumber(FusionRoom room)
+		{
+			uint slotNum = 0;
+			foreach (var item in room.UserConfigurableAssetDetails) 
+			{
+				if (item.Number > slotNum) {
+					slotNum = item.Number;
+					}
+				}
+				if (slotNum < 5){
+					slotNum = 5;
+					}
+				else
+					slotNum = slotNum + 1;
+				Debug.Console(2, string.Format("#Next available fusion asset number is: {0}", slotNum));
+
+				return slotNum;
+			}
 	    #region Overrides of EssentialsBridgeableDevice
 
 		public void GetRoomConfig()

@@ -8,7 +8,7 @@ using Crestron.SimplSharp.CrestronXml.Serialization;
 using Crestron.SimplSharp.CrestronXmlLinq;
 using System.Text.RegularExpressions;
 
-namespace PDTDynFusionEPI
+namespace DynFusion
 {
 	public static class XmlExtensions
 	{
