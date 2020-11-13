@@ -79,6 +79,64 @@
                     }
                 }
             },
+            {
+                "key": "DynFusionSchedule01",
+                "uid": 1,
+                "name": "DynFusionScheduling",
+                "type": "DynFusionSchedule",
+                "group": "Fusion",
+                "properties": 
+                {
+                    "DynFusionKey": "DynFusion01"
+                }
+            },
+            {
+                "key": "DynFusionStaticAsset01 ",
+                "uid": 1,
+                "name": "DynFusion",
+                "type": "DynFusionStaticAsset",
+                "group": "Fusion",
+                "properties": {
+                    "DynFusionKey": "DynFusion01", 
+                    "ReservedAttributes":
+                    {
+                        "DigitalAttributesInputs" : 
+                        [
+                            {"name": "PowerOn",  "BridgeJoinNumber": 1, "LinkDeviceKey": "SomeDevice", "LinkDeviceFeedback": "PowerIsOnFB", "LinkDeviceMethod": "SomeMethodThatAcceptsBool"}
+                            
+                        ],
+                        "AnalogAttributes" : 
+                        [
+                            {"name": "testAttributeUShort", "joinNumber": 2, "RwType": "RW"}
+                        ],
+                        "SerialAttributes" : 
+                        [
+                            {"name": "testAttributeString", "joinNumber": 1, "RwType": "RW"}
+                        ]
+                    },
+                    "CustomAttributes": 
+                    {
+                        "ReservedAttributes":
+                        {
+
+                        },
+                        
+                        "DigitalAttributes" : 
+                        [
+                            {"name": "testAttributeDig", "AttributeNumber": 1, "BridgeJoinNumber": 1, "RwType": "RW"}
+                        ],
+                        "AnalogAttributes" : 
+                        [
+                            {"name": "testAttributeUShort", "joinNumber": 2, "RwType": "RW"}
+                        ],
+                        "SerialAttributes" : 
+                        [
+                            {"name": "testAttributeString", "joinNumber": 1, "RwType": "RW"}
+                        ]
+
+                    }
+                }
+            },
 
             {
                 "group": "api",
@@ -97,10 +155,11 @@
                         {
                             "deviceKey": "DynFusion01",
                             "joinStart": 1
+                        },
+                        {
+                            "deviceKey": "DynFusionSchedule01",
+                            "joinStart": 100
                         }
-
-
-
                     ]
                 },
                 "type": "eiscApiAdvanced",

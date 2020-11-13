@@ -32,7 +32,7 @@ namespace DynFusion
 		private static DynFusionJoinMap JoinMapStatic;
 
 		public BoolFeedback FusionOnlineFeedback;
-		public RoomInformation roomInformation;
+		public RoomInformation RoomInformation;
 
 		public FusionRoom FusionSymbol;
 
@@ -48,6 +48,14 @@ namespace DynFusion
 			AnalogAttributesFromFusion = new Dictionary<UInt32, DynFusionAnalogAttribute>();
 			SerialAttributesFromFusion = new Dictionary<UInt32, DynFusionSerialAttribute>();
 			JoinMapStatic = new DynFusionJoinMap(1);
+			Debug.Console(2, "Creating Fusion Symbol {0} {1}", _Config.control.IpId, Key);
+			FusionSymbol = new FusionRoom(_Config.control.IpIdInt, Global.ControlSystem, "", Guid.NewGuid().ToString());
+			FusionSymbol.ExtenderFusionRoomDataReservedSigs.Use();
+			if (FusionSymbol.Register() != eDeviceRegistrationUnRegistrationResponse.Success)
+			{
+				Debug.Console(0, this, "Faliure to register Fusion Symbol");
+			}
+
 
 		}
 
@@ -63,14 +71,8 @@ namespace DynFusion
 			try
 			{
 
-				Debug.Console(2, "Creating Fusion Symbol {0} {1}", _Config.control.IpId, Key);
-				FusionSymbol = new FusionRoom(_Config.control.IpIdInt, Global.ControlSystem, "", Guid.NewGuid().ToString());
-				if (FusionSymbol.Register() != eDeviceRegistrationUnRegistrationResponse.Success)
-				{
-					Debug.Console(0, this, "Faliure to register Fusion Symbol");
-				}
-
-				FusionSymbol.ExtenderFusionRoomDataReservedSigs.Use();
+				
+				
 
 				// Online Status 
 				FusionOnlineFeedback = new BoolFeedback(() => { return FusionSymbol.IsOnline; });
@@ -145,7 +147,6 @@ namespace DynFusion
 				// Room Data Extender 
 				CreateStandardJoin(JoinMapStatic.ActionQuery, FusionSymbol.ExtenderFusionRoomDataReservedSigs.ActionQuery);
 				CreateStandardJoin(JoinMapStatic.RoomConfig, FusionSymbol.ExtenderFusionRoomDataReservedSigs.RoomConfigQuery);
-				Debug.Console(2, this, "Big Message!!!");
 				if (_Config.CustomProperties != null)
 				{
 					if (_Config.CustomProperties.DigitalProperties != null)
@@ -568,7 +569,7 @@ namespace DynFusion
                             {
                                 XmlReader roomInfo = new XmlReader(e.OuterXml);
 
-                                roomInformation = CrestronXMLSerialization.DeSerializeObject<RoomInformation>(roomInfo);
+                                RoomInformation = CrestronXMLSerialization.DeSerializeObject<RoomInformation>(roomInfo);
                             }
                             else if (e.Name == "CustomFields")
                             {

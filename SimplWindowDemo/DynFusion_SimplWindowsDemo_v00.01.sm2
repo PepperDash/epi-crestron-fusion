@@ -1608,7 +1608,7 @@ Xm=-1
 Ym=-1
 SH=20
 Z=75
-P=665
+P=201
 Ht=4
 Hi=138
 ]
@@ -2061,6 +2061,7 @@ O51=5
 O55=20
 O133=7
 O137=22
+O138=23
 O215=9
 O219=21
 ]
@@ -3407,5 +3408,11 @@ SgTp=4
 ObjTp=Sg
 H=22
 Nm=CustomProp.Analog.FB
+SgTp=2
+]
+[
+ObjTp=Sg
+H=23
+Nm=ssh
 SgTp=2
 ]
