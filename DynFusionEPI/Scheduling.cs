@@ -18,13 +18,21 @@ using PepperDash.Essentials.Core;
 
 namespace DynFusion
 {
+	public class DynFusionScheduleChangeEventArgs : EventArgs
+	{
+		string data;
+		public DynFusionScheduleChangeEventArgs(string someString)
+		{
+			data = someString;
+		}
 
+	}
 	public class DynFusionSchedule : EssentialsBridgeableDevice	
 	{
 		public bool fusionOnline = false;
 
 		//public event EventHandler<EventArgs> ScheduleChanged;
-		public event EventHandler ScheduleChanged;
+		public event EventHandler<DynFusionScheduleChangeEventArgs> ScheduleChanged;
 		public event EventHandler UpdateRemainingTime;
 
 
@@ -40,7 +48,7 @@ namespace DynFusion
 		BoolWithFeedback enableMeetingExtend90 = new BoolWithFeedback();
 
 		long schedulePullTimerTimeout = 300000;
-		long schedulePushTimerTimeout = 900000;
+		long schedulePushTimerTimeout = 90000;
 
 		DynFusionDevice _DynFusion;
 		CTimer schedulePullTimer = null;
@@ -59,12 +67,12 @@ namespace DynFusion
 		private BoolWithFeedback ScheduleBusy = new BoolWithFeedback();
 
 		
-		public EventData CurrentMeeting;
-		EventData NextMeeting;
-		EventData ThirdMeeting;
-		EventData FourthMeeting;
-		EventData FifthMeeting;
-		EventData SixthMeeting;
+		public Event CurrentMeeting;
+		Event NextMeeting;
+		Event ThirdMeeting;
+		Event FourthMeeting;
+		Event FifthMeeting;
+		Event SixthMeeting;
 
 
 		public DynFusionSchedule(string key, string name, SchedulingConfig config)
@@ -114,7 +122,6 @@ namespace DynFusion
 			//Debug.ConsoleWithLog(2, this, "StartSchedPushTimer", 1);
 			if (schedulePushTimer == null)
 			{
-				
 				Debug.ConsoleWithLog(2, this, "StartSchedPushTimer START", 1);
 				schedulePushTimer = new CTimer(new CTimerCallbackFunction(GetRoomSchedule), null, schedulePushTimerTimeout, schedulePushTimerTimeout);
 			}
@@ -153,7 +160,7 @@ namespace DynFusion
 			fusionOnline = e.DeviceOnLine;
 			if (fusionOnline)
 			{
-				GetRoomSchedule();
+				// GetRoomSchedule();
 				GetPushSchedule();
 				StartUpdateRemainingTimeTimer();
 			}
@@ -216,7 +223,7 @@ namespace DynFusion
 			{
 				ScheduleBusy.value = true;
 				getScheduleTimeOut = new CTimer(getRoomScheduleTimeOut, 6000);
-				Debug.Console(2, this, String.Format("Get RoomSchedule"), 2);
+				Debug.Console(2, this, String.Format("Get RoomSchedule"));
 				string roomID = _DynFusion.RoomInformation.ID;
 				string requestType = "ScheduleRequest";
 				GetFullRoomSchedule(roomID, requestType.ToString());
@@ -227,7 +234,7 @@ namespace DynFusion
 		public void getRoomScheduleTimeOut(object unused)
 		{
 			ScheduleBusy.value = false;
-			Debug.ConsoleWithLog(2, this, "Error getRoomScheduleTimeOut", 3);
+			Debug.ConsoleWithLog(2, this, "Error getRoomScheduleTimeOut");
 		}
 
 
@@ -525,28 +532,28 @@ namespace DynFusion
 
 								if (eventStack.Count > 0)
 								{
-									EventData tempEvent = new EventData();
-									tempEvent = CrestronXMLSerialization.DeSerializeObject<EventData>(new XmlReader(eventStack.Item(0).OuterXml));
+									Event tempEvent = new Event();
+									tempEvent = CrestronXMLSerialization.DeSerializeObject<Event>(new XmlReader(eventStack.Item(0).OuterXml));
 									scheduleResponse.Events.Add(tempEvent);
 									if (tempEvent.isInProgress)
 									{
-										CurrentMeeting = new EventData();
+										CurrentMeeting = new Event();
 										CurrentMeeting = tempEvent;
-										if (eventStack.Count > 1) { NextMeeting = new EventData(); NextMeeting = CrestronXMLSerialization.DeSerializeObject<EventData>(new XmlReader(eventStack.Item(1).OuterXml)); }
-										if (eventStack.Count > 2) { ThirdMeeting = new EventData(); ThirdMeeting = CrestronXMLSerialization.DeSerializeObject<EventData>(new XmlReader(eventStack.Item(2).OuterXml)); }
-										if (eventStack.Count > 3) { FourthMeeting = new EventData(); FourthMeeting = CrestronXMLSerialization.DeSerializeObject<EventData>(new XmlReader(eventStack.Item(3).OuterXml)); }
-										if (eventStack.Count > 4) { FifthMeeting = new EventData(); FifthMeeting = CrestronXMLSerialization.DeSerializeObject<EventData>(new XmlReader(eventStack.Item(3).OuterXml)); }
-										if (eventStack.Count > 5) { SixthMeeting = new EventData(); SixthMeeting = CrestronXMLSerialization.DeSerializeObject<EventData>(new XmlReader(eventStack.Item(3).OuterXml)); }
+										if (eventStack.Count > 1) { NextMeeting = new Event(); NextMeeting = CrestronXMLSerialization.DeSerializeObject<Event>(new XmlReader(eventStack.Item(1).OuterXml)); }
+										if (eventStack.Count > 2) { ThirdMeeting = new Event(); ThirdMeeting = CrestronXMLSerialization.DeSerializeObject<Event>(new XmlReader(eventStack.Item(2).OuterXml)); }
+										if (eventStack.Count > 3) { FourthMeeting = new Event(); FourthMeeting = CrestronXMLSerialization.DeSerializeObject<Event>(new XmlReader(eventStack.Item(3).OuterXml)); }
+										if (eventStack.Count > 4) { FifthMeeting = new Event(); FifthMeeting = CrestronXMLSerialization.DeSerializeObject<Event>(new XmlReader(eventStack.Item(3).OuterXml)); }
+										if (eventStack.Count > 5) { SixthMeeting = new Event(); SixthMeeting = CrestronXMLSerialization.DeSerializeObject<Event>(new XmlReader(eventStack.Item(3).OuterXml)); }
 
 										AvailableRooms.sendFreeBusyStatusNotAvailable();
 									}
 									else
 									{
-										NextMeeting = new EventData(); NextMeeting = tempEvent;
-										if (eventStack.Count > 1) { ThirdMeeting = new EventData(); ThirdMeeting = CrestronXMLSerialization.DeSerializeObject<EventData>(new XmlReader(eventStack.Item(1).OuterXml)); }
-										if (eventStack.Count > 2) { FourthMeeting = new EventData(); FourthMeeting = CrestronXMLSerialization.DeSerializeObject<EventData>(new XmlReader(eventStack.Item(2).OuterXml)); }
-										if (eventStack.Count > 3) { FifthMeeting = new EventData(); FifthMeeting = CrestronXMLSerialization.DeSerializeObject<EventData>(new XmlReader(eventStack.Item(2).OuterXml)); }
-										if (eventStack.Count > 4) { SixthMeeting = new EventData(); SixthMeeting = CrestronXMLSerialization.DeSerializeObject<EventData>(new XmlReader(eventStack.Item(2).OuterXml)); }
+										NextMeeting = new Event(); NextMeeting = tempEvent;
+										if (eventStack.Count > 1) { ThirdMeeting = new Event(); ThirdMeeting = CrestronXMLSerialization.DeSerializeObject<Event>(new XmlReader(eventStack.Item(1).OuterXml)); }
+										if (eventStack.Count > 2) { FourthMeeting = new Event(); FourthMeeting = CrestronXMLSerialization.DeSerializeObject<Event>(new XmlReader(eventStack.Item(2).OuterXml)); }
+										if (eventStack.Count > 3) { FifthMeeting = new Event(); FifthMeeting = CrestronXMLSerialization.DeSerializeObject<Event>(new XmlReader(eventStack.Item(2).OuterXml)); }
+										if (eventStack.Count > 4) { SixthMeeting = new Event(); SixthMeeting = CrestronXMLSerialization.DeSerializeObject<Event>(new XmlReader(eventStack.Item(2).OuterXml)); }
 										AvailableRooms.sendFreeBusyStatusAvailableUntil(NextMeeting.dtStart);
 									}
 								}
@@ -572,7 +579,8 @@ namespace DynFusion
 								var handler = ScheduleChanged;
 								if(handler != null)
 								{
-								//	handler(this, new EventArgs());
+									Debug.Console(2, this, String.Format("Schedule Changed Firing Event!"));
+									handler(this, new DynFusionScheduleChangeEventArgs("BAM!"));
 								}
 
 								
@@ -614,9 +622,9 @@ namespace DynFusion
 										{
 											XmlReader readerXML = new XmlReader(element.OuterXml);
 
-											EventData RoomAvailabilityScheduleEvent = new EventData();
+											Event RoomAvailabilityScheduleEvent = new Event();
 
-											RoomAvailabilityScheduleEvent = CrestronXMLSerialization.DeSerializeObject<EventData>(readerXML);
+											RoomAvailabilityScheduleEvent = CrestronXMLSerialization.DeSerializeObject<Event>(readerXML);
 
 											AvailibleSchedule.Events.Add(RoomAvailabilityScheduleEvent);
 
@@ -642,7 +650,7 @@ namespace DynFusion
 
 			catch (Exception e)
 			{
-				Debug.ConsoleWithLog(2, this, e.ToString());
+				Debug.ConsoleWithLog(2, this, "{0}\n{1}\n{2}", e.InnerException, e.Message, e.StackTrace);
 			}
 
 		}
@@ -927,7 +935,7 @@ namespace DynFusion
 					}
 					if (FourthMeeting != null)
 					{
-						trilist.StringInput[joinMap.FourthMeetingRemainingTime.JoinNumber].StringValue = FourthMeeting.TimeRemainingString;
+						trilist.StringInput[joinMap.FourthMeetingRemainingTime.JoinNumber].StringValue = FourthMeeting.TimeRemainingString;	
 						trilist.UShortInput[joinMap.FourthMeetingRemainingTime.JoinNumber].UShortValue = Convert.ToUInt16(FourthMeeting.TimeRemainingInMin);
 					}
 					if (FifthMeeting != null)
@@ -941,161 +949,169 @@ namespace DynFusion
 						trilist.UShortInput[joinMap.SixthMeetingRemainingTime.JoinNumber].UShortValue = Convert.ToUInt16(SixthMeeting.TimeRemainingInMin);
 					}
 				});
-				ScheduleChanged += new EventHandler((s, e) =>
+
+				ScheduleChanged += ((s, e) =>
 				{
-					Debug.Console(2, this, "ScheduleChanged");
-					if (CurrentMeeting != null)
+					try
 					{
-						trilist.StringInput[joinMap.CurrentMeetingOrganizer.JoinNumber].StringValue = CurrentMeeting.Organizer;
-						trilist.StringInput[joinMap.CurrentMeetingSubject.JoinNumber].StringValue = CurrentMeeting.Subject;
-						trilist.StringInput[joinMap.CurrentMeetingMeetingID.JoinNumber].StringValue = CurrentMeeting.MeetingID;
-						trilist.StringInput[joinMap.CurrentMeetingStartTime.JoinNumber].StringValue = CurrentMeeting.StartTime;
-						trilist.StringInput[joinMap.CurrentMeetingStartDate.JoinNumber].StringValue = CurrentMeeting.StartDate;
-						trilist.StringInput[joinMap.CurrentMeetingEndTime.JoinNumber].StringValue = CurrentMeeting.EndTime;
-						trilist.StringInput[joinMap.CurrentMeetingEndDate.JoinNumber].StringValue = CurrentMeeting.EndDate;
-						trilist.StringInput[joinMap.CurrentMeetingDuration.JoinNumber].StringValue = CurrentMeeting.DurationInMinutes;
-						trilist.StringInput[joinMap.CurrentMeetingRemainingTime.JoinNumber].StringValue = CurrentMeeting.TimeRemainingString;
-						trilist.UShortInput[joinMap.CurrentMeetingRemainingTime.JoinNumber].UShortValue = Convert.ToUInt16(CurrentMeeting.TimeRemainingInMin);
-						trilist.BooleanInput[joinMap.MeetingInProgress.JoinNumber].BoolValue = CurrentMeeting.isInProgress;
-					}
-					else
-					{
-						trilist.StringInput[joinMap.CurrentMeetingOrganizer.JoinNumber].StringValue = "";
-						trilist.StringInput[joinMap.CurrentMeetingSubject.JoinNumber].StringValue = "";
-						trilist.StringInput[joinMap.CurrentMeetingMeetingID.JoinNumber].StringValue = "";
-						trilist.StringInput[joinMap.CurrentMeetingStartTime.JoinNumber].StringValue = "";
-						trilist.StringInput[joinMap.CurrentMeetingStartDate.JoinNumber].StringValue = "";
-						trilist.StringInput[joinMap.CurrentMeetingEndTime.JoinNumber].StringValue = "";
-						trilist.StringInput[joinMap.CurrentMeetingEndDate.JoinNumber].StringValue = "";
-						trilist.StringInput[joinMap.CurrentMeetingDuration.JoinNumber].StringValue = "";
-						trilist.StringInput[joinMap.CurrentMeetingRemainingTime.JoinNumber].StringValue = "";
-						trilist.BooleanInput[joinMap.MeetingInProgress.JoinNumber].BoolValue = false;
-					}
+						Debug.Console(2, this, "ScheduleChanged");
+						if (CurrentMeeting != null)
+						{
+							trilist.StringInput[joinMap.CurrentMeetingOrganizer.JoinNumber].StringValue = CurrentMeeting.Organizer;
+							trilist.StringInput[joinMap.CurrentMeetingSubject.JoinNumber].StringValue = CurrentMeeting.Subject;
+							trilist.StringInput[joinMap.CurrentMeetingMeetingID.JoinNumber].StringValue = CurrentMeeting.MeetingID;
+							trilist.StringInput[joinMap.CurrentMeetingStartTime.JoinNumber].StringValue = CurrentMeeting.StartTime;
+							trilist.StringInput[joinMap.CurrentMeetingStartDate.JoinNumber].StringValue = CurrentMeeting.StartDate;
+							trilist.StringInput[joinMap.CurrentMeetingEndTime.JoinNumber].StringValue = CurrentMeeting.EndTime;
+							trilist.StringInput[joinMap.CurrentMeetingEndDate.JoinNumber].StringValue = CurrentMeeting.EndDate;
+							trilist.StringInput[joinMap.CurrentMeetingDuration.JoinNumber].StringValue = CurrentMeeting.DurationInMinutes;
+							trilist.StringInput[joinMap.CurrentMeetingRemainingTime.JoinNumber].StringValue = CurrentMeeting.TimeRemainingString;
+							trilist.UShortInput[joinMap.CurrentMeetingRemainingTime.JoinNumber].UShortValue = Convert.ToUInt16(CurrentMeeting.TimeRemainingInMin);
+							trilist.BooleanInput[joinMap.MeetingInProgress.JoinNumber].BoolValue = CurrentMeeting.isInProgress;
+						}
+						else
+						{
+							trilist.StringInput[joinMap.CurrentMeetingOrganizer.JoinNumber].StringValue = "";
+							trilist.StringInput[joinMap.CurrentMeetingSubject.JoinNumber].StringValue = "";
+							trilist.StringInput[joinMap.CurrentMeetingMeetingID.JoinNumber].StringValue = "";
+							trilist.StringInput[joinMap.CurrentMeetingStartTime.JoinNumber].StringValue = "";
+							trilist.StringInput[joinMap.CurrentMeetingStartDate.JoinNumber].StringValue = "";
+							trilist.StringInput[joinMap.CurrentMeetingEndTime.JoinNumber].StringValue = "";
+							trilist.StringInput[joinMap.CurrentMeetingEndDate.JoinNumber].StringValue = "";
+							trilist.StringInput[joinMap.CurrentMeetingDuration.JoinNumber].StringValue = "";
+							trilist.StringInput[joinMap.CurrentMeetingRemainingTime.JoinNumber].StringValue = "";
+							trilist.BooleanInput[joinMap.MeetingInProgress.JoinNumber].BoolValue = false;
+						}
 
-					if (NextMeeting != null)
-					{
-						trilist.StringInput[joinMap.NextMeetingOrganizer.JoinNumber].StringValue = NextMeeting.Organizer;
-						trilist.StringInput[joinMap.NextMeetingSubject.JoinNumber].StringValue = NextMeeting.Subject;
-						trilist.StringInput[joinMap.NextMeetingMeetingID.JoinNumber].StringValue = NextMeeting.MeetingID;
-						trilist.StringInput[joinMap.NextMeetingStartTime.JoinNumber].StringValue = NextMeeting.StartTime;
-						trilist.StringInput[joinMap.NextMeetingStartDate.JoinNumber].StringValue = NextMeeting.StartDate;
-						trilist.StringInput[joinMap.NextMeetingEndTime.JoinNumber].StringValue = NextMeeting.EndTime;
-						trilist.StringInput[joinMap.NextMeetingEndDate.JoinNumber].StringValue = NextMeeting.EndDate;
-						trilist.StringInput[joinMap.NextMeetingDuration.JoinNumber].StringValue = NextMeeting.DurationInMinutes;
-						trilist.StringInput[joinMap.NextMeetingRemainingTime.JoinNumber].StringValue = NextMeeting.TimeRemainingString;
+						if (NextMeeting != null)
+						{
+							trilist.StringInput[joinMap.NextMeetingOrganizer.JoinNumber].StringValue = NextMeeting.Organizer;
+							trilist.StringInput[joinMap.NextMeetingSubject.JoinNumber].StringValue = NextMeeting.Subject;
+							trilist.StringInput[joinMap.NextMeetingMeetingID.JoinNumber].StringValue = NextMeeting.MeetingID;
+							trilist.StringInput[joinMap.NextMeetingStartTime.JoinNumber].StringValue = NextMeeting.StartTime;
+							trilist.StringInput[joinMap.NextMeetingStartDate.JoinNumber].StringValue = NextMeeting.StartDate;
+							trilist.StringInput[joinMap.NextMeetingEndTime.JoinNumber].StringValue = NextMeeting.EndTime;
+							trilist.StringInput[joinMap.NextMeetingEndDate.JoinNumber].StringValue = NextMeeting.EndDate;
+							trilist.StringInput[joinMap.NextMeetingDuration.JoinNumber].StringValue = NextMeeting.DurationInMinutes;
+							trilist.StringInput[joinMap.NextMeetingRemainingTime.JoinNumber].StringValue = NextMeeting.TimeRemainingString;
 
 
-					}
-					else
-					{
-						trilist.StringInput[joinMap.NextMeetingOrganizer.JoinNumber].StringValue = "";
-						trilist.StringInput[joinMap.NextMeetingSubject.JoinNumber].StringValue = "";
-						trilist.StringInput[joinMap.NextMeetingMeetingID.JoinNumber].StringValue = "";
-						trilist.StringInput[joinMap.NextMeetingStartTime.JoinNumber].StringValue = "";
-						trilist.StringInput[joinMap.NextMeetingStartDate.JoinNumber].StringValue = "";
-						trilist.StringInput[joinMap.NextMeetingEndTime.JoinNumber].StringValue = "";
-						trilist.StringInput[joinMap.NextMeetingEndDate.JoinNumber].StringValue = "";
-						trilist.StringInput[joinMap.NextMeetingDuration.JoinNumber].StringValue = "";
-						trilist.StringInput[joinMap.NextMeetingRemainingTime.JoinNumber].StringValue = "";
-						trilist.BooleanInput[joinMap.NextMeetingIsToday.JoinNumber].BoolValue = false;
-					}
+						}
+						else
+						{
+							trilist.StringInput[joinMap.NextMeetingOrganizer.JoinNumber].StringValue = "";
+							trilist.StringInput[joinMap.NextMeetingSubject.JoinNumber].StringValue = "";
+							trilist.StringInput[joinMap.NextMeetingMeetingID.JoinNumber].StringValue = "";
+							trilist.StringInput[joinMap.NextMeetingStartTime.JoinNumber].StringValue = "";
+							trilist.StringInput[joinMap.NextMeetingStartDate.JoinNumber].StringValue = "";
+							trilist.StringInput[joinMap.NextMeetingEndTime.JoinNumber].StringValue = "";
+							trilist.StringInput[joinMap.NextMeetingEndDate.JoinNumber].StringValue = "";
+							trilist.StringInput[joinMap.NextMeetingDuration.JoinNumber].StringValue = "";
+							trilist.StringInput[joinMap.NextMeetingRemainingTime.JoinNumber].StringValue = "";
+							trilist.BooleanInput[joinMap.NextMeetingIsToday.JoinNumber].BoolValue = false;
+						}
 
-					if (ThirdMeeting != null)
-					{
-						trilist.StringInput[joinMap.ThirdMeetingOrganizer.JoinNumber].StringValue = ThirdMeeting.Organizer;
-						trilist.StringInput[joinMap.ThirdMeetingSubject.JoinNumber].StringValue = ThirdMeeting.Subject;
-						trilist.StringInput[joinMap.ThirdMeetingMeetingID.JoinNumber].StringValue = ThirdMeeting.MeetingID;
-						trilist.StringInput[joinMap.ThirdMeetingStartTime.JoinNumber].StringValue = ThirdMeeting.StartTime;
-						trilist.StringInput[joinMap.ThirdMeetingStartDate.JoinNumber].StringValue = ThirdMeeting.StartDate;
-						trilist.StringInput[joinMap.ThirdMeetingEndTime.JoinNumber].StringValue = ThirdMeeting.EndTime;
-						trilist.StringInput[joinMap.ThirdMeetingEndDate.JoinNumber].StringValue = ThirdMeeting.EndDate;
-						trilist.StringInput[joinMap.ThirdMeetingDuration.JoinNumber].StringValue = ThirdMeeting.DurationInMinutes;
-						trilist.StringInput[joinMap.ThirdMeetingRemainingTime.JoinNumber].StringValue = ThirdMeeting.TimeRemainingString;
-					}
-					else
-					{
-						trilist.StringInput[joinMap.ThirdMeetingOrganizer.JoinNumber].StringValue = "";
-						trilist.StringInput[joinMap.ThirdMeetingSubject.JoinNumber].StringValue = "";
-						trilist.StringInput[joinMap.ThirdMeetingMeetingID.JoinNumber].StringValue = "";
-						trilist.StringInput[joinMap.ThirdMeetingStartTime.JoinNumber].StringValue = "";
-						trilist.StringInput[joinMap.ThirdMeetingStartDate.JoinNumber].StringValue = "";
-						trilist.StringInput[joinMap.ThirdMeetingEndTime.JoinNumber].StringValue = "";
-						trilist.StringInput[joinMap.ThirdMeetingEndDate.JoinNumber].StringValue = "";
-						trilist.StringInput[joinMap.ThirdMeetingDuration.JoinNumber].StringValue = "";
-						trilist.StringInput[joinMap.ThirdMeetingRemainingTime.JoinNumber].StringValue = "";
-					}
+						if (ThirdMeeting != null)
+						{
+							trilist.StringInput[joinMap.ThirdMeetingOrganizer.JoinNumber].StringValue = ThirdMeeting.Organizer;
+							trilist.StringInput[joinMap.ThirdMeetingSubject.JoinNumber].StringValue = ThirdMeeting.Subject;
+							trilist.StringInput[joinMap.ThirdMeetingMeetingID.JoinNumber].StringValue = ThirdMeeting.MeetingID;
+							trilist.StringInput[joinMap.ThirdMeetingStartTime.JoinNumber].StringValue = ThirdMeeting.StartTime;
+							trilist.StringInput[joinMap.ThirdMeetingStartDate.JoinNumber].StringValue = ThirdMeeting.StartDate;
+							trilist.StringInput[joinMap.ThirdMeetingEndTime.JoinNumber].StringValue = ThirdMeeting.EndTime;
+							trilist.StringInput[joinMap.ThirdMeetingEndDate.JoinNumber].StringValue = ThirdMeeting.EndDate;
+							trilist.StringInput[joinMap.ThirdMeetingDuration.JoinNumber].StringValue = ThirdMeeting.DurationInMinutes;
+							trilist.StringInput[joinMap.ThirdMeetingRemainingTime.JoinNumber].StringValue = ThirdMeeting.TimeRemainingString;
+						}
+						else
+						{
+							trilist.StringInput[joinMap.ThirdMeetingOrganizer.JoinNumber].StringValue = "";
+							trilist.StringInput[joinMap.ThirdMeetingSubject.JoinNumber].StringValue = "";
+							trilist.StringInput[joinMap.ThirdMeetingMeetingID.JoinNumber].StringValue = "";
+							trilist.StringInput[joinMap.ThirdMeetingStartTime.JoinNumber].StringValue = "";
+							trilist.StringInput[joinMap.ThirdMeetingStartDate.JoinNumber].StringValue = "";
+							trilist.StringInput[joinMap.ThirdMeetingEndTime.JoinNumber].StringValue = "";
+							trilist.StringInput[joinMap.ThirdMeetingEndDate.JoinNumber].StringValue = "";
+							trilist.StringInput[joinMap.ThirdMeetingDuration.JoinNumber].StringValue = "";
+							trilist.StringInput[joinMap.ThirdMeetingRemainingTime.JoinNumber].StringValue = "";
+						}
 
-					if (FourthMeeting != null)
-					{
-						trilist.StringInput[joinMap.FourthMeetingOrganizer.JoinNumber].StringValue = FourthMeeting.Organizer;
-						trilist.StringInput[joinMap.FourthMeetingSubject.JoinNumber].StringValue = FourthMeeting.Subject;
-						trilist.StringInput[joinMap.FourthMeetingMeetingID.JoinNumber].StringValue = FourthMeeting.MeetingID;
-						trilist.StringInput[joinMap.FourthMeetingStartTime.JoinNumber].StringValue = FourthMeeting.StartTime;
-						trilist.StringInput[joinMap.FourthMeetingStartDate.JoinNumber].StringValue = FourthMeeting.StartDate;
-						trilist.StringInput[joinMap.FourthMeetingEndTime.JoinNumber].StringValue = FourthMeeting.EndTime;
-						trilist.StringInput[joinMap.FourthMeetingEndDate.JoinNumber].StringValue = FourthMeeting.EndDate;
-						trilist.StringInput[joinMap.FourthMeetingDuration.JoinNumber].StringValue = FourthMeeting.DurationInMinutes;
-						trilist.StringInput[joinMap.FourthMeetingRemainingTime.JoinNumber].StringValue = FourthMeeting.TimeRemainingString;
+						if (FourthMeeting != null)
+						{
+							trilist.StringInput[joinMap.FourthMeetingOrganizer.JoinNumber].StringValue = FourthMeeting.Organizer;
+							trilist.StringInput[joinMap.FourthMeetingSubject.JoinNumber].StringValue = FourthMeeting.Subject;
+							trilist.StringInput[joinMap.FourthMeetingMeetingID.JoinNumber].StringValue = FourthMeeting.MeetingID;
+							trilist.StringInput[joinMap.FourthMeetingStartTime.JoinNumber].StringValue = FourthMeeting.StartTime;
+							trilist.StringInput[joinMap.FourthMeetingStartDate.JoinNumber].StringValue = FourthMeeting.StartDate;
+							trilist.StringInput[joinMap.FourthMeetingEndTime.JoinNumber].StringValue = FourthMeeting.EndTime;
+							trilist.StringInput[joinMap.FourthMeetingEndDate.JoinNumber].StringValue = FourthMeeting.EndDate;
+							trilist.StringInput[joinMap.FourthMeetingDuration.JoinNumber].StringValue = FourthMeeting.DurationInMinutes;
+							trilist.StringInput[joinMap.FourthMeetingRemainingTime.JoinNumber].StringValue = FourthMeeting.TimeRemainingString;
+						}
+						else
+						{
+							trilist.StringInput[joinMap.FourthMeetingOrganizer.JoinNumber].StringValue = "";
+							trilist.StringInput[joinMap.FourthMeetingSubject.JoinNumber].StringValue = "";
+							trilist.StringInput[joinMap.FourthMeetingMeetingID.JoinNumber].StringValue = "";
+							trilist.StringInput[joinMap.FourthMeetingStartTime.JoinNumber].StringValue = "";
+							trilist.StringInput[joinMap.FourthMeetingStartDate.JoinNumber].StringValue = "";
+							trilist.StringInput[joinMap.FourthMeetingEndTime.JoinNumber].StringValue = "";
+							trilist.StringInput[joinMap.FourthMeetingEndDate.JoinNumber].StringValue = "";
+							trilist.StringInput[joinMap.FourthMeetingDuration.JoinNumber].StringValue = "";
+							trilist.StringInput[joinMap.FourthMeetingRemainingTime.JoinNumber].StringValue = "";
+						}
+						if (FifthMeeting != null)
+						{
+							trilist.StringInput[joinMap.FifthMeetingOrganizer.JoinNumber].StringValue = FifthMeeting.Organizer;
+							trilist.StringInput[joinMap.FifthMeetingSubject.JoinNumber].StringValue = FifthMeeting.Subject;
+							trilist.StringInput[joinMap.FifthMeetingMeetingID.JoinNumber].StringValue = FifthMeeting.MeetingID;
+							trilist.StringInput[joinMap.FifthMeetingStartTime.JoinNumber].StringValue = FifthMeeting.StartTime;
+							trilist.StringInput[joinMap.FifthMeetingStartDate.JoinNumber].StringValue = FifthMeeting.StartDate;
+							trilist.StringInput[joinMap.FifthMeetingEndTime.JoinNumber].StringValue = FifthMeeting.EndTime;
+							trilist.StringInput[joinMap.FifthMeetingEndDate.JoinNumber].StringValue = FifthMeeting.EndDate;
+							trilist.StringInput[joinMap.FifthMeetingDuration.JoinNumber].StringValue = FifthMeeting.DurationInMinutes;
+							trilist.StringInput[joinMap.FifthMeetingRemainingTime.JoinNumber].StringValue = FifthMeeting.TimeRemainingString;
+						}
+						else
+						{
+							trilist.StringInput[joinMap.FifthMeetingOrganizer.JoinNumber].StringValue = "";
+							trilist.StringInput[joinMap.FifthMeetingSubject.JoinNumber].StringValue = "";
+							trilist.StringInput[joinMap.FifthMeetingMeetingID.JoinNumber].StringValue = "";
+							trilist.StringInput[joinMap.FifthMeetingStartTime.JoinNumber].StringValue = "";
+							trilist.StringInput[joinMap.FifthMeetingStartDate.JoinNumber].StringValue = "";
+							trilist.StringInput[joinMap.FifthMeetingEndTime.JoinNumber].StringValue = "";
+							trilist.StringInput[joinMap.FifthMeetingEndDate.JoinNumber].StringValue = "";
+							trilist.StringInput[joinMap.FifthMeetingDuration.JoinNumber].StringValue = "";
+							trilist.StringInput[joinMap.FifthMeetingRemainingTime.JoinNumber].StringValue = "";
+						}
+						if (SixthMeeting != null)
+						{
+							trilist.StringInput[joinMap.SixthMeetingOrganizer.JoinNumber].StringValue = SixthMeeting.Organizer;
+							trilist.StringInput[joinMap.SixthMeetingSubject.JoinNumber].StringValue = SixthMeeting.Subject;
+							trilist.StringInput[joinMap.SixthMeetingMeetingID.JoinNumber].StringValue = SixthMeeting.MeetingID;
+							trilist.StringInput[joinMap.SixthMeetingStartTime.JoinNumber].StringValue = SixthMeeting.StartTime;
+							trilist.StringInput[joinMap.SixthMeetingStartDate.JoinNumber].StringValue = SixthMeeting.StartDate;
+							trilist.StringInput[joinMap.SixthMeetingEndTime.JoinNumber].StringValue = SixthMeeting.EndTime;
+							trilist.StringInput[joinMap.SixthMeetingEndDate.JoinNumber].StringValue = SixthMeeting.EndDate;
+							trilist.StringInput[joinMap.SixthMeetingDuration.JoinNumber].StringValue = SixthMeeting.DurationInMinutes;
+							trilist.StringInput[joinMap.SixthMeetingRemainingTime.JoinNumber].StringValue = SixthMeeting.TimeRemainingString;
+						}
+						else
+						{
+							trilist.StringInput[joinMap.SixthMeetingOrganizer.JoinNumber].StringValue = "";
+							trilist.StringInput[joinMap.SixthMeetingSubject.JoinNumber].StringValue = "";
+							trilist.StringInput[joinMap.SixthMeetingMeetingID.JoinNumber].StringValue = "";
+							trilist.StringInput[joinMap.SixthMeetingStartTime.JoinNumber].StringValue = "";
+							trilist.StringInput[joinMap.SixthMeetingStartDate.JoinNumber].StringValue = "";
+							trilist.StringInput[joinMap.SixthMeetingEndTime.JoinNumber].StringValue = "";
+							trilist.StringInput[joinMap.SixthMeetingEndDate.JoinNumber].StringValue = "";
+							trilist.StringInput[joinMap.SixthMeetingDuration.JoinNumber].StringValue = "";
+							trilist.StringInput[joinMap.SixthMeetingRemainingTime.JoinNumber].StringValue = "";
+						}
 					}
-					else
+					catch (Exception ex)
 					{
-						trilist.StringInput[joinMap.FourthMeetingOrganizer.JoinNumber].StringValue = "";
-						trilist.StringInput[joinMap.FourthMeetingSubject.JoinNumber].StringValue = "";
-						trilist.StringInput[joinMap.FourthMeetingMeetingID.JoinNumber].StringValue = "";
-						trilist.StringInput[joinMap.FourthMeetingStartTime.JoinNumber].StringValue = "";
-						trilist.StringInput[joinMap.FourthMeetingStartDate.JoinNumber].StringValue = "";
-						trilist.StringInput[joinMap.FourthMeetingEndTime.JoinNumber].StringValue = "";
-						trilist.StringInput[joinMap.FourthMeetingEndDate.JoinNumber].StringValue = "";
-						trilist.StringInput[joinMap.FourthMeetingDuration.JoinNumber].StringValue = "";
-						trilist.StringInput[joinMap.FourthMeetingRemainingTime.JoinNumber].StringValue = "";
-					}
-					if (FifthMeeting != null)
-					{
-						trilist.StringInput[joinMap.FifthMeetingOrganizer.JoinNumber].StringValue = FifthMeeting.Organizer;
-						trilist.StringInput[joinMap.FifthMeetingSubject.JoinNumber].StringValue = FifthMeeting.Subject;
-						trilist.StringInput[joinMap.FifthMeetingMeetingID.JoinNumber].StringValue = FifthMeeting.MeetingID;
-						trilist.StringInput[joinMap.FifthMeetingStartTime.JoinNumber].StringValue = FifthMeeting.StartTime;
-						trilist.StringInput[joinMap.FifthMeetingStartDate.JoinNumber].StringValue = FifthMeeting.StartDate;
-						trilist.StringInput[joinMap.FifthMeetingEndTime.JoinNumber].StringValue = FifthMeeting.EndTime;
-						trilist.StringInput[joinMap.FifthMeetingEndDate.JoinNumber].StringValue = FifthMeeting.EndDate;
-						trilist.StringInput[joinMap.FifthMeetingDuration.JoinNumber].StringValue = FifthMeeting.DurationInMinutes;
-						trilist.StringInput[joinMap.FifthMeetingRemainingTime.JoinNumber].StringValue = FifthMeeting.TimeRemainingString;
-					}
-					else
-					{
-						trilist.StringInput[joinMap.FifthMeetingOrganizer.JoinNumber].StringValue = "";
-						trilist.StringInput[joinMap.FifthMeetingSubject.JoinNumber].StringValue = "";
-						trilist.StringInput[joinMap.FifthMeetingMeetingID.JoinNumber].StringValue = "";
-						trilist.StringInput[joinMap.FifthMeetingStartTime.JoinNumber].StringValue = "";
-						trilist.StringInput[joinMap.FifthMeetingStartDate.JoinNumber].StringValue = "";
-						trilist.StringInput[joinMap.FifthMeetingEndTime.JoinNumber].StringValue = "";
-						trilist.StringInput[joinMap.FifthMeetingEndDate.JoinNumber].StringValue = "";
-						trilist.StringInput[joinMap.FifthMeetingDuration.JoinNumber].StringValue = "";
-						trilist.StringInput[joinMap.FifthMeetingRemainingTime.JoinNumber].StringValue = "";
-					}
-					if (SixthMeeting != null)
-					{
-						trilist.StringInput[joinMap.SixthMeetingOrganizer.JoinNumber].StringValue = SixthMeeting.Organizer;
-						trilist.StringInput[joinMap.SixthMeetingSubject.JoinNumber].StringValue = SixthMeeting.Subject;
-						trilist.StringInput[joinMap.SixthMeetingMeetingID.JoinNumber].StringValue = SixthMeeting.MeetingID;
-						trilist.StringInput[joinMap.SixthMeetingStartTime.JoinNumber].StringValue = SixthMeeting.StartTime;
-						trilist.StringInput[joinMap.SixthMeetingStartDate.JoinNumber].StringValue = SixthMeeting.StartDate;
-						trilist.StringInput[joinMap.SixthMeetingEndTime.JoinNumber].StringValue = SixthMeeting.EndTime;
-						trilist.StringInput[joinMap.SixthMeetingEndDate.JoinNumber].StringValue = SixthMeeting.EndDate;
-						trilist.StringInput[joinMap.SixthMeetingDuration.JoinNumber].StringValue = SixthMeeting.DurationInMinutes;
-						trilist.StringInput[joinMap.SixthMeetingRemainingTime.JoinNumber].StringValue = SixthMeeting.TimeRemainingString;
-					}
-					else
-					{
-						trilist.StringInput[joinMap.SixthMeetingOrganizer.JoinNumber].StringValue = "";
-						trilist.StringInput[joinMap.SixthMeetingSubject.JoinNumber].StringValue = "";
-						trilist.StringInput[joinMap.SixthMeetingMeetingID.JoinNumber].StringValue = "";
-						trilist.StringInput[joinMap.SixthMeetingStartTime.JoinNumber].StringValue = "";
-						trilist.StringInput[joinMap.SixthMeetingStartDate.JoinNumber].StringValue = "";
-						trilist.StringInput[joinMap.SixthMeetingEndTime.JoinNumber].StringValue = "";
-						trilist.StringInput[joinMap.SixthMeetingEndDate.JoinNumber].StringValue = "";
-						trilist.StringInput[joinMap.SixthMeetingDuration.JoinNumber].StringValue = "";
-						trilist.StringInput[joinMap.SixthMeetingRemainingTime.JoinNumber].StringValue = "";
+						Debug.Console(0, this, Debug.ErrorLogLevel.Error, ex.Message);
 					}
 				});
 
@@ -1104,7 +1120,8 @@ namespace DynFusion
 			{
 				Debug.Console(0, this, Debug.ErrorLogLevel.Error, ex.Message);
 			}
-		}	
+		}
+	
 	
 		}
 	
@@ -1114,11 +1131,11 @@ namespace DynFusion
 
 	public class RoomSchedule
 	{
-		public List<EventData> Meetings { get; set; }
+		public List<Event> Meetings { get; set; }
 
 		public RoomSchedule()
 		{
-			Meetings = new List<EventData>();
+			Meetings = new List<Event>();
 		}
 	}
 
@@ -1178,15 +1195,15 @@ namespace DynFusion
 		public string RequestID { get; set; }
 		public string RoomID { get; set; }
 		public string RoomName { get; set; }
-		public List<EventData> Events { get; set; }
+		public List<Event> Events { get; set; }
 
 		public ScheduleResponse()
 		{
-			Events = new List<EventData>();
+			Events = new List<Event>();
 		}
 	}
 
-	public class EventData
+	public class Event
 	{
 		public string Recurring { get; set; }
 		public string MeetingID { get; set; }
@@ -1211,7 +1228,7 @@ namespace DynFusion
 		public string PhoneNo { get; set; }
 		public string InstanceID { get; set; }
 
-		public EventData()
+		public Event()
 		{
 
 		}
