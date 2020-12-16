@@ -3,6 +3,7 @@
 using Crestron.SimplSharpPro.DeviceSupport;
 using PepperDash.Essentials.Core;
 using PepperDash.Essentials.Core.Bridges;
+using PepperDash.Essentials.Core.Interfaces;
 using PepperDash.Core;
 using System;
 using System.Collections.Generic;
@@ -15,9 +16,10 @@ using Crestron.SimplSharp.CrestronXml.Serialization;
 using Crestron.SimplSharp.CrestronXmlLinq;
 using DynFusion.Assets;
 
+
 namespace DynFusion 
 {
-	public class DynFusionDevice : EssentialsBridgeableDevice
+	public class DynFusionDevice : EssentialsBridgeableDevice, ILogStringsWithLevel, ILogStrings
 	{
 		public const ushort FusionJoinOffset = 49;
 		//DynFusion Joins
@@ -548,7 +550,38 @@ namespace DynFusion
 			}
 
 		}
+		#endregion
 
+		#region ILogStringsWithLevel Members
+
+		public void SendToLog(IKeyed device, Debug.ErrorLogLevel level, string logMessage)
+		{
+			
+			int fusionLevel;
+			switch (level)
+			{
+				case Debug.ErrorLogLevel.Error: { fusionLevel = 3; break; }
+				case Debug.ErrorLogLevel.Notice: {fusionLevel = 1; break;}
+				case Debug.ErrorLogLevel.Warning: { fusionLevel = 2; break; }
+				case Debug.ErrorLogLevel.None: { fusionLevel = 0; break; }
+				default: { fusionLevel = 0; break; }
+
+			}
+			Debug.Console(2, this, "{0}:{1}", fusionLevel, logMessage);
+			Debug.Console(2, this, "{0}:{1}", fusionLevel, logMessage);
+			FusionSymbol.ErrorMessage.InputSig.StringValue = string.Format("{0}:{1}", fusionLevel, logMessage);
+		}
+
+		#endregion
+
+		#region ILogStrings Members
+
+		public void SendToLog(IKeyed device, string logMessage)
+		{
+			FusionSymbol.LogText.InputSig.StringValue = logMessage;
+		}
+
+		#endregion
 		private void RoomConfigParseData(string data)
 		{
                 data = data.Replace("&", "and");
@@ -687,7 +720,7 @@ namespace DynFusion
 	    }
 
 
-	    #endregion
+
 	}
 	public class RoomInformation
 	{

@@ -20,7 +20,7 @@
                 "key": "DynFusion01",
                 "uid": 1,
                 "name": "DynFusion",
-                "type": "//DynFusion",
+                "type": "DynFusion",
                 "group": "Fusion",
                 "properties": {
                     "control": {
@@ -31,48 +31,48 @@
                             "port": 0
                         }
                     },
-                    "CustomAttributes": 
+                    "CustomAttributes":
                     {
-                        "DigitalAttributes" : 
+                        "DigitalAttributes" :
                         [
                             {"name": "testAttributeDig", "joinNumber": 51, "RwType": "RW"}
                         ],
-                        "AnalogAttributes" : 
+                        "AnalogAttributes" :
                         [
                             {"name": "testAttributeUShort", "joinNumber": 51, "RwType": "RW"}
                         ],
-                        "SerialAttributes" : 
+                        "SerialAttributes" :
                         [
                             {"name": "testAttributeString", "joinNumber": 51, "RwType": "RW"}
                         ]
 
                     },
-                    "CustomProperties": 
+                    "CustomProperties":
                     {
-                        "DigitalProperties" : 
+                        "DigitalProperties" :
                         [
                             {"ID": "AdHocEnable", "joinNumber": 55}
                         ],
-                        "AnalogProperties" : 
+                        "AnalogProperties" :
                         [
                             {"ID": "ForceOrgCheckInDuringRes", "joinNumber": 55}
                         ],
-                        "SerialProperties" : 
+                        "SerialProperties" :
                         [
                             {"ID": "BackgroundReserved", "joinNumber": 55}
                         ]
                     },
-                    "Assets": 
+                    "Assets":
                     {
-                        "OccupancySensors" : 
+                        "OccupancySensors" :
                         [
-                            {"Key": "Occ01", "LinkDeviceKey": "Simpl"}  
+                            {"Key": "Occ01", "LinkDeviceKey": "Simpl"}
                         ],
-                        "AnalogLinks" : 
+                        "AnalogLinks" :
                         [
                             {"ID": "ForceOrgCheckInDuringRes", "joinNumber": 55}
                         ],
-                        "SerialLinks" : 
+                        "SerialLinks" :
                         [
                             {"ID": "BackgroundReserved", "joinNumber": 55}
                         ]
@@ -85,7 +85,7 @@
                 "name": "DynFusionScheduling",
                 "type": "//DynFusionSchedule",
                 "group": "Fusion",
-                "properties": 
+                "properties":
                 {
                     "DynFusionKey": "DynFusion01"
                 }
@@ -97,39 +97,39 @@
                 "type": "//DynFusionStaticAsset",
                 "group": "Fusion",
                 "properties": {
-                    "DynFusionKey": "DynFusion01", 
+                    "DynFusionKey": "DynFusion01",
                     "ReservedAttributes":
                     {
-                        "DigitalAttributesInputs" : 
+                        "DigitalAttributesInputs" :
                         [
                             {"name": "PowerOn",  "BridgeJoinNumber": 1, "LinkDeviceKey": "SomeDevice", "LinkDeviceFeedback": "PowerIsOnFB", "LinkDeviceMethod": "SomeMethodThatAcceptsBool"}
-                            
+
                         ],
-                        "AnalogAttributes" : 
+                        "AnalogAttributes" :
                         [
                             {"name": "testAttributeUShort", "joinNumber": 2, "RwType": "RW"}
                         ],
-                        "SerialAttributes" : 
+                        "SerialAttributes" :
                         [
                             {"name": "testAttributeString", "joinNumber": 1, "RwType": "RW"}
                         ]
                     },
-                    "CustomAttributes": 
+                    "CustomAttributes":
                     {
                         "ReservedAttributes":
                         {
 
                         },
-                        
-                        "DigitalAttributes" : 
+
+                        "DigitalAttributes" :
                         [
                             {"name": "testAttributeDig", "AttributeNumber": 1, "BridgeJoinNumber": 1, "RwType": "RW"}
                         ],
-                        "AnalogAttributes" : 
+                        "AnalogAttributes" :
                         [
                             {"name": "testAttributeUShort", "joinNumber": 2, "RwType": "RW"}
                         ],
-                        "SerialAttributes" : 
+                        "SerialAttributes" :
                         [
                             {"name": "testAttributeString", "joinNumber": 1, "RwType": "RW"}
                         ]
@@ -201,6 +201,9 @@
                 "group" : "api",
                 "type" : "devicemonitor",
                 "properties" : {
+                    "LogToDeviceKeys": [
+                        "DynFusion01"
+                    ],
                     "SimplDevices" : [
                         {
                             "name" : "Test 1",
@@ -224,7 +227,7 @@
                             "name": "Display01",
                            "deviceKey" : "panasonicDisplay01",
                            "joinNumber" : 3,
-                           "useInRoomHealth" : true 
+                           "useInRoomHealth" : true
                         }
                     ]
                 }
