@@ -20,7 +20,7 @@
                 "key": "DynFusion01",
                 "uid": 1,
                 "name": "DynFusion",
-                "type": "DynFusion",
+                "type": "//DynFusion",
                 "group": "Fusion",
                 "properties": {
                     "control": {
@@ -83,7 +83,7 @@
                 "key": "DynFusionSchedule01",
                 "uid": 1,
                 "name": "DynFusionScheduling",
-                "type": "DynFusionSchedule",
+                "type": "//DynFusionSchedule",
                 "group": "Fusion",
                 "properties": 
                 {
@@ -94,7 +94,7 @@
                 "key": "DynFusionStaticAsset01 ",
                 "uid": 1,
                 "name": "DynFusion",
-                "type": "DynFusionStaticAsset",
+                "type": "//DynFusionStaticAsset",
                 "group": "Fusion",
                 "properties": {
                     "DynFusionKey": "DynFusion01", 
@@ -157,6 +157,10 @@
                             "joinStart": 1
                         },
                         {
+                            "deviceKey" : "DevMon-1",
+                          "joinStart" : 71
+                        },
+                        {
                             "deviceKey": "DynFusionSchedule01",
                             "joinStart": 100
                         }
@@ -164,8 +168,68 @@
                 },
                 "type": "eiscApiAdvanced",
                 "uid": 4
+            },
+            {
+                "key": "panasonicDisplay01",
+                "type": "panasonicthef",
+                "name": "Main Display",
+                "group": "displays",
+                "uid": 2,
+                "properties": {
+                    "id": "01",
+                    "inputNumber": 1,
+                    "outputNumber": 1,
+                    "control": {
+                        "comParams": {
+                            "hardwareHandshake": "None",
+                            "parity": "None",
+                            "protocol": "RS232",
+                            "baudRate": 9600,
+                            "dataBits": 8,
+                            "softwareHandshake": "None",
+                            "stopBits": 1
+                        },
+                        "controlPortNumber": 1,
+                        "controlPortDevKey": "processor",
+                        "method": "com"
+                    }
+                }
+            },
+            {
+                "key" : "DevMon-1",
+                "name" : "Device Monitor",
+                "group" : "api",
+                "type" : "devicemonitor",
+                "properties" : {
+                    "SimplDevices" : [
+                        {
+                            "name" : "Test 1",
+                            "joinNumber" : 1,
+                            "useInRoomHealth" : true,
+                            "warningTimeout" : 60,
+                            "errorTimeout" : 180,
+                            "monitorType" : "Digital"
+                        },
+                        {
+                            "name" : "Test 2",
+                            "joinNumber" : 2,
+                            "useInRoomHealth" : true,
+                            "warningTimeout" : 60,
+                            "errorTimeout" : 180,
+                            "monitorType" : "Serial"
+                        }
+                    ],
+                    "EssentialsDevices" : [
+                        {
+                            "name": "Display01",
+                           "deviceKey" : "panasonicDisplay01",
+                           "joinNumber" : 3,
+                           "useInRoomHealth" : true 
+                        }
+                    ]
+                }
+
             }
-            
         ]
     }
 }

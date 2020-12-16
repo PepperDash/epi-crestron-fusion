@@ -1,0 +1,13 @@
+{
+	"folders": [
+		{
+			"path": "DynFusionEPI\\bin\\Debug"
+		},
+		{
+			"path": "Config"
+		}
+	],
+	"settings": {
+		"powershell.codeFormatting.addWhitespaceAroundPipe": true
+	}
+}

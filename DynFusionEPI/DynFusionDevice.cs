@@ -311,7 +311,7 @@ namespace DynFusion
 				
 				case FusionEventIds.SystemPowerOnReceivedEventId:
 					{
-						
+						// Comments
 						var sigDetails = args.UserConfiguredSigDetail as BooleanSigDataFixedName;
 						DynFusionDigitalAttribute output;
 						if (DigitalAttributesFromFusion.TryGetValue(JoinMapStatic.SystemPowerOn.JoinNumber, out output))
@@ -645,7 +645,7 @@ namespace DynFusion
 
 			
 
-			foreach (var att in DigitalAttributesToFusion)
+			foreach (var att in DigitalAttributesToFusion)	
 			{
 				var attLocal = att.Value;
 				trilist.SetBoolSigAction(attLocal.JoinNumber, (b) => { attLocal.BoolValue = b; });
@@ -653,7 +653,7 @@ namespace DynFusion
 			foreach (var att in DigitalAttributesFromFusion)
 			{
 				var attLocal = att.Value;
-				attLocal.BoolValueFeedback.LinkInputSig(trilist.BooleanInput[attLocal.JoinNumber]);
+				attLocal.BoolValueFeedback.LinkInputSig(trilist.BooleanInput[attLocal.JoinNumber]);	
 			}
 			foreach (var att in AnalogAttributesToFusion)
 			{
