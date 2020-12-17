@@ -15,6 +15,7 @@ using Crestron.SimplSharp.CrestronXml;
 using Crestron.SimplSharp.CrestronXml.Serialization;
 using Crestron.SimplSharp.CrestronXmlLinq;
 using DynFusion.Assets;
+using Crestron.SimplSharp;
 
 
 namespace DynFusion 
@@ -37,6 +38,8 @@ namespace DynFusion
 		public RoomInformation RoomInformation;
 
 		public FusionRoom FusionSymbol;
+		private CTimer ErrorLogTimer;
+		private string ErrorLogLastMessageSent; 
 
 		public DynFusionDevice(string key, string name, DynFusionConfigObjectTemplate config)
 			: base(key, name)
@@ -567,9 +570,25 @@ namespace DynFusion
 				default: { fusionLevel = 0; break; }
 
 			}
-			Debug.Console(2, this, "{0}:{1}", fusionLevel, logMessage);
-			Debug.Console(2, this, "{0}:{1}", fusionLevel, logMessage);
-			FusionSymbol.ErrorMessage.InputSig.StringValue = string.Format("{0}:{1}", fusionLevel, logMessage);
+			var tempLogMessage = string.Format("{0}:{1}", fusionLevel, logMessage);
+			long errorlogThrottleTime = 10000;
+			if (ErrorLogLastMessageSent != tempLogMessage)
+			{
+				ErrorLogLastMessageSent = tempLogMessage;
+				if (ErrorLogTimer == null)
+				{
+					ErrorLogTimer = new CTimer(o =>
+						{
+							Debug.Console(2, this, "Sent Message {0}:{1}", fusionLevel, ErrorLogLastMessageSent);
+							FusionSymbol.ErrorMessage.InputSig.StringValue = ErrorLogLastMessageSent;
+						}, errorlogThrottleTime);
+				}
+				else
+				{
+					ErrorLogTimer.Reset(errorlogThrottleTime);
+				}
+				
+			}
 		}
 
 		#endregion

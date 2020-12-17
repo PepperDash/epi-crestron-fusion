@@ -102,7 +102,7 @@
                     {
                         "DigitalAttributesInputs" :
                         [
-                            {"name": "PowerOn",  "BridgeJoinNumber": 1, "LinkDeviceKey": "SomeDevice", "LinkDeviceFeedback": "PowerIsOnFB", "LinkDeviceMethod": "SomeMethodThatAcceptsBool"}
+                            {"name": "PowerOn", "RwType": "RW", "BridgeJoinNumber": 1, "LinkDeviceKey": "SomeDevice", "LinkDeviceFeedback": "PowerIsOnFB", "LinkDeviceMethod": "PowerOn"}
 
                         ],
                         "AnalogAttributes" :
@@ -204,32 +204,36 @@
                     "LogToDeviceKeys": [
                         "DynFusion01"
                     ],
-                    "SimplDevices" : [
+                    "Devices" : {
+                        "Device1":
                         {
                             "name" : "Test 1",
-                            "joinNumber" : 1,
-                            "useInRoomHealth" : true,
                             "warningTimeout" : 60,
                             "errorTimeout" : 180,
-                            "monitorType" : "Digital"
+                            "logToProcessor": true,
+                            "logToDevices": true,
+                            "joinNumber": 1
                         },
+                        "Device2":
                         {
                             "name" : "Test 2",
                             "joinNumber" : 2,
-                            "useInRoomHealth" : true,
                             "warningTimeout" : 60,
                             "errorTimeout" : 180,
-                            "monitorType" : "Serial"
-                        }
-                    ],
-                    "EssentialsDevices" : [
+                            "logToProcessor": true,
+                            "logToDevices": true
+                        },
+                        "EssentialsDevice1":
                         {
                             "name": "Display01",
-                           "deviceKey" : "panasonicDisplay01",
-                           "joinNumber" : 3,
-                           "useInRoomHealth" : true
+                            "deviceKey" : "panasonicDisplay01",
+                            "logToProcessor": true,
+                            "logToDevices": true,
+                            "joinNumber": 3
                         }
-                    ]
+
+                    }
+
                 }
 
             }
