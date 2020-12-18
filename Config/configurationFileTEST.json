@@ -35,8 +35,8 @@
                     {
                         "DigitalAttributes" :
                         [
-                            {"name": "testAttributeDig", "joinNumber": 51, "RwType": "RW"}
-                        ],
+                            {"name": "PowerOn", "RwType": "RW", "JoinNumber": 51, "LinkDeviceKey": "panasonicDisplay01", "LinkDeviceFeedback": "PowerIsOnFeedback", "LinkDeviceMethod": "PowerOn"}
+                       ],
                         "AnalogAttributes" :
                         [
                             {"name": "testAttributeUShort", "joinNumber": 51, "RwType": "RW"}
@@ -98,32 +98,12 @@
                 "group": "Fusion",
                 "properties": {
                     "DynFusionKey": "DynFusion01",
-                    "ReservedAttributes":
-                    {
-                        "DigitalAttributesInputs" :
-                        [
-                            {"name": "PowerOn", "RwType": "RW", "BridgeJoinNumber": 1, "LinkDeviceKey": "SomeDevice", "LinkDeviceFeedback": "PowerIsOnFB", "LinkDeviceMethod": "PowerOn"}
-
-                        ],
-                        "AnalogAttributes" :
-                        [
-                            {"name": "testAttributeUShort", "joinNumber": 2, "RwType": "RW"}
-                        ],
-                        "SerialAttributes" :
-                        [
-                            {"name": "testAttributeString", "joinNumber": 1, "RwType": "RW"}
-                        ]
-                    },
                     "CustomAttributes":
                     {
-                        "ReservedAttributes":
-                        {
-
-                        },
-
                         "DigitalAttributes" :
                         [
-                            {"name": "testAttributeDig", "AttributeNumber": 1, "BridgeJoinNumber": 1, "RwType": "RW"}
+                            {"name": "PowerOn", "RwType": "RW", "JoinNumber": 1, "LinkDeviceKey": "panasonicDisplay01", "LinkDeviceFeedback": "PowerIsOnFB", "LinkDeviceMethod": "PowerOn"}
+
                         ],
                         "AnalogAttributes" :
                         [

@@ -110,7 +110,6 @@ namespace DynFusion
 			}
 			_DynFusion.FusionSymbol.ExtenderRoomViewSchedulingDataReservedSigs.Use();
 			_DynFusion.FusionSymbol.OnlineStatusChange += new OnlineStatusChangeEventHandler(FusionSymbolStatusChange);
-			//_DynFusion.API.EISC.SigChange += new Crestron.SimplSharpPro.DeviceSupport.SigEventHandler(EISCSigChangeHandler);
 			_DynFusion.FusionSymbol.ExtenderRoomViewSchedulingDataReservedSigs.DeviceExtenderSigChange += new DeviceExtenderJoinChangeEventHandler(FusionScheduleExtenderSigChange);
 			_DynFusion.FusionSymbol.ExtenderFusionRoomDataReservedSigs.DeviceExtenderSigChange += new DeviceExtenderJoinChangeEventHandler(FusionRoomDataExtenderSigChange);
 			AvailableRooms = new DynFusionScheduleAvailableRooms(_DynFusion);

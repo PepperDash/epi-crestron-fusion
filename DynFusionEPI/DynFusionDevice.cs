@@ -75,10 +75,6 @@ namespace DynFusion
 		{
 			try
 			{
-
-				
-				
-
 				// Online Status 
 				FusionOnlineFeedback = new BoolFeedback(() => { return FusionSymbol.IsOnline; });
 				FusionSymbol.OnlineStatusChange += new OnlineStatusChangeEventHandler(FusionSymbol_OnlineStatusChange);
@@ -94,7 +90,7 @@ namespace DynFusion
 
 					if (att.RwType == eReadWrite.ReadWrite || att.RwType == eReadWrite.Read)
 					{
-						DigitalAttributesToFusion.Add(att.JoinNumber, new DynFusionDigitalAttribute(att.Name, att.JoinNumber));	
+						DigitalAttributesToFusion.Add(att.JoinNumber, new DynFusionDigitalAttribute(att.Name, att.JoinNumber, att.LinkDeviceKey, att.LinkDeviceMethod, att.LinkDeviceFeedback));	
 						DigitalAttributesToFusion[att.JoinNumber].BoolValueFeedback.LinkInputSig(FusionSymbol.UserDefinedBooleanSigDetails[att.JoinNumber - FusionJoinOffset].InputSig);
 					}
 					if (att.RwType == eReadWrite.ReadWrite || att.RwType == eReadWrite.Write)
@@ -571,7 +567,7 @@ namespace DynFusion
 
 			}
 			var tempLogMessage = string.Format("{0}:{1}", fusionLevel, logMessage);
-			long errorlogThrottleTime = 10000;
+			long errorlogThrottleTime = 60000;
 			if (ErrorLogLastMessageSent != tempLogMessage)
 			{
 				ErrorLogLastMessageSent = tempLogMessage;
@@ -579,7 +575,7 @@ namespace DynFusion
 				{
 					ErrorLogTimer = new CTimer(o =>
 						{
-							Debug.Console(2, this, "Sent Message {0}:{1}", fusionLevel, ErrorLogLastMessageSent);
+							Debug.Console(2, this, "Sent Message {0}", ErrorLogLastMessageSent);
 							FusionSymbol.ErrorMessage.InputSig.StringValue = ErrorLogLastMessageSent;
 						}, errorlogThrottleTime);
 				}
