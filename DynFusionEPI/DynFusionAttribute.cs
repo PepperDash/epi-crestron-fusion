@@ -44,7 +44,7 @@ namespace DynFusion
 					}
 					catch (Exception ex)
 					{
-						Debug.Console(0, Debug.ErrorLogLevel.Error, "DynFuison Issue linking Device {0} BoolFB {1}", deviceKey, boolFeedback);
+						Debug.Console(0, Debug.ErrorLogLevel.Error, "DynFuison Issue linking Device {0} BoolFB {1}\n{2}", deviceKey, boolFeedback, ex);
 					}
 
 				}
