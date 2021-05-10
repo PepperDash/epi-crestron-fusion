@@ -2281,6 +2281,7 @@ I123=37
 I124=38
 I333=6
 I415=8
+I436=96
 mO=364
 tO=546
 O1=13
@@ -3508,6 +3509,7 @@ OpF=0
 PropF=1
 Cmn1=Fusion Serials
 mI=53
+I1=2
 mO=0
 tO=53
 mP=50
@@ -4584,4 +4586,10 @@ ObjTp=Sg
 H=95
 Nm=IP-ID-AB_an_i73
 SgTp=2
+]
+[
+ObjTp=Sg
+H=96
+Nm=IP-ID-AB_serial-o72
+SgTp=4
 ]
