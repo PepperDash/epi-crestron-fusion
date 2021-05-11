@@ -20,8 +20,8 @@ namespace DynFusion
 		public int usageMinThreshold = 1;
 		private DynFusionDevice _DynFusionDevice;
 
-		public DynFusionDeviceUsage(string key, string name, DynFusionDevice DynFusionInstance)
-			: base(key, name)
+		public DynFusionDeviceUsage(string key, DynFusionDevice DynFusionInstance)
+			: base(key, key)
 		{
 			try
 			{
@@ -40,6 +40,7 @@ namespace DynFusion
 				NewDev.name = name;
 				NewDev.type = type;
 				NewDev.usageType = UsageType.Device;
+				NewDev.joinNumber = (ushort)deviceNumber;
 				var key = string.Format("DEV:{0}", deviceNumber);
 				usageInfoDict.Add(key, NewDev);
 				
@@ -59,6 +60,7 @@ namespace DynFusion
 				NewDisp.type = "Display";
 				NewDisp.sourceNumber = 0;
 				NewDisp.usageType = UsageType.Display;
+				NewDisp.joinNumber = (ushort)deviceNumber;
 				var key = string.Format("DISP:{0}", deviceNumber);
 				usageInfoDict.Add(key, NewDisp);
 				Debug.Console(1,this, string.Format("DynFusionDeviceUsage Created Display key: {0}", key));
@@ -86,10 +88,10 @@ namespace DynFusion
 				Debug.Console(0, this, "{0}", ex);
 			}
 		}
-		public void StartStopDevice(SigEventArgs args)
+		public void StartStopDevice(ushort device, bool action)
 		{
-			var key = string.Format("DEV:{0}", args.Sig.Number);
-			if (args.Sig.BoolValue == true)
+			var key = string.Format("DEV:{0}", device);
+			if (action == true)
 			{
 				StartDevice(key);
 			}
@@ -98,37 +100,37 @@ namespace DynFusion
 				StopDevice(key);
 			}
 		}
-		public void changeSource(SigEventArgs args)
+		public void changeSource(ushort disp, ushort source)
 		{
 			try
 			{
-				var dispKey = string.Format("DISP:{0}", args.Sig.Number);
-
+				var dispKey = string.Format("DISP:{0}", disp);
+				Debug.Console(1, this, "DynFusionDeviceUsage Change Source {0}", dispKey);
 				if (usageInfoDict.ContainsKey(dispKey))
 				{
-					Debug.Console(1,this, "DynFusionDeviceUsage Change Source dispKey: {0}, LastSource: {1} New Source: {2}", dispKey, usageInfoDict[dispKey].sourceNumber, args.Sig.ShortValue);
+					Debug.Console(1, this, "DynFusionDeviceUsage Change Source dispKey: {0}, LastSource: {1} New Source: {2}", dispKey, usageInfoDict[dispKey].sourceNumber, source);
 					// get last source
 					var lastSourceNumber = usageInfoDict[dispKey].sourceNumber;
 
 					// Start new Device
-					if (lastSourceNumber > 0 && args.Sig.ShortValue > 0)
+					if (lastSourceNumber > 0 && source > 0)
 					{
-						var newSourceKey = string.Format("SRC:{0}", args.Sig.ShortValue);
+						var newSourceKey = string.Format("SRC:{0}", source);
 						StartDevice(newSourceKey);
-						usageInfoDict[dispKey].sourceNumber = (uint)args.Sig.ShortValue;
+						usageInfoDict[dispKey].sourceNumber = (uint)source;
 					}
 					//Start new device && display
-					else if (lastSourceNumber == 0 && args.Sig.ShortValue > 0)
+					else if (lastSourceNumber == 0 && source > 0)
 					{
-						var newSourceKey = string.Format("SRC:{0}", args.Sig.ShortValue);
+						var newSourceKey = string.Format("SRC:{0}", source);
 						StartDevice(dispKey);
 						StartDevice(newSourceKey);
-						usageInfoDict[dispKey].sourceNumber = (uint)args.Sig.ShortValue;
+						usageInfoDict[dispKey].sourceNumber = (uint)source;
 					}
 					// Stop display
-					else if (lastSourceNumber > 0 && args.Sig.ShortValue == 0)
+					else if (lastSourceNumber > 0 && source == 0)
 					{
-						usageInfoDict[dispKey].sourceNumber = (uint)args.Sig.ShortValue;
+						usageInfoDict[dispKey].sourceNumber = (uint)source;
 						StopDevice(dispKey);
 					}
 					if (lastSourceNumber > 0)
@@ -223,6 +225,7 @@ namespace DynFusion
 			public string type;
 			public uint sourceNumber;
 			public UsageType usageType;
+			public ushort joinNumber;
 		}
 		public enum UsageType : int
 		{

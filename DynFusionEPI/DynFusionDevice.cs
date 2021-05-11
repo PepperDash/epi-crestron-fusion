@@ -37,6 +37,7 @@ namespace DynFusion
 		public BoolFeedback FusionOnlineFeedback;
 		public RoomInformation RoomInformation;
 
+		public DynFusionDeviceUsage DeviceUsage;
 		public FusionRoom FusionSymbol;
 		private CTimer ErrorLogTimer;
 		private string ErrorLogLastMessageSent; 
@@ -191,6 +192,7 @@ namespace DynFusion
 
 				}
 
+				DeviceUsageFactory(); 
 				// Scheduling Bits for Future 
 				//FusionSymbol.ExtenderRoomViewSchedulingDataReservedSigs.Use();
 				//FusionSymbol.ExtenderRoomViewSchedulingDataReservedSigs.DeviceExtenderSigChange += new DeviceExtenderJoinChangeEventHandler(ExtenderRoomViewSchedulingDataReservedSigs_DeviceExtenderSigChange);
@@ -208,6 +210,66 @@ namespace DynFusion
 			}
 
 		}
+		void DeviceUsageFactory()
+		{
+			
+			if (_Config.DeviceUsage != null)
+			{
+				DeviceUsage = new DynFusionDeviceUsage(string.Format("{0}-DeviceUsage", Key), this);
+				if (_Config.DeviceUsage.usageMinThreshold > 0)
+				{
+					DeviceUsage.usageMinThreshold = (int)_Config.DeviceUsage.usageMinThreshold;
+				}
+
+				if (_Config.DeviceUsage.Devices != null && _Config.DeviceUsage.Devices.Count > 0)
+				{
+					foreach (var device in _Config.DeviceUsage.Devices)
+					{
+						try
+						{
+							Debug.Console(1,this, "Creating Device: {0}, {1}, {2}", device.joinNumber, device.type, device.name);
+							DeviceUsage.CreateDevice(device.joinNumber, device.type, device.name);
+							
+						}
+						catch (Exception ex)
+						{
+							Debug.Console(0, this, "{0}", ex);
+						}
+					}
+				}
+				if (_Config.DeviceUsage.Displays != null && _Config.DeviceUsage.Displays.Count > 0)
+				{
+					foreach (var display in _Config.DeviceUsage.Displays)
+					{
+						try
+						{
+							Debug.Console(1,this, "Creating Display: {0}, {1}", display.joinNumber, display.name);
+							DeviceUsage.CreateDisplay(display.joinNumber, display.name);
+						}
+						catch (Exception ex)
+						{
+							Debug.Console(0, this, "{0}", ex);
+						}
+					}
+				}
+				if (_Config.DeviceUsage.Sources != null && _Config.DeviceUsage.Sources.Count > 0)
+				{
+					foreach (var source in _Config.DeviceUsage.Sources)
+					{
+						try
+						{
+							Debug.Console(1,this, "Creating Source: {0}, {1}", source.sourceNumber, source.name);
+							DeviceUsage.CreateSource(source.sourceNumber, source.name, source.type);
+						}
+						catch (Exception ex)
+						{
+							Debug.Console(0, this, "{0}", ex);
+						}
+					}
+				}
+			}
+		}
+
 		void CreateStandardJoin(JoinDataComplete join, BooleanSigDataFixedName Sig)
 		{
 			if (join.Metadata.JoinCapabilities == eJoinCapabilities.ToFromSIMPL || join.Metadata.JoinCapabilities == eJoinCapabilities.ToSIMPL)
@@ -723,6 +785,32 @@ namespace DynFusion
 			{
 				var attLocal = att.Value;
 				attLocal.StringValueFeedback.LinkInputSig(trilist.StringInput[attLocal.JoinNumber]);
+			}
+			// Device Usage 
+			//API.DigitalActionDict[(ushort)device.joinNumber] = (args) => DeviceUsage.StartStopDevice(args);
+			//API.AnalogActionDict[(ushort)display.joinNumber] = (args) => DeviceUsage.changeSource(args);
+
+			if (DeviceUsage != null)
+			{
+				foreach (var device in DeviceUsage.usageInfoDict)
+				{
+					switch (device.Value.usageType)
+					{
+						case DynFusionDeviceUsage.UsageType.Display:
+							{
+								ushort x = device.Value.joinNumber;
+								trilist.SetUShortSigAction(device.Value.joinNumber, (args) => DeviceUsage.changeSource(x, args));
+								break;
+							}
+						case DynFusionDeviceUsage.UsageType.Device:
+							{
+								ushort x = device.Value.joinNumber;
+								trilist.SetBoolSigAction(device.Value.joinNumber, (args) => DeviceUsage.StartStopDevice(x, args));
+								break;
+							}
+						
+					}
+				}
 			}
 	        trilist.OnlineStatusChange += (o, a) =>
 	        {

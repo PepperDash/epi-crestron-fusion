@@ -20,7 +20,10 @@ namespace DynFusion
 		public CustomProperties CustomProperties { get; set; }
 
 		[JsonProperty("Assets")]
-		public AssetsClass Assets { get; set; } 
+		public AssetsClass Assets { get; set; }
+
+		[JsonProperty("DeviceUsage")]
+		public DeviceUsage DeviceUsage { get; set; } 
 
 	}
 
@@ -74,5 +77,29 @@ namespace DynFusion
 
 		[JsonProperty("Name")]
 		public string Name { get; set; }
+	}
+	public class DeviceUsage
+	{
+		public int usageMinThreshold;
+		public List<DeviceUsageDevice> Devices;
+		public List<DeviceUsageSoruce> Sources;
+		public List<DisplayUsageDevice> Displays;
+	}
+	public class DeviceUsageDevice
+	{
+		public string name;
+		public string type;
+		public uint joinNumber;
+	}
+	public class DisplayUsageDevice
+	{
+		public string name;
+		public uint joinNumber;
+	}
+	public class DeviceUsageSoruce
+	{
+		public string name;
+		public string type;
+		public ushort sourceNumber;
 	}
 }
