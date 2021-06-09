@@ -605,7 +605,7 @@ namespace DynFusion
 					string fusionRoomConfigRequest = String.Format("<RequestRoomConfiguration><RequestID>RoomConfigurationRequest</RequestID><CustomProperties><Property></Property></CustomProperties></RequestRoomConfiguration>");
 
 					Debug.Console(2, this, "Room Request: {0}", fusionRoomConfigRequest);
-					SerialAttributesToFusion[JoinMapStatic.RoomConfig.JoinNumber].StringValue = fusionRoomConfigRequest;
+                    FusionSymbol.ExtenderFusionRoomDataReservedSigs.RoomConfigQuery.StringValue = fusionRoomConfigRequest;
 				}
 			}
 			catch (Exception e)
