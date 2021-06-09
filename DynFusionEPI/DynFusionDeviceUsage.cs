@@ -139,10 +139,10 @@ namespace DynFusion
 						var onlySource = true;
 						foreach (KeyValuePair<string, UsageInfo> entry in usageInfoDict)
 						{
-							Debug.Console(1,this, "DynFusionDeviceUsage Change Source dictEntry: {0}", entry.Key);
+							//Debug.Console(1,this, "DynFusionDeviceUsage Change Source dictEntry: {0}", entry.Key);
 							if (entry.Key.Contains("DISP"))
 							{
-								Debug.Console(1,this, "DynFusionDeviceUsage Change Source dictEntry Display - Source #: {0}", entry.Value.sourceNumber);
+								//Debug.Console(1,this, "DynFusionDeviceUsage Change Source dictEntry Display - Source #: {0}", entry.Value.sourceNumber);
 								if (entry.Value.sourceNumber == lastSourceNumber)
 								{
 									onlySource = false;

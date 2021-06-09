@@ -56,12 +56,12 @@ namespace DynFusion
 			JoinMapStatic = new DynFusionJoinMap(1);
 			Debug.Console(2, "Creating Fusion Symbol {0} {1}", _Config.control.IpId, Key);
 			FusionSymbol = new FusionRoom(_Config.control.IpIdInt, Global.ControlSystem, "", Guid.NewGuid().ToString());
-			FusionSymbol.ExtenderFusionRoomDataReservedSigs.Use();
+			
 			if (FusionSymbol.Register() != eDeviceRegistrationUnRegistrationResponse.Success)
 			{
 				Debug.Console(0, this, "Faliure to register Fusion Symbol");
 			}
-
+			FusionSymbol.ExtenderFusionRoomDataReservedSigs.Use();
 
 		}
 
@@ -534,7 +534,10 @@ namespace DynFusion
 		void FusionSymbol_OnlineStatusChange(GenericBase currentDevice, OnlineOfflineEventArgs args)
 		{
 			FusionOnlineFeedback.FireUpdate();
-			GetRoomConfig();
+			if (args.DeviceOnLine)
+			{
+				GetRoomConfig();
+			}
 		}
 		private static eSigIoMask GetIOMask(eReadWrite mask)
 		{
@@ -680,6 +683,12 @@ namespace DynFusion
                                 XmlReader roomInfo = new XmlReader(e.OuterXml);
 
                                 RoomInformation = CrestronXMLSerialization.DeSerializeObject<RoomInformation>(roomInfo);
+								var attirbute = SerialAttributesFromFusion.SingleOrDefault(x => x.Value.Name == "Name");
+
+								if (attirbute.Value != null)
+								{
+									attirbute.Value.StringValue = RoomInformation.Name;
+								}
                             }
                             else if (e.Name == "CustomFields")
                             {
@@ -692,30 +701,30 @@ namespace DynFusion
 									if (type == "Boolean")
 									{
 										
-										var attirbute = DigitalAttributesFromFusion.SingleOrDefault(x => x.Value.Name == id);
+										var attribute = DigitalAttributesFromFusion.SingleOrDefault(x => x.Value.Name == id);
 
-										if (attirbute.Value != null)
+										if (attribute.Value != null)
 										{
-											attirbute.Value.BoolValue = Boolean.Parse(val);
+											attribute.Value.BoolValue = Boolean.Parse(val);
 										}
 										
 									}
 									else if (type == "Integer")
 									{
-										var attirbute = AnalogAttributesFromFusion.SingleOrDefault(x => x.Value.Name == id);
+										var attribute = AnalogAttributesFromFusion.SingleOrDefault(x => x.Value.Name == id);
 
-										if (attirbute.Value != null)
+										if (attribute.Value != null)
 										{
-											attirbute.Value.UShortValue = uint.Parse(val);
+											attribute.Value.UShortValue = uint.Parse(val);
 										}
 									}
 									else if (type == "String" || type == "Text" || type == "URL")
 									{
-										var attirbute = SerialAttributesFromFusion.SingleOrDefault(x => x.Value.Name == id);
+										var attribute = SerialAttributesFromFusion.SingleOrDefault(x => x.Value.Name == id);
 
-										if (attirbute.Value != null)
+										if (attribute.Value != null)
 										{
-											attirbute.Value.StringValue = val;
+											attribute.Value.StringValue = val;
 										}
 									}
 									Debug.Console(2, this, "RoomConfigParseData {0} {1} {2}", type, id, val); 
@@ -733,27 +742,9 @@ namespace DynFusion
 		}
 	    public override void LinkToApi(BasicTriList trilist, uint joinStart, string joinMapKey, EiscApiAdvanced bridge)
 	    {
-	        /*
-			 * /var joinMap = new EssentialsPluginBridgeJoinMapTemplate(joinStart);
-
-	        // This adds the join map to the collection on the bridge
-	        if (bridge != null)
-	        {
-	            bridge.AddJoinMap(Key, joinMap);
-	        }
-
-	        var customJoins = JoinMapHelper.TryGetJoinMapAdvancedForDevice(joinMapKey);
-
-	        if (customJoins != null)
-	        {
-	            joinMap.SetCustomJoinData(customJoins);
-	        }
-			 * */ 
-
 	        Debug.Console(1, "Linking to Trilist '{0}'", trilist.ID.ToString("X"));
 	        Debug.Console(0, "Linking to Bridge Type {0}", GetType().Name);
-
-			
+			var joinMap = new DynFusionJoinMap(joinStart);
 
 			foreach (var att in DigitalAttributesToFusion)	
 			{
@@ -786,9 +777,8 @@ namespace DynFusion
 				var attLocal = att.Value;
 				attLocal.StringValueFeedback.LinkInputSig(trilist.StringInput[attLocal.JoinNumber]);
 			}
-			// Device Usage 
-			//API.DigitalActionDict[(ushort)device.joinNumber] = (args) => DeviceUsage.StartStopDevice(args);
-			//API.AnalogActionDict[(ushort)display.joinNumber] = (args) => DeviceUsage.changeSource(args);
+
+			trilist.SetSigTrueAction(joinMap.RoomConfig.JoinNumber, () => GetRoomConfig());
 
 			if (DeviceUsage != null)
 			{
@@ -816,8 +806,14 @@ namespace DynFusion
 	        {
 	            if (a.DeviceOnLine)
 	            {
-	                // trilist.SetString(joinMap.DeviceName.JoinNumber, Name);
 					GetRoomConfig();
+					foreach (var att in SerialAttributesFromFusion)
+					{
+						var attLocal = att.Value;
+						var trilistLocal = o as BasicTriList;
+						trilistLocal.StringInput[attLocal.JoinNumber].StringValue = attLocal.StringValue;
+					}
+
 	            }
 	        };
 	    }
