@@ -37,6 +37,7 @@ namespace DynFusion
 		public BoolFeedback FusionOnlineFeedback;
 		public RoomInformation RoomInformation;
 
+		public DynFusionDeviceUsage DeviceUsage;
 		public FusionRoom FusionSymbol;
 		private CTimer ErrorLogTimer;
 		private string ErrorLogLastMessageSent; 
@@ -55,12 +56,12 @@ namespace DynFusion
 			JoinMapStatic = new DynFusionJoinMap(1);
 			Debug.Console(2, "Creating Fusion Symbol {0} {1}", _Config.control.IpId, Key);
 			FusionSymbol = new FusionRoom(_Config.control.IpIdInt, Global.ControlSystem, "", Guid.NewGuid().ToString());
-			FusionSymbol.ExtenderFusionRoomDataReservedSigs.Use();
+			
 			if (FusionSymbol.Register() != eDeviceRegistrationUnRegistrationResponse.Success)
 			{
 				Debug.Console(0, this, "Faliure to register Fusion Symbol");
 			}
-
+			FusionSymbol.ExtenderFusionRoomDataReservedSigs.Use();
 
 		}
 
@@ -191,6 +192,7 @@ namespace DynFusion
 
 				}
 
+				DeviceUsageFactory(); 
 				// Scheduling Bits for Future 
 				//FusionSymbol.ExtenderRoomViewSchedulingDataReservedSigs.Use();
 				//FusionSymbol.ExtenderRoomViewSchedulingDataReservedSigs.DeviceExtenderSigChange += new DeviceExtenderJoinChangeEventHandler(ExtenderRoomViewSchedulingDataReservedSigs_DeviceExtenderSigChange);
@@ -208,6 +210,66 @@ namespace DynFusion
 			}
 
 		}
+		void DeviceUsageFactory()
+		{
+			
+			if (_Config.DeviceUsage != null)
+			{
+				DeviceUsage = new DynFusionDeviceUsage(string.Format("{0}-DeviceUsage", Key), this);
+				if (_Config.DeviceUsage.usageMinThreshold > 0)
+				{
+					DeviceUsage.usageMinThreshold = (int)_Config.DeviceUsage.usageMinThreshold;
+				}
+
+				if (_Config.DeviceUsage.Devices != null && _Config.DeviceUsage.Devices.Count > 0)
+				{
+					foreach (var device in _Config.DeviceUsage.Devices)
+					{
+						try
+						{
+							Debug.Console(1,this, "Creating Device: {0}, {1}, {2}", device.joinNumber, device.type, device.name);
+							DeviceUsage.CreateDevice(device.joinNumber, device.type, device.name);
+							
+						}
+						catch (Exception ex)
+						{
+							Debug.Console(0, this, "{0}", ex);
+						}
+					}
+				}
+				if (_Config.DeviceUsage.Displays != null && _Config.DeviceUsage.Displays.Count > 0)
+				{
+					foreach (var display in _Config.DeviceUsage.Displays)
+					{
+						try
+						{
+							Debug.Console(1,this, "Creating Display: {0}, {1}", display.joinNumber, display.name);
+							DeviceUsage.CreateDisplay(display.joinNumber, display.name);
+						}
+						catch (Exception ex)
+						{
+							Debug.Console(0, this, "{0}", ex);
+						}
+					}
+				}
+				if (_Config.DeviceUsage.Sources != null && _Config.DeviceUsage.Sources.Count > 0)
+				{
+					foreach (var source in _Config.DeviceUsage.Sources)
+					{
+						try
+						{
+							Debug.Console(1,this, "Creating Source: {0}, {1}", source.sourceNumber, source.name);
+							DeviceUsage.CreateSource(source.sourceNumber, source.name, source.type);
+						}
+						catch (Exception ex)
+						{
+							Debug.Console(0, this, "{0}", ex);
+						}
+					}
+				}
+			}
+		}
+
 		void CreateStandardJoin(JoinDataComplete join, BooleanSigDataFixedName Sig)
 		{
 			if (join.Metadata.JoinCapabilities == eJoinCapabilities.ToFromSIMPL || join.Metadata.JoinCapabilities == eJoinCapabilities.ToSIMPL)
@@ -472,7 +534,10 @@ namespace DynFusion
 		void FusionSymbol_OnlineStatusChange(GenericBase currentDevice, OnlineOfflineEventArgs args)
 		{
 			FusionOnlineFeedback.FireUpdate();
-			GetRoomConfig();
+			if (args.DeviceOnLine)
+			{
+				GetRoomConfig();
+			}
 		}
 		private static eSigIoMask GetIOMask(eReadWrite mask)
 		{
@@ -540,7 +605,7 @@ namespace DynFusion
 					string fusionRoomConfigRequest = String.Format("<RequestRoomConfiguration><RequestID>RoomConfigurationRequest</RequestID><CustomProperties><Property></Property></CustomProperties></RequestRoomConfiguration>");
 
 					Debug.Console(2, this, "Room Request: {0}", fusionRoomConfigRequest);
-					SerialAttributesToFusion[JoinMapStatic.RoomConfig.JoinNumber].StringValue = fusionRoomConfigRequest;
+                    FusionSymbol.ExtenderFusionRoomDataReservedSigs.RoomConfigQuery.StringValue = fusionRoomConfigRequest;
 				}
 			}
 			catch (Exception e)
@@ -618,6 +683,12 @@ namespace DynFusion
                                 XmlReader roomInfo = new XmlReader(e.OuterXml);
 
                                 RoomInformation = CrestronXMLSerialization.DeSerializeObject<RoomInformation>(roomInfo);
+								var attirbute = SerialAttributesFromFusion.SingleOrDefault(x => x.Value.Name == "Name");
+
+								if (attirbute.Value != null)
+								{
+									attirbute.Value.StringValue = RoomInformation.Name;
+								}
                             }
                             else if (e.Name == "CustomFields")
                             {
@@ -630,30 +701,30 @@ namespace DynFusion
 									if (type == "Boolean")
 									{
 										
-										var attirbute = DigitalAttributesFromFusion.SingleOrDefault(x => x.Value.Name == id);
+										var attribute = DigitalAttributesFromFusion.SingleOrDefault(x => x.Value.Name == id);
 
-										if (attirbute.Value != null)
+										if (attribute.Value != null)
 										{
-											attirbute.Value.BoolValue = Boolean.Parse(val);
+											attribute.Value.BoolValue = Boolean.Parse(val);
 										}
 										
 									}
 									else if (type == "Integer")
 									{
-										var attirbute = AnalogAttributesFromFusion.SingleOrDefault(x => x.Value.Name == id);
+										var attribute = AnalogAttributesFromFusion.SingleOrDefault(x => x.Value.Name == id);
 
-										if (attirbute.Value != null)
+										if (attribute.Value != null)
 										{
-											attirbute.Value.UShortValue = uint.Parse(val);
+											attribute.Value.UShortValue = uint.Parse(val);
 										}
 									}
 									else if (type == "String" || type == "Text" || type == "URL")
 									{
-										var attirbute = SerialAttributesFromFusion.SingleOrDefault(x => x.Value.Name == id);
+										var attribute = SerialAttributesFromFusion.SingleOrDefault(x => x.Value.Name == id);
 
-										if (attirbute.Value != null)
+										if (attribute.Value != null)
 										{
-											attirbute.Value.StringValue = val;
+											attribute.Value.StringValue = val;
 										}
 									}
 									Debug.Console(2, this, "RoomConfigParseData {0} {1} {2}", type, id, val); 
@@ -671,27 +742,9 @@ namespace DynFusion
 		}
 	    public override void LinkToApi(BasicTriList trilist, uint joinStart, string joinMapKey, EiscApiAdvanced bridge)
 	    {
-	        /*
-			 * /var joinMap = new EssentialsPluginBridgeJoinMapTemplate(joinStart);
-
-	        // This adds the join map to the collection on the bridge
-	        if (bridge != null)
-	        {
-	            bridge.AddJoinMap(Key, joinMap);
-	        }
-
-	        var customJoins = JoinMapHelper.TryGetJoinMapAdvancedForDevice(joinMapKey);
-
-	        if (customJoins != null)
-	        {
-	            joinMap.SetCustomJoinData(customJoins);
-	        }
-			 * */ 
-
 	        Debug.Console(1, "Linking to Trilist '{0}'", trilist.ID.ToString("X"));
 	        Debug.Console(0, "Linking to Bridge Type {0}", GetType().Name);
-
-			
+			var joinMap = new DynFusionJoinMap(joinStart);
 
 			foreach (var att in DigitalAttributesToFusion)	
 			{
@@ -724,12 +777,43 @@ namespace DynFusion
 				var attLocal = att.Value;
 				attLocal.StringValueFeedback.LinkInputSig(trilist.StringInput[attLocal.JoinNumber]);
 			}
+
+			trilist.SetSigTrueAction(joinMap.RoomConfig.JoinNumber, () => GetRoomConfig());
+
+			if (DeviceUsage != null)
+			{
+				foreach (var device in DeviceUsage.usageInfoDict)
+				{
+					switch (device.Value.usageType)
+					{
+						case DynFusionDeviceUsage.UsageType.Display:
+							{
+								ushort x = device.Value.joinNumber;
+								trilist.SetUShortSigAction(device.Value.joinNumber, (args) => DeviceUsage.changeSource(x, args));
+								break;
+							}
+						case DynFusionDeviceUsage.UsageType.Device:
+							{
+								ushort x = device.Value.joinNumber;
+								trilist.SetBoolSigAction(device.Value.joinNumber, (args) => DeviceUsage.StartStopDevice(x, args));
+								break;
+							}
+						
+					}
+				}
+			}
 	        trilist.OnlineStatusChange += (o, a) =>
 	        {
 	            if (a.DeviceOnLine)
 	            {
-	                // trilist.SetString(joinMap.DeviceName.JoinNumber, Name);
 					GetRoomConfig();
+					foreach (var att in SerialAttributesFromFusion)
+					{
+						var attLocal = att.Value;
+						var trilistLocal = o as BasicTriList;
+						trilistLocal.StringInput[attLocal.JoinNumber].StringValue = attLocal.StringValue;
+					}
+
 	            }
 	        };
 	    }
