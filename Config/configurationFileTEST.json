@@ -3,17 +3,7 @@
     "system_url": "http://portal-QA.devcloud.pepperdash.com/templates/0f50640b-bc89-42d5-998f-81d137d3fc98#/template_summary",
     "template": {
         "joinMaps": [
-            {
-            "TempGuageJoinMap":
-               {
-
-                "IsOnline": 1,
-                "TemperatureFormat": 1,
-                "Temperature": 1,
-                "Humidity": 2,
-                "Name": 1
-                }
-            }],
+            ],
 
         "devices": [
             {
