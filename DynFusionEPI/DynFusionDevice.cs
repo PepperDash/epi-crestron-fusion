@@ -1,6 +1,7 @@
 ﻿// For Basic SIMPL# Classes
 // For Basic SIMPL#Pro classes
 using Crestron.SimplSharpPro.DeviceSupport;
+using DynFusion.Config;
 using PepperDash.Essentials.Core;
 using PepperDash.Essentials.Core.Bridges;
 using PepperDash.Essentials.Core.Interfaces;
@@ -54,8 +55,8 @@ namespace DynFusion
 			AnalogAttributesFromFusion = new Dictionary<UInt32, DynFusionAnalogAttribute>();
 			SerialAttributesFromFusion = new Dictionary<UInt32, DynFusionSerialAttribute>();
 			JoinMapStatic = new DynFusionJoinMap(1);
-			Debug.Console(2, "Creating Fusion Symbol {0} {1}", _Config.control.IpId, Key);
-			FusionSymbol = new FusionRoom(_Config.control.IpIdInt, Global.ControlSystem, "", Guid.NewGuid().ToString());
+			Debug.Console(2, "Creating Fusion Symbol {0} {1}", _Config.Control.IpId, Key);
+			FusionSymbol = new FusionRoom(_Config.Control.IpIdInt, Global.ControlSystem, "", Guid.NewGuid().ToString());
 			
 			if (FusionSymbol.Register() != eDeviceRegistrationUnRegistrationResponse.Success)
 			{
@@ -155,7 +156,7 @@ namespace DynFusion
 					{
 						foreach (var att in _Config.CustomProperties.DigitalProperties)
 						{
-							DigitalAttributesFromFusion.Add(att.JoinNumber, new DynFusionDigitalAttribute(att.ID, att.JoinNumber));
+							DigitalAttributesFromFusion.Add(att.JoinNumber, new DynFusionDigitalAttribute(att.Id, att.JoinNumber));
 						}
 					}
 					if (_Config.CustomProperties.AnalogProperties != null)
@@ -163,7 +164,7 @@ namespace DynFusion
 
 						foreach (var att in _Config.CustomProperties.AnalogProperties)
 						{
-							AnalogAttributesFromFusion.Add(att.JoinNumber, new DynFusionAnalogAttribute(att.ID, att.JoinNumber));
+							AnalogAttributesFromFusion.Add(att.JoinNumber, new DynFusionAnalogAttribute(att.Id, att.JoinNumber));
 						}
 					}
 					if (_Config.CustomProperties.SerialProperties != null)
@@ -171,7 +172,7 @@ namespace DynFusion
 
 						foreach (var att in _Config.CustomProperties.SerialProperties)
 						{
-							SerialAttributesFromFusion.Add(att.JoinNumber, new DynFusionSerialAttribute(att.ID, att.JoinNumber));
+							SerialAttributesFromFusion.Add(att.JoinNumber, new DynFusionSerialAttribute(att.Id, att.JoinNumber));
 						}
 					}
 				}
@@ -216,9 +217,9 @@ namespace DynFusion
 			if (_Config.DeviceUsage != null)
 			{
 				DeviceUsage = new DynFusionDeviceUsage(string.Format("{0}-DeviceUsage", Key), this);
-				if (_Config.DeviceUsage.usageMinThreshold > 0)
+				if (_Config.DeviceUsage.UsageMinThreshold > 0)
 				{
-					DeviceUsage.usageMinThreshold = (int)_Config.DeviceUsage.usageMinThreshold;
+					DeviceUsage.usageMinThreshold = (int)_Config.DeviceUsage.UsageMinThreshold;
 				}
 
 				if (_Config.DeviceUsage.Devices != null && _Config.DeviceUsage.Devices.Count > 0)
@@ -227,8 +228,8 @@ namespace DynFusion
 					{
 						try
 						{
-							Debug.Console(1,this, "Creating Device: {0}, {1}, {2}", device.joinNumber, device.type, device.name);
-							DeviceUsage.CreateDevice(device.joinNumber, device.type, device.name);
+							Debug.Console(1,this, "Creating Device: {0}, {1}, {2}", device.JoinNumber, device.Type, device.Name);
+							DeviceUsage.CreateDevice(device.JoinNumber, device.Type, device.Name);
 							
 						}
 						catch (Exception ex)
@@ -243,8 +244,8 @@ namespace DynFusion
 					{
 						try
 						{
-							Debug.Console(1,this, "Creating Display: {0}, {1}", display.joinNumber, display.name);
-							DeviceUsage.CreateDisplay(display.joinNumber, display.name);
+							Debug.Console(1,this, "Creating Display: {0}, {1}", display.JoinNumber, display.Name);
+							DeviceUsage.CreateDisplay(display.JoinNumber, display.Name);
 						}
 						catch (Exception ex)
 						{
@@ -258,8 +259,8 @@ namespace DynFusion
 					{
 						try
 						{
-							Debug.Console(1,this, "Creating Source: {0}, {1}", source.sourceNumber, source.name);
-							DeviceUsage.CreateSource(source.sourceNumber, source.name, source.type);
+							Debug.Console(1,this, "Creating Source: {0}, {1}", source.SourceNumber, source.Name);
+							DeviceUsage.CreateSource(source.SourceNumber, source.Name, source.Type);
 						}
 						catch (Exception ex)
 						{

@@ -1,6 +1,6 @@
 namespace DynFusion.Config
 {
-    public class DeviceUsageSoruce
+    public class DeviceUsageSource
     {
         public string Name { get; set; }
         public string Type { get; set; }

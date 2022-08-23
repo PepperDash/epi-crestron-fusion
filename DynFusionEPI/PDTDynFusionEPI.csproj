@@ -100,6 +100,16 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="AvailableRooms.cs" />
+    <Compile Include="Config\AssetsClass.cs" />
+    <Compile Include="Config\CustomAttributes.cs" />
+    <Compile Include="Config\CustomProperties.cs" />
+    <Compile Include="Config\DeviceUsage.cs" />
+    <Compile Include="Config\DeviceUsageDevice.cs" />
+    <Compile Include="Config\DeviceUsageSoruce.cs" />
+    <Compile Include="Config\DisplayUsageDevice.cs" />
+    <Compile Include="Config\FusionCustomProperty.cs" />
+    <Compile Include="Config\FusionEssentialsAsset.cs" />
+    <Compile Include="Config\FusionOccupancyAsset.cs" />
     <Compile Include="DynFusionDeviceUsage.cs" />
     <Compile Include="SchedulingConfig.cs" />
     <Compile Include="FeedbackExtensions.cs" />
@@ -109,7 +119,7 @@
     <Compile Include="DynFusionAttribute.cs" />
     <Compile Include="DynFusionJoinMap.cs" />
     <Compile Include="DynFusionDevice.cs" />
-    <Compile Include="DynFusionConfigObjectTemplate.cs" />
+    <Compile Include="Config\DynFusionConfigObjectTemplate.cs" />
     <Compile Include="DynFusionPluginFactoryTemplate.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="Scheduling.cs" />

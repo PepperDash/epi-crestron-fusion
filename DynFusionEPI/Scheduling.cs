@@ -218,9 +218,9 @@ namespace DynFusion
 
 		public void GetRoomSchedule()
 		{
-			if (ScheduleBusy.value == false)
+			if (ScheduleBusy.Value == false)
 			{
-				ScheduleBusy.value = true;
+				ScheduleBusy.Value = true;
 				getScheduleTimeOut = new CTimer(getRoomScheduleTimeOut, 6000);
 				Debug.Console(2, this, String.Format("Get RoomSchedule"));
 				string roomID = _DynFusion.RoomInformation.ID;
@@ -232,7 +232,7 @@ namespace DynFusion
 
 		public void getRoomScheduleTimeOut(object unused)
 		{
-			ScheduleBusy.value = false;
+			ScheduleBusy.Value = false;
 			Debug.ConsoleWithLog(2, this, "Error getRoomScheduleTimeOut");
 		}
 
@@ -389,19 +389,19 @@ namespace DynFusion
 
 											if (isRegsitered == 1)
 											{
-												RegisterdForPush.value = true;
+												RegisterdForPush.Value = true;
 
 												// JTA EXTRA Logging
-												Debug.ConsoleWithLog(2, this, string.Format("SchedulePush: {0}", RegisterdForPush.value), 1);
+												Debug.ConsoleWithLog(2, this, string.Format("SchedulePush: {0}", RegisterdForPush.Value), 1);
 
 												this.StartSchedPushTimer();
 											}
 
 											else if (isRegsitered == 0)
 											{
-												RegisterdForPush.value = false;
+												RegisterdForPush.Value = false;
 												// JTA EXTRA Logging
-												Debug.ConsoleWithLog(2, this, string.Format("SchedulePush: {0}", RegisterdForPush.value), 1);
+												Debug.ConsoleWithLog(2, this, string.Format("SchedulePush: {0}", RegisterdForPush.Value), 1);
 												this.StopSchedPushTimer();
 
 												schedulePullTimer = new CTimer(GetRoomSchedule, null, schedulePullTimerTimeout, schedulePullTimerTimeout);
@@ -585,7 +585,7 @@ namespace DynFusion
 								
 
 								
-								ScheduleBusy.value = false;
+								ScheduleBusy.Value = false;
 							}
 							#endregion
 							else if (response["RequestID"].InnerText == "PushNotification")
@@ -700,69 +700,69 @@ namespace DynFusion
 
 						if (timeToNext.TotalMinutes >= 90)
 						{
-							enableMeetingExtend15.value = true;
-							enableMeetingExtend30.value = true;
-							enableMeetingExtend45.value = true;
-							enableMeetingExtend60.value = true;
-							enableMeetingExtend90.value = true;
+							enableMeetingExtend15.Value = true;
+							enableMeetingExtend30.Value = true;
+							enableMeetingExtend45.Value = true;
+							enableMeetingExtend60.Value = true;
+							enableMeetingExtend90.Value = true;
 						}
 						else if (timeToNext.TotalMinutes >= 60)
 						{
-							enableMeetingExtend15.value = true;
-							enableMeetingExtend30.value = true;
-							enableMeetingExtend45.value = true;
-							enableMeetingExtend60.value = true;
-							enableMeetingExtend90.value = false;
+							enableMeetingExtend15.Value = true;
+							enableMeetingExtend30.Value = true;
+							enableMeetingExtend45.Value = true;
+							enableMeetingExtend60.Value = true;
+							enableMeetingExtend90.Value = false;
 						}
 						else if (timeToNext.TotalMinutes >= 45)
 						{
-							enableMeetingExtend15.value = true;
-							enableMeetingExtend30.value = true;
-							enableMeetingExtend45.value = true;
-							enableMeetingExtend60.value = false;
-							enableMeetingExtend90.value = false;
+							enableMeetingExtend15.Value = true;
+							enableMeetingExtend30.Value = true;
+							enableMeetingExtend45.Value = true;
+							enableMeetingExtend60.Value = false;
+							enableMeetingExtend90.Value = false;
 						}
 						else if (timeToNext.TotalMinutes >= 30)
 						{
-							enableMeetingExtend15.value = true;
-							enableMeetingExtend30.value = true;
-							enableMeetingExtend45.value = false;
-							enableMeetingExtend60.value = false;
-							enableMeetingExtend90.value = false;
+							enableMeetingExtend15.Value = true;
+							enableMeetingExtend30.Value = true;
+							enableMeetingExtend45.Value = false;
+							enableMeetingExtend60.Value = false;
+							enableMeetingExtend90.Value = false;
 						}
 						else if (timeToNext.TotalMinutes >= 15)
 						{
-							enableMeetingExtend15.value = true;
-							enableMeetingExtend30.value = false;
-							enableMeetingExtend45.value = false;
-							enableMeetingExtend60.value = false;
-							enableMeetingExtend90.value = false;
+							enableMeetingExtend15.Value = true;
+							enableMeetingExtend30.Value = false;
+							enableMeetingExtend45.Value = false;
+							enableMeetingExtend60.Value = false;
+							enableMeetingExtend90.Value = false;
 						}
 						else
 						{
-							enableMeetingExtend15.value = false;
-							enableMeetingExtend30.value = false;
-							enableMeetingExtend45.value = false;
-							enableMeetingExtend60.value = false;
-							enableMeetingExtend90.value = false;
+							enableMeetingExtend15.Value = false;
+							enableMeetingExtend30.Value = false;
+							enableMeetingExtend45.Value = false;
+							enableMeetingExtend60.Value = false;
+							enableMeetingExtend90.Value = false;
 						}
 					}
 					else
 					{
-						enableMeetingExtend15.value = true;
-						enableMeetingExtend30.value = true;
-						enableMeetingExtend45.value = true;
-						enableMeetingExtend60.value = true;
-						enableMeetingExtend90.value = true;
+						enableMeetingExtend15.Value = true;
+						enableMeetingExtend30.Value = true;
+						enableMeetingExtend45.Value = true;
+						enableMeetingExtend60.Value = true;
+						enableMeetingExtend90.Value = true;
 					}
 				}
 				else
 				{
-					enableMeetingExtend15.value = false;
-					enableMeetingExtend30.value = false;
-					enableMeetingExtend45.value = false;
-					enableMeetingExtend60.value = false;
-					enableMeetingExtend90.value = false;
+					enableMeetingExtend15.Value = false;
+					enableMeetingExtend30.Value = false;
+					enableMeetingExtend45.Value = false;
+					enableMeetingExtend60.Value = false;
+					enableMeetingExtend90.Value = false;
 				}
 			}
 			catch (Exception e)
@@ -786,69 +786,69 @@ namespace DynFusion
 
 						if (timeToNext.TotalMinutes >= 90)
 						{
-							enableMeetingReserve15.value = true;
-							enableMeetingReserve30.value = true;
-							enableMeetingReserve45.value = true;
-							enableMeetingReserve60.value = true;
-							enableMeetingReserve90.value = true;
+							enableMeetingReserve15.Value = true;
+							enableMeetingReserve30.Value = true;
+							enableMeetingReserve45.Value = true;
+							enableMeetingReserve60.Value = true;
+							enableMeetingReserve90.Value = true;
 						}
 						else if (timeToNext.TotalMinutes >= 60)
 						{
-							enableMeetingReserve15.value = true;
-							enableMeetingReserve30.value = true;
-							enableMeetingReserve45.value = true;
-							enableMeetingReserve60.value = true;
-							enableMeetingReserve90.value = false;
+							enableMeetingReserve15.Value = true;
+							enableMeetingReserve30.Value = true;
+							enableMeetingReserve45.Value = true;
+							enableMeetingReserve60.Value = true;
+							enableMeetingReserve90.Value = false;
 						}
 						else if (timeToNext.TotalMinutes >= 45)
 						{
-							enableMeetingReserve15.value = true;
-							enableMeetingReserve30.value = true;
-							enableMeetingReserve45.value = true;
-							enableMeetingReserve60.value = false;
-							enableMeetingReserve90.value = false;
+							enableMeetingReserve15.Value = true;
+							enableMeetingReserve30.Value = true;
+							enableMeetingReserve45.Value = true;
+							enableMeetingReserve60.Value = false;
+							enableMeetingReserve90.Value = false;
 						}
 						else if (timeToNext.TotalMinutes >= 30)
 						{
-							enableMeetingReserve15.value = true;
-							enableMeetingReserve30.value = true;
-							enableMeetingReserve45.value = false;
-							enableMeetingReserve60.value = false;
-							enableMeetingReserve90.value = false;
+							enableMeetingReserve15.Value = true;
+							enableMeetingReserve30.Value = true;
+							enableMeetingReserve45.Value = false;
+							enableMeetingReserve60.Value = false;
+							enableMeetingReserve90.Value = false;
 						}
 						else if (timeToNext.TotalMinutes >= 15)
 						{
-							enableMeetingReserve15.value = true;
-							enableMeetingReserve30.value = false;
-							enableMeetingReserve45.value = false;
-							enableMeetingReserve60.value = false;
-							enableMeetingReserve90.value = false;
+							enableMeetingReserve15.Value = true;
+							enableMeetingReserve30.Value = false;
+							enableMeetingReserve45.Value = false;
+							enableMeetingReserve60.Value = false;
+							enableMeetingReserve90.Value = false;
 						}
 						else
 						{
-							enableMeetingReserve15.value = false;
-							enableMeetingReserve30.value = false;
-							enableMeetingReserve45.value = false;
-							enableMeetingReserve60.value = false;
-							enableMeetingReserve90.value = false;
+							enableMeetingReserve15.Value = false;
+							enableMeetingReserve30.Value = false;
+							enableMeetingReserve45.Value = false;
+							enableMeetingReserve60.Value = false;
+							enableMeetingReserve90.Value = false;
 						}
 					}
 					else
 					{
-						enableMeetingReserve15.value = true;
-						enableMeetingReserve30.value = true;
-						enableMeetingReserve45.value = true;
-						enableMeetingReserve60.value = true;
-						enableMeetingReserve90.value = true;
+						enableMeetingReserve15.Value = true;
+						enableMeetingReserve30.Value = true;
+						enableMeetingReserve45.Value = true;
+						enableMeetingReserve60.Value = true;
+						enableMeetingReserve90.Value = true;
 					}
 				}
 				else
 				{
-					enableMeetingReserve15.value = false;
-					enableMeetingReserve30.value = false;
-					enableMeetingReserve45.value = false;
-					enableMeetingReserve60.value = false;
-					enableMeetingReserve90.value = false;
+					enableMeetingReserve15.Value = false;
+					enableMeetingReserve30.Value = false;
+					enableMeetingReserve45.Value = false;
+					enableMeetingReserve60.Value = false;
+					enableMeetingReserve90.Value = false;
 				}
 			}
 			catch (Exception e)
