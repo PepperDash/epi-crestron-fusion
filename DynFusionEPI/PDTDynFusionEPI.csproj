@@ -100,6 +100,8 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="AvailableRooms.cs" />
+    <Compile Include="Config\CallStatistics.cs" />
+    <Compile Include="Config\CallStatisticsDeviceConfig.cs" />
     <Compile Include="Config\AssetsClass.cs" />
     <Compile Include="Config\CustomAttributes.cs" />
     <Compile Include="Config\CustomProperties.cs" />
@@ -110,7 +112,9 @@
     <Compile Include="Config\FusionCustomProperty.cs" />
     <Compile Include="Config\FusionEssentialsAsset.cs" />
     <Compile Include="Config\FusionOccupancyAsset.cs" />
+    <Compile Include="DynFusionCallStatisticsDevice.cs" />
     <Compile Include="DynFusionDeviceUsage.cs" />
+    <Compile Include="DynFusionScheduleFactory.cs" />
     <Compile Include="SchedulingConfig.cs" />
     <Compile Include="FeedbackExtensions.cs" />
     <Compile Include="SchedulingJoinMap.cs" />
@@ -120,7 +124,7 @@
     <Compile Include="DynFusionJoinMap.cs" />
     <Compile Include="DynFusionDevice.cs" />
     <Compile Include="Config\DynFusionConfigObjectTemplate.cs" />
-    <Compile Include="DynFusionPluginFactoryTemplate.cs" />
+    <Compile Include="DynFusionDeviceFactory.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="Scheduling.cs" />
     <Compile Include="XmlExtensions.cs" />

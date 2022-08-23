@@ -9,5 +9,6 @@ namespace DynFusion.Config
 		public CustomProperties CustomProperties { get; set; }
 		public AssetsClass Assets { get; set; }
 		public DeviceUsage DeviceUsage { get; set; } 
+        public CallStatistics CallStatistics { get; set; }
 	}
 }
