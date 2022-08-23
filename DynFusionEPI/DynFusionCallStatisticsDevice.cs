@@ -69,7 +69,6 @@ namespace DynFusion
                 _callTime.Stop();
                 var minUsed = _callTime.Elapsed.Minutes;
 
-                Debug.Console(2, this, "Call Time = {0}", _callTime.Elapsed.ToString());
                 Debug.Console(2, this, "DynFusionCallStatistics Stopped: minUsed = {0}", minUsed.ToString("D"));
 
                 if (_callTimer != null)
@@ -110,7 +109,6 @@ namespace DynFusion
                     _callTime.Reset();
                     CallTimeFeedback.FireUpdate();
 
-                    Debug.Console(2, this, "Call Time = {0}", _callTime.Elapsed.ToString());
                     Debug.Console(2, this, "DynFusionCallStatistics message \n{0}", usageString);
                 }
                 else
