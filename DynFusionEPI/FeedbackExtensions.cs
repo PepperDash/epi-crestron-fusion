@@ -1,17 +1,13 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using Crestron.SimplSharp;
-using PepperDash.Essentials.Core;
+﻿using PepperDash.Essentials.Core;
 
 namespace DynFusion
 {
 	public class BoolWithFeedback
 	{
 		private bool _value;
-		public BoolFeedback Feedback;
-		public bool value
+		public readonly BoolFeedback Feedback;
+
+		public bool Value
 		{
 			get
 			{
@@ -23,12 +19,10 @@ namespace DynFusion
 				Feedback.FireUpdate();
 			}
 		}
+
 		public BoolWithFeedback()
 		{
-			Feedback = new BoolFeedback(() => value);
+            Feedback = new BoolFeedback(() => _value);
 		}
-
-
-
 	}
 }
