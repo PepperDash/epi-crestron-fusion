@@ -10,16 +10,19 @@ namespace DynFusion
     {
         private readonly FusionRoom _fusionSymbol;
         public uint AssetNumber { get; private set; }
+        public readonly string LinkKey;
 
         public DynFusionAssetOccupancySensor(string key, string linkKey, FusionRoom symbol, uint assetNumber)
             : base(string.Format("{0}-OccAsset#{1}", symbol.Name, assetNumber))
         {
+            Key = key;
+            LinkKey = linkKey;
             _fusionSymbol = symbol;
             AssetNumber = assetNumber;
             // _fusionSymbol.FusionAssetStateChange += new FusionAssetStateEventHandler(_fusionSymbol_FusionAssetStateChange);
         }
 
-        public void sendChange(string message)
+        public void SendChange(string message)
         {
             Debug.Console(2, this, "OccupancySensor {0} recieved Message {1}", AssetNumber, message);
 
@@ -35,21 +38,14 @@ namespace DynFusion
                     ((FusionOccupancySensor) _fusionSymbol.UserConfigurableAssetDetails[AssetNumber].Asset)
                         .EnableOccupancySensor.InputSig.BoolValue = messageObject.OccSensorEnabled;
                 }
-                if (message.Contains("RoomOccupied"))
-                {
-                    ((FusionOccupancySensor) _fusionSymbol.UserConfigurableAssetDetails[AssetNumber].Asset).RoomOccupied
-                        .InputSig.BoolValue = messageObject.RoomOccupied;
-                }
-                else
-                {
-                    ((FusionOccupancySensor) _fusionSymbol.UserConfigurableAssetDetails[AssetNumber].Asset).RoomOccupied
-                        .InputSig.BoolValue = false;
-                }
                 if (message.Contains("OccSensorTimeout"))
                 {
                     ((FusionOccupancySensor) _fusionSymbol.UserConfigurableAssetDetails[AssetNumber].Asset)
                         .OccupancySensorTimeout.InputSig.UShortValue = messageObject.OccSensorTimeout;
                 }
+                ((FusionOccupancySensor) _fusionSymbol.UserConfigurableAssetDetails[AssetNumber].Asset).RoomOccupied
+                    .InputSig.BoolValue = message.Contains("RoomOccupied") && messageObject.RoomOccupied;
+
             }
         }
 
@@ -67,17 +63,17 @@ namespace DynFusion
                 {
                     case FusionAssetEventId.DisableOccupancySensorReceivedEventId:
                     {
-                        trilist.StringInput[joinMap.StringIO.JoinNumber].StringValue = "Disable\r";
+                        trilist.StringInput[joinMap.StringIo.JoinNumber].StringValue = "Disable\r";
                         break;
                     }
                     case FusionAssetEventId.EnableOccupancySensorReceivedEventId:
                     {
-                        trilist.StringInput[joinMap.StringIO.JoinNumber].StringValue = "Enable\r";
+                        trilist.StringInput[joinMap.StringIo.JoinNumber].StringValue = "Enable\r";
                         break;
                     }
                     case FusionAssetEventId.OccupancySensorTimeoutReceivedEventId:
                     {
-                        trilist.StringInput[joinMap.StringIO.JoinNumber].StringValue = string.Format("SetTimeout: {0}",
+                        trilist.StringInput[joinMap.StringIo.JoinNumber].StringValue = string.Format("SetTimeout: {0}",
                             ((FusionOccupancySensor) _fusionSymbol.UserConfigurableAssetDetails[AssetNumber].Asset)
                                 .OccupancySensorTimeout.OutputSig.UShortValue);
                         break;
@@ -86,8 +82,8 @@ namespace DynFusion
             };
 
             // TODO: this might be better to send with an online from Fusion 
-            trilist.StringInput[joinMap.StringIO.JoinNumber].StringValue = "SendValues\r";
-            trilist.SetStringSigAction(joinMap.StringIO.JoinNumber, (s) => sendChange(s));
+            trilist.StringInput[joinMap.StringIo.JoinNumber].StringValue = "SendValues\r";
+            trilist.SetStringSigAction(joinMap.StringIo.JoinNumber, SendChange);
         }
     }
 

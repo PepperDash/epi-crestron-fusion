@@ -257,23 +257,23 @@ jobs:
           echo "NUSPEC_FILE=$($nuspec_file)" | Out-File -FilePath $env:GITHUB_ENV -Encoding utf8 -Append
       # Pulls the nuget builder packages
       - name: Add nuget.exe
-        if: "!contains(env.NUSPEC_FILE, 'epi-utilities-dynfusion')"
+        if: "!contains(env.NUSPEC_FILE, 'EssentialsPluginTemplate')"
         uses: nuget/setup-nuget@v1
       # Creating nuget Packages
       - name: Add Github Packages source
-        if: "!contains(env.NUSPEC_FILE, 'epi-utilities-dynfusion')"
+        if: "!contains(env.NUSPEC_FILE, 'EssentialsPluginTemplate')"
         run: nuget sources add -name github -source https://nuget.pkg.github.com/pepperdash/index.json -username Pepperdash -password ${{ secrets.GITHUB_TOKEN }}
       - name: Create nuget package
-        if: "!contains(env.NUSPEC_FILE, 'epi-utilities-dynfusion')"
+        if: "!contains(env.NUSPEC_FILE, 'EssentialsPluginTemplate')"
         run: nuget pack "./${{ env.NUSPEC_FILE}}.nuspec" -version ${{ env.VERSION }}
       # Pushes to internal github registry
       - name: Publish nuget package to Github registry
-        if: "!contains(env.NUSPEC_FILE, 'epi-utilities-dynfusion')"
+        if: "!contains(env.NUSPEC_FILE, 'EssentialsPluginTemplate')"
         run: nuget push **/*.nupkg -source github
       # Pushes to nuget gallery
       - name: Add nuget.org API Key
-        if: github.repository_owner == 'PepperDash' && github.repository_visibility == 'public' && !contains(env.NUSPEC_FILE, 'epi-utilities-dynfusion')
+        if: github.repository_owner == 'PepperDash' && github.repository_visibility == 'public' && !contains(env.NUSPEC_FILE, 'EssentialsPluginTemplate')
         run: nuget setApiKey ${{ secrets.NUGET_API_KEY }}
       - name: Publish nuget package to nuget.org
-        if: github.repository_owner == 'PepperDash' && github.repository_visibility == 'public' && !contains(env.NUSPEC_FILE, 'epi-utilities-dynfusion')
+        if: github.repository_owner == 'PepperDash' && github.repository_visibility == 'public' && !contains(env.NUSPEC_FILE, 'EssentialsPluginTemplate')
         run: nuget push **/*.nupkg -Source https://api.nuget.org/v3/index.json
