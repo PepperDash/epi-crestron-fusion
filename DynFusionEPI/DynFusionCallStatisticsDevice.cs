@@ -13,6 +13,7 @@ namespace DynFusion
         private readonly FusionRoom _symbol;
         private readonly string _type;
         private readonly bool _useCallTimer;
+// ReSharper disable once NotAccessedField.Local
         private readonly bool _postMeetingId;
 
         // private DateTime _startTime;

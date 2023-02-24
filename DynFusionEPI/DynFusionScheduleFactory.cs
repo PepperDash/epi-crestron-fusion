@@ -12,7 +12,7 @@ namespace DynFusion
             MinimumEssentialsFrameworkVersion = "1.5.5";
 
             // In the constructor we initialize the list with the typenames that will build an instance of this device
-            TypeNames = new List<string>() { "DynFusionSchedule" };
+            TypeNames = new List<string> { "DynFusionSchedule" };
         }
 
         // Builds and returns an instance of EssentialsPluginDeviceTemplate
