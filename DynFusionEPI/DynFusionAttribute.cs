@@ -1,9 +1,13 @@
 ﻿using System;
+using System.Collections.Generic;
+using System.Linq;
+using Crestron.SimplSharp.Reflection;
 using PepperDash.Essentials.Core;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Converters;
 using Crestron.SimplSharpPro;
 using PepperDash.Core;
+using PepperDash.Essentials.Core.DeviceInfo;
 
 namespace DynFusion
 {
@@ -101,6 +105,7 @@ namespace DynFusion
             LinkDeviceFeedback = config.LinkDeviceFeedback;
             LinkDeviceMethod = config.LinkDeviceMethod;
             UShortValueFeedback = new IntFeedback(() => (int)UShortValue);
+            IsDeviceInfo = config.IsDeviceInfo;
 
 
             Debug.Console(2, "Creating AnalogAttribute {0} {1} {2}", JoinNumber, Name, (int)RwType);
@@ -155,6 +160,7 @@ namespace DynFusion
 
         }
 
+
 		public IntFeedback UShortValueFeedback { get; set; }
 		public UInt32 UShortValue { get; set; }
 	}
@@ -186,6 +192,11 @@ namespace DynFusion
         {
 
             if (string.IsNullOrEmpty(LinkDeviceKey)) return;
+            if (IsDeviceInfo)
+            {
+                LinkDeviceInfo();
+                return;
+            }
             if (!string.IsNullOrEmpty(LinkDeviceFeedback))
             {
                 try
@@ -229,6 +240,40 @@ namespace DynFusion
             }
 
         }
+
+        private void LinkDeviceInfo()
+        {
+            try
+            {
+                if (string.IsNullOrEmpty(LinkDeviceFeedback)) return;
+                var device = DeviceManager.GetDeviceForKey(LinkDeviceKey);
+                if (device == null) return;
+                var infoProvider = device as IDeviceInfoProvider;
+                if (infoProvider == null) return;
+                infoProvider.DeviceInfoChanged += (s, a) =>
+                {
+                    var devInfo = a.DeviceInfo;
+                    var props = devInfo.GetType().GetCType().GetProperties();
+
+                    foreach (var prop in props)
+                    {
+                        var name = prop.Name;
+                        if (name.ToLower() != LinkDeviceFeedback) continue;
+                        var propValue = (string) prop.GetValue(devInfo, null);
+                        if (string.IsNullOrEmpty(propValue)) return;
+                        StringValue = propValue;
+                        StringValueFeedback.FireUpdate();
+                        return;
+                    }
+                };
+            }
+            catch (Exception ex)
+            {
+                Debug.Console(0, Debug.ErrorLogLevel.Error, "Unable to link to DeviceInfo {1} on Device {0}\n{2}", LinkDeviceKey,
+                    LinkDeviceFeedback, ex);
+            }
+        }
+
 
 		public StringFeedback StringValueFeedback { get; set; }
 		public string StringValue { get; set; }
@@ -289,6 +334,9 @@ namespace DynFusion
 
         [JsonProperty("bridgeJoin")]
         public ushort BridgeJoin { get; set; }
+
+        [JsonProperty("isDeviceInfo")]
+        public bool IsDeviceInfo { get; set; }
 
 	    public virtual void ExecuteAction()
 	    {
