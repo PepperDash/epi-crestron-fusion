@@ -113,7 +113,6 @@
     <Compile Include="Config\FusionEssentialsAsset.cs" />
     <Compile Include="Config\FusionOccupancyAsset.cs" />
     <Compile Include="Config\FusionStaticAsset.cs" />
-    <Compile Include="DummyAsset.cs" />
     <Compile Include="DynFusionAssetJoinMap.cs" />
     <Compile Include="DynFusionCallStatisticsDevice.cs" />
     <Compile Include="DynFusionDeviceUsage.cs" />

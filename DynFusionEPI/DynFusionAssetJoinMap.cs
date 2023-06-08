@@ -42,7 +42,7 @@ namespace DynFusion
 
             var joinData = new JoinData
             {
-                JoinNumber = attribute.JoinNumber + joinStart - 1,
+                JoinNumber = attribute.BridgeJoin + joinStart - 1,
                 JoinSpan = 1
             };
 
@@ -78,7 +78,7 @@ namespace DynFusion
 
             var joinData = new JoinData
             {
-                JoinNumber = attribute.JoinNumber + joinStart - 1 + 10,
+                JoinNumber = attribute.BridgeJoin + joinStart - 1,
                 JoinSpan = 1
             };
 

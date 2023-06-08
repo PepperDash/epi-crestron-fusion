@@ -1,13 +1,10 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
-using Crestron.SimplSharp;
-using Crestron.SimplSharp.CrestronIO;
 using Crestron.SimplSharpPro;
 using Crestron.SimplSharpPro.DeviceSupport;
 using Crestron.SimplSharpPro.Fusion;
 using DynFusion.Config;
-using Newtonsoft.Json;
 using PepperDash.Core;
 using PepperDash.Essentials.Core;
 using PepperDash.Essentials.Core.Bridges;
@@ -28,6 +25,8 @@ namespace DynFusion
         public List<DynFusionAttributeBase> Attributes = new List<DynFusionAttributeBase>(); 
         public List<DynFusionAttributeBase> CustomAttributes = new List<DynFusionAttributeBase>();
 
+        public const int FusionCustomAssetJoinOffset = 49;
+
 
         public DynFusionStaticAsset(FusionStaticAssetConfig config, FusionRoom symbol, uint assetNumber, IKeyed parent)
             : base(string.Format("{0}-Asset-{1}", parent.Key, config.Key))
@@ -40,27 +39,14 @@ namespace DynFusion
 
             Debug.Console(0, this, "Key = {0}", Key);
 
-            Debug.Console(0, this, "There are {0} attributes to assign", Config.Attributes.AnalogAttributes.Count + Config.Attributes.DigitalAttributes.Count + Config.Attributes.SerialAttributes.Count);
 
-            _fusionSymbol.AddAsset(eAssetType.StaticAsset, AssetNumber, config.Name, Key, Guid.NewGuid().ToString());
+            _fusionSymbol.AddAsset(eAssetType.StaticAsset, AssetNumber, config.Name, Type, Guid.NewGuid().ToString());
             _asset = _fusionSymbol.UserConfigurableAssetDetails[AssetNumber].Asset as FusionStaticAsset;
-            _fusionSymbol.FusionAssetStateChange += (o, a) =>
-            {
-                if (o == null || a == null) return;
-                if (a.UserConfigurableAssetDetailIndex != AssetNumber)
-                {
-                    Debug.Console(0, this, "Asset Detail Index = {0} and this assetIndex = {1}", a.UserConfigurableAssetDetailIndex, AssetNumber);
-                }
-                var eventDebugString = JsonConvert.SerializeObject(a, Formatting.Indented);
-                Debug.Console(0, this, "Event Incoming From Asset {0}{1}{2}", AssetNumber, CrestronEnvironment.NewLine, eventDebugString);
-            };
 
             try
             {
-
                 Debug.Console(0, this, "{0}", _asset == null ? "Asset Is Null" : "Running Setup");
                 if (_asset == null) return;
-
                 _asset.PowerOn.AddSigToRVIFile = false;
                 _asset.PowerOff.AddSigToRVIFile = false;
                 _asset.Connected.AddSigToRVIFile = false;
@@ -106,8 +92,9 @@ namespace DynFusion
                     connectedDynamic.JoinNumber = _asset.Connected.Number;
                     var connected = new DynFusionDigitalAttribute(connectedDynamic);
                     Attributes.Add(connected);
-                    _asset.PowerOn.AddSigToRVIFile = true;
+                    _asset.Connected.AddSigToRVIFile = true;
                 }
+
                 if (powerOnDynamic != null)
                 {
                     Config.Attributes.DigitalAttributes.Remove(powerOnDynamic);
@@ -124,7 +111,6 @@ namespace DynFusion
                     var powerOff = new DynFusionDigitalAttribute(powerOffDynamic);
                     Attributes.Add(powerOff);
                     _asset.PowerOff.AddSigToRVIFile = true;
-
                 }
 
                 if (assetErrorDynamic != null)
@@ -134,7 +120,6 @@ namespace DynFusion
                     var assetError = new DynFusionSerialAttribute(assetErrorDynamic);
                     Attributes.Add(assetError);
                     _asset.AssetError.AddSigToRVIFile = true;
-
                 }
 
                 if (assetUsageDynamic != null)
@@ -145,7 +130,8 @@ namespace DynFusion
                     Attributes.Add(assetUsage);
                     _asset.AssetUsage.AddSigToRVIFile = true;
                 }
-                Debug.Console(0, this, "Adding Serial Attributes");
+
+                Debug.Console(1, this, "Adding Serial Attributes");
                 foreach (
                     var dynAttribute in
                         Config.Attributes.SerialAttributes.Select(
@@ -154,7 +140,7 @@ namespace DynFusion
                     CustomAttributes.Add(dynAttribute);
                     AddSigHelper(dynAttribute);
                 }
-                Debug.Console(0, this, "Adding Digital Attributes");
+                Debug.Console(1, this, "Adding Digital Attributes");
 
                 foreach (
                     var dynAttribute in
@@ -174,8 +160,8 @@ namespace DynFusion
                     CustomAttributes.Add(dynAttribute);
                     AddSigHelper(dynAttribute);
                 }
-                Debug.Console(0, this, "There are {0} Base Attributes", Attributes.Count);
-                Debug.Console(0, this, "There are {0} Custom Attributes", CustomAttributes.Count);
+                Debug.Console(2, this, "There are {0} Base Attributes", Attributes.Count);
+                Debug.Console(2, this, "There are {0} Custom Attributes", CustomAttributes.Count);
             }
 
             catch (Exception ex)
@@ -187,7 +173,6 @@ namespace DynFusion
 
         public void LinkAllAttributeData()
         {
-            Debug.Console(0, this, "Running LinkAllAttributeData");
             LinkBaseAttributeData();
             LinkCustomAttributeData();
         }
@@ -195,8 +180,6 @@ namespace DynFusion
 
         private void LinkBaseAttributeData()
         {
-            Debug.Console(0, this, "Running LinkBaseAttributeData - there are {0} Base Attributes", Attributes.Count);
-
             foreach (var item in Attributes)
             {
                 var attribute = item;
@@ -205,8 +188,6 @@ namespace DynFusion
         }
         private void LinkCustomAttributeData()
         {
-            Debug.Console(0, this, "Running LinkCustomAttributeData - there are {0} Custom Attributes", CustomAttributes.Count);
-
             foreach (var item in CustomAttributes)
             {
                 var asset = item;
@@ -217,7 +198,6 @@ namespace DynFusion
 
         private static void LinkItem(DynFusionAttributeBase attribute)
         {
-            Debug.Console(0, "Linking attribute : {0} - It's of Type {1}", attribute.Name, attribute.SignalType);
             switch (attribute.SignalType)
             {
                 case (eSigType.Bool):
@@ -238,9 +218,6 @@ namespace DynFusion
             }
         }
 
-
-
-
         public override void LinkToApi(BasicTriList trilist, uint joinStart, string joinMapKey, EiscApiAdvanced bridge)
         {
             var joinMap = new DynFusionStaticAssetJoinMapDynamic(joinStart, Attributes, CustomAttributes);
@@ -260,14 +237,6 @@ namespace DynFusion
                 LinkBaseAttributes();
                 LinkCustomAttributes();
             };
-
-            _fusionSymbol.OnlineStatusChange += (s, a) =>
-            {
-                if (!a.DeviceOnLine) return;
-                LinkBaseAttributes();
-                LinkCustomAttributes();
-            };
-
         }
 
         private void LinkBaseAttributes()
@@ -297,20 +266,74 @@ namespace DynFusion
 
         private void AddSigHelper(DynFusionDigitalAttribute attribute)
         {
-            Debug.Console(0, this, "Digital RwType = {0}", (int)attribute.RwType);
-            _asset.AddSig(eSigType.Bool, attribute.JoinNumber + 49, attribute.Name, (eSigIoMask)(int)attribute.RwType);
+            var sigNumber = attribute.JoinNumber - FusionCustomAssetJoinOffset;
+            _asset.AddSig(eSigType.Bool, sigNumber, attribute.Name, (eSigIoMask)(int)attribute.RwType);
+            if ((int)attribute.RwType == 1 || (int)attribute.RwType == 3)
+            {
+                var testBoolOutput =
+                    _asset.FusionGenericAssetDigitalsAsset1.BooleanOutput[sigNumber];
+                var debugData = testBoolOutput == null
+                    ? string.Format("Asset {0} Output Attribute {1} is invalid", Key, attribute.Name)
+                    : string.Format("Asset {0} Output Attribute {1} is valid", Key, attribute.Name);
+                Debug.Console(2, this, debugData);
+            }
+            if ((int)attribute.RwType == 2 || (int)attribute.RwType == 3)
+            {
+                var testOutput =
+                    _asset.FusionGenericAssetDigitalsAsset1.BooleanInput[sigNumber];
+                var debugData = testOutput == null
+                    ? string.Format("Asset {0} Input Attribute {1} is invalid", Key, attribute.Name)
+                    : string.Format("Asset {0} Input Attribute {1} is valid", Key, attribute.Name);
+                Debug.Console(2, this, debugData);
+            }
         }
 
         private void AddSigHelper(DynFusionAnalogAttribute attribute)
         {
-            Debug.Console(0, this, "Analog RwType = {0}", (int)attribute.RwType);
-            _asset.AddSig(eSigType.UShort, attribute.JoinNumber + 49, attribute.Name, (eSigIoMask)(int)attribute.RwType);
+            var sigNumber = attribute.JoinNumber - FusionCustomAssetJoinOffset;
+            _asset.AddSig(eSigType.UShort, sigNumber, attribute.Name, (eSigIoMask)(int)attribute.RwType);
+            if ((int)attribute.RwType == 1 || (int)attribute.RwType == 3)
+            {
+                var testOutput =
+                    _asset.FusionGenericAssetAnalogsAsset2.UShortOutput[sigNumber];
+                var debugData = testOutput == null
+                    ? string.Format("Asset {0} Output Attribute {1} is invalid", Key, attribute.Name)
+                    : string.Format("Asset {0} Output Attribute {1} is valid with the number {2}", Key, attribute.Name, testOutput.Number);
+                Debug.Console(2, this, debugData);
+            }
+            if ((int)attribute.RwType == 2 || (int)attribute.RwType == 3)
+            {
+                var testOutput =
+                    _asset.FusionGenericAssetAnalogsAsset2.UShortInput[sigNumber];
+                var debugData = testOutput == null
+                    ? string.Format("Asset {0} Input Attribute {1} is invalid", Key, attribute.Name)
+                    : string.Format("Asset {0} Input Attribute {1} is valid", Key, attribute.Name);
+                Debug.Console(2, this, debugData);
+            }
         }
 
         private void AddSigHelper(DynFusionSerialAttribute attribute)
         {
-            Debug.Console(0, this, "Serial RwType = {0}", (int)attribute.RwType);
-            _asset.AddSig(eSigType.String, attribute.JoinNumber + 49, attribute.Name, (eSigIoMask)(int)attribute.RwType);
+            var sigNumber = attribute.JoinNumber - FusionCustomAssetJoinOffset;
+            _asset.AddSig(eSigType.String, sigNumber, attribute.Name, (eSigIoMask)(int)attribute.RwType);
+            if ((int)attribute.RwType == 1 || (int)attribute.RwType == 3)
+            {
+                var testOutput =
+                    _asset.FusionGenericAssetSerialsAsset3.StringOutput[sigNumber];
+                var debugData = testOutput == null
+                    ? string.Format("Asset {0} Output Attribute {1} is invalid", Key, attribute.Name)
+                    : string.Format("Asset {0} Output Attribute {1} is valid with the number {2} and name {3}", Key, attribute.Name, testOutput.Number, testOutput.Name);
+                Debug.Console(2, this, debugData);
+            }
+            if ((int)attribute.RwType == 2 || (int)attribute.RwType == 3)
+            {
+                var testOutput =
+                    _asset.FusionGenericAssetSerialsAsset3.StringInput[sigNumber];
+                var debugData = testOutput == null
+                    ? string.Format("Asset {0} Input Attribute {1} is invalid", Key, attribute.Name)
+                    : string.Format("Asset {0} Input Attribute {1} is valid with the number {2} and name {3}", Key, attribute.Name, testOutput.Number, testOutput.Name);
+                Debug.Console(2, this, debugData);
+            }
         }
 
         private void LinkCustomAttribute(JoinDataComplete joinData, BasicTriList trilist, DynFusionAttributeBase attribute)
@@ -331,6 +354,8 @@ namespace DynFusion
 
         private void LinkDigitalAttribute(JoinDataComplete joinData, BasicTriList trilist, DynFusionAttributeBase attribute)
         {
+            var dynFusionDigitalAttribute = attribute as DynFusionDigitalAttribute;
+            uint sigNumber = 0;
             if (attribute.RwType == eReadWrite.Read || attribute.RwType == eReadWrite.ReadWrite)
             {
                 _fusionSymbol.FusionAssetStateChange += (d, a) =>
@@ -340,23 +365,55 @@ namespace DynFusion
                     var sigDetails = a.UserConfiguredSigDetail as BooleanSigData;
                     if (sigDetails == null) return;
                     if (sigDetails.Name != attribute.Name) return;
-                    if (attribute.AttributeAction != null && sigDetails.OutputSig.BoolValue) 
+                    sigNumber = sigDetails.Number;
+                    if (attribute.AttributeAction != null && sigDetails.OutputSig.BoolValue)
                         attribute.AttributeAction.Invoke();
                     trilist.BooleanInput[joinData.JoinNumber].BoolValue = sigDetails.OutputSig.BoolValue;
                 };
             }
             if (attribute.RwType != eReadWrite.Write && attribute.RwType != eReadWrite.ReadWrite) return;
-            var digitalAttribute = _asset.FusionGenericAssetDigitalsAsset1.BooleanInput[attribute.JoinNumber + 49];
             trilist.SetBoolSigAction(joinData.JoinNumber, b =>
             {
                 if (attribute.AttributeAction != null && b) attribute.AttributeAction.Invoke();
-                digitalAttribute.BoolValue = b;
+                _asset.FusionGenericAssetDigitalsAsset1.BooleanInput[attribute.JoinNumber].BoolValue = b;
             });
+            if (dynFusionDigitalAttribute == null) return;
+            Debug.Console(2, this, "DynFusionDigitalAttribute for {0} is valid", attribute.Name);
+            if (dynFusionDigitalAttribute.BoolValueFeedback == null) return;
+            Debug.Console(2, this, "DynFusionDigitalAttribute Feedback for {0} is valid", attribute.Name);
+
+            dynFusionDigitalAttribute.BoolValueFeedback.OutputChange += (s, a) =>
+            {
+                Debug.Console(2, this, "Feedback Fired for {0}", attribute.Name);
+                if (a == null) return;
+                _asset.FusionGenericAssetDigitalsAsset1.BooleanInput[attribute.JoinNumber].BoolValue = a.BoolValue;
+            };
+
+            _fusionSymbol.OnlineStatusChange += (s, a) =>
+            {
+                if (!a.DeviceOnLine) return;
+                _asset.FusionGenericAssetDigitalsAsset1.BooleanInput[attribute.JoinNumber].BoolValue =
+                    dynFusionDigitalAttribute.BoolValue;
+                if (sigNumber == 0) return;
+                trilist.BooleanInput[joinData.JoinNumber].BoolValue =
+                    _asset.FusionGenericAssetDigitalsAsset1.BooleanOutput[sigNumber].BoolValue;
+            };
+
+            trilist.OnlineStatusChange += (s, a) =>
+            {
+                if (!a.DeviceOnLine) return;
+                if (sigNumber == 0) return;
+                trilist.BooleanInput[joinData.JoinNumber].BoolValue =
+                    _asset.FusionGenericAssetDigitalsAsset1.BooleanOutput[sigNumber].BoolValue;
+            };
+
         }
 
         private void LinkAnalogAttribute(JoinDataComplete joinData, BasicTriList trilist,
             DynFusionAttributeBase attribute)
         {
+            var dynFusionAnalogAttribute = attribute as DynFusionAnalogAttribute;
+            uint sigNumber = 0;
             if (attribute.RwType == eReadWrite.Read || attribute.RwType == eReadWrite.ReadWrite)
             {
                 _fusionSymbol.FusionAssetStateChange += (d, a) =>
@@ -366,22 +423,55 @@ namespace DynFusion
                     var sigDetails = a.UserConfiguredSigDetail as UShortSigData;
                     if (sigDetails == null) return;
                     if (sigDetails.Name != attribute.Name) return;
+                    sigNumber = sigDetails.Number;
                     if (attribute.AttributeAction != null)
                         attribute.AttributeAction.Invoke();
                     trilist.UShortInput[joinData.JoinNumber].UShortValue = sigDetails.OutputSig.UShortValue;
                 };
             }
             if (attribute.RwType != eReadWrite.Write && attribute.RwType != eReadWrite.ReadWrite) return;
-            var analogAttribute = _asset.FusionGenericAssetAnalogsAsset2.UShortInput[attribute.JoinNumber + 49];
             trilist.SetUShortSigAction(joinData.JoinNumber, u =>
             {
                 if (attribute.AttributeAction != null) attribute.AttributeAction.Invoke();
-                analogAttribute.UShortValue = u;
+                _asset.FusionGenericAssetAnalogsAsset2.UShortInput[attribute.JoinNumber].UShortValue = u;
             });
+            if (dynFusionAnalogAttribute == null) return;
+            Debug.Console(2, this, "DynFusionAnalogAttribute for {0} is valid", attribute.Name);
+
+            if (dynFusionAnalogAttribute.UShortValueFeedback == null) return;
+            Debug.Console(2, this, "DynFusionAnalogAttribute Feedback for {0} is valid", attribute.Name);
+
+            dynFusionAnalogAttribute.UShortValueFeedback.OutputChange += (s, a) =>
+            {
+                Debug.Console(2, this, "Feedback Fired for {0}", attribute.Name);
+                if (a == null) return;
+                _asset.FusionGenericAssetAnalogsAsset2.UShortInput[attribute.JoinNumber].UShortValue = a.UShortValue;
+            };
+            _fusionSymbol.OnlineStatusChange += (s, a) =>
+            {
+                if (!a.DeviceOnLine) return;
+                _asset.FusionGenericAssetAnalogsAsset2.UShortInput[attribute.JoinNumber].UShortValue =
+                    (ushort)dynFusionAnalogAttribute.UShortValue;
+                if (sigNumber == 0) return;
+                trilist.UShortInput[joinData.JoinNumber].UShortValue =
+                    _asset.FusionGenericAssetAnalogsAsset2.UShortOutput[sigNumber].UShortValue;
+            };
+            trilist.OnlineStatusChange += (s, a) =>
+            {
+                if (!a.DeviceOnLine) return;
+                if (sigNumber == 0) return;
+                trilist.UShortInput[joinData.JoinNumber].UShortValue =
+                    _asset.FusionGenericAssetAnalogsAsset2.UShortOutput[sigNumber].UShortValue;
+
+            };
+
+
         }
 
         private void LinkSerialAttribute(JoinDataComplete joinData, BasicTriList trilist, DynFusionAttributeBase attribute)
         {
+            var dynFusionSerialAttribute = attribute as DynFusionSerialAttribute;
+            uint sigNumber = 0;
             if (attribute.RwType == eReadWrite.Read || attribute.RwType == eReadWrite.ReadWrite)
             {
                 _fusionSymbol.FusionAssetStateChange += (d, a) =>
@@ -391,18 +481,45 @@ namespace DynFusion
                     var sigDetails = a.UserConfiguredSigDetail as StringSigData;
                     if (sigDetails == null) return;
                     if (sigDetails.Name != attribute.Name) return;
+                    sigNumber = sigDetails.Number;
                     if (attribute.AttributeAction != null)
                         attribute.AttributeAction.Invoke();
                     trilist.StringInput[joinData.JoinNumber].StringValue = sigDetails.OutputSig.StringValue;
                 };
             }
             if (attribute.RwType != eReadWrite.Write && attribute.RwType != eReadWrite.ReadWrite) return;
-            var serialAttribute = _asset.FusionGenericAssetSerialsAsset3.StringInput[attribute.JoinNumber + 49];
-            trilist.SetStringSigAction(joinData.JoinNumber, s =>
+            trilist.SetStringSigAction(joinData.JoinNumber, s => 
             {
                 if (attribute.AttributeAction != null) attribute.AttributeAction.Invoke();
-                serialAttribute.StringValue = s;
+                _asset.FusionGenericAssetSerialsAsset3.StringInput[attribute.JoinNumber].StringValue = s;
             });
+            if (dynFusionSerialAttribute == null) return;
+            Debug.Console(2, this, "DynFusionSerialAttribute for {0} is valid", attribute.Name);
+            if (dynFusionSerialAttribute.StringValueFeedback == null) return;
+            Debug.Console(2, this, "DynFusionSerialAttribute Feedback for {0} is valid", attribute.Name);
+            dynFusionSerialAttribute.StringValueFeedback.OutputChange += (s, a) =>
+            {
+                Debug.Console(2, this, "Feedback Fired for {0}", attribute.Name);
+                if (a == null) return;
+                _asset.FusionGenericAssetSerialsAsset3.StringInput[attribute.JoinNumber].StringValue = a.StringValue;
+            };
+            _fusionSymbol.OnlineStatusChange += (s, a) =>
+            {
+                if (!a.DeviceOnLine) return;
+                _asset.FusionGenericAssetSerialsAsset3.StringInput[attribute.JoinNumber].StringValue =
+                    dynFusionSerialAttribute.StringValue;
+                if (sigNumber == 0) return;
+                trilist.StringInput[joinData.JoinNumber].StringValue =
+                    _asset.FusionGenericAssetSerialsAsset3.StringOutput[sigNumber].StringValue;
+            };
+            trilist.OnlineStatusChange += (s, a) =>
+            {
+                if (!a.DeviceOnLine) return;
+                if (sigNumber == 0) return;
+                trilist.StringInput[joinData.JoinNumber].StringValue =
+                    _asset.FusionGenericAssetSerialsAsset3.StringOutput[sigNumber].StringValue;
+            };
+
         }
 
         private void LinkBaseAttribute(JoinDataComplete joinData, BasicTriList trilist, DynFusionAttributeBase attribute)

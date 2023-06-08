@@ -19,7 +19,7 @@ namespace DynFusion
             Debug.Console(2, "Creating DigitalAttribute {0} {1} {2}", JoinNumber, Name, (int)RwType);
 		}
         public DynFusionDigitalAttribute(DynFusionAttributeBase config)
-            : base(config.Name, eSigType.Bool, config.JoinNumber, config.RwType)
+            : base(config.Name, eSigType.Bool, config.JoinNumber, config.RwType, config.BridgeJoin)
         {
             Debug.Console(2, "Creating DigitalAttribute {0} {1} {2}", JoinNumber, Name, (int)RwType);
 
@@ -27,44 +27,27 @@ namespace DynFusion
             LinkDeviceFeedback = config.LinkDeviceFeedback;
             LinkDeviceMethod = config.LinkDeviceMethod;
             InvertFeedback = config.InvertFeedback;
+            BoolValueFeedback = new BoolFeedback(() => BoolValue);
 
 
 		}
-		public BoolFeedback BoolValueFeedback { get; set; }
-
-		private bool _BoolValue { get; set; }
-		public bool BoolValue
-		{
-			get
-			{
-				
-				return _BoolValue;
-
-			}
-			set
-			{
-				_BoolValue = value;
-				BoolValueFeedback.FireUpdate();
-				Debug.Console(2, "Changed Value of DigitalAttribute {0} {1} {2}", JoinNumber, Name, value);
-
-			}
-		}
-
 	    public override void LinkData()
 	    {
-            Debug.Console(0, "Linking Digital Data for {0} : LinkDeviceKey - {1}, LinkDeviceFeedback - {2}, LinkDeviceMethod - {3}", Name, LinkDeviceKey, LinkDeviceFeedback, LinkDeviceMethod);
 	        if (string.IsNullOrEmpty(LinkDeviceKey)) return;
 	        if (!string.IsNullOrEmpty(LinkDeviceFeedback))
 	        {
 	            try
 	            {
-                    BoolValueFeedback = new BoolFeedback(() => BoolValue);
 	                var fb = DeviceJsonApi.GetPropertyByName(LinkDeviceKey, LinkDeviceFeedback) as BoolFeedback;
-	                if (fb == null) return;
+	                if (fb == null)
+	                {
+	                    Debug.Console(0, "Unable to link Feedback for digital attribute {0}", Name);
+	                    return;
+	                }
 	                fb.OutputChange += ((sender, args) =>
 	                {
 	                    BoolValue = InvertFeedback ? !args.BoolValue : args.BoolValue;
-	                    Debug.Console(2, "DigitalAttribute {0} from device {2} = {1}", Name, BoolValue, LinkDeviceKey);
+                        BoolValueFeedback.FireUpdate();
 	                });
 	            }
 	            catch (Exception ex)
@@ -94,6 +77,10 @@ namespace DynFusion
 	            }
 	        }
 	    }
+
+        public BoolFeedback BoolValueFeedback { get; set; }
+        public bool BoolValue { get; set; }
+
 	}
 
 
@@ -108,11 +95,12 @@ namespace DynFusion
         }
 
         public DynFusionAnalogAttribute(DynFusionAttributeBase config)
-            : base(config.Name, eSigType.UShort, config.JoinNumber, config.RwType)
+            : base(config.Name, eSigType.UShort, config.JoinNumber, config.RwType, config.BridgeJoin)
 	    {
             LinkDeviceKey = config.LinkDeviceKey;
             LinkDeviceFeedback = config.LinkDeviceFeedback;
             LinkDeviceMethod = config.LinkDeviceMethod;
+            UShortValueFeedback = new IntFeedback(() => (int)UShortValue);
 
 
             Debug.Console(2, "Creating AnalogAttribute {0} {1} {2}", JoinNumber, Name, (int)RwType);
@@ -121,20 +109,22 @@ namespace DynFusion
 
         public override void LinkData()
         {
-            Debug.Console(0, "Linking Analog Data for {0} : LinkDeviceKey - {1}, LinkDeviceFeedback - {2}, LinkDeviceMethod - {3}", Name, LinkDeviceKey, LinkDeviceFeedback, LinkDeviceMethod);
 
             if (string.IsNullOrEmpty(LinkDeviceKey)) return;
             if (!string.IsNullOrEmpty(LinkDeviceFeedback))
             {
                 try
                 {
-                    UShortValueFeedback = new IntFeedback(() => (int)UShortValue);
-
                     var fb = DeviceJsonApi.GetPropertyByName(LinkDeviceKey, LinkDeviceFeedback) as IntFeedback;
-                    if (fb == null) return;
+                    if (fb == null)
+                    {
+                        Debug.Console(0, "Unable to link Feedback for analog attribute {0}", Name);
+                        return;
+                    }
                     fb.OutputChange += ((sender, args) =>
                     {
                         UShortValue = args.UShortValue;
+                        UShortValueFeedback.FireUpdate();
                         Debug.Console(2, "AnalogAttribute {0} from device {2} = {1}", Name, UShortValue, LinkDeviceKey);
                     });
                 }
@@ -165,23 +155,8 @@ namespace DynFusion
 
         }
 
-
 		public IntFeedback UShortValueFeedback { get; set; }
-		private UInt32 _UShortValue { get; set; }
-		public UInt32 UShortValue
-		{
-			get
-			{
-				return _UShortValue;
-
-			}
-			set
-			{
-				_UShortValue = value;
-				UShortValueFeedback.FireUpdate();
-
-			}
-		}
+		public UInt32 UShortValue { get; set; }
 	}
 
 
@@ -196,32 +171,35 @@ namespace DynFusion
 		}
 
 	    public DynFusionSerialAttribute(DynFusionAttributeBase config)
-	        : base(config.Name, eSigType.String, config.JoinNumber, config.RwType)
+            : base(config.Name, eSigType.String, config.JoinNumber, config.RwType, config.BridgeJoin)
 	    {
 	        Debug.Console(2, "Creating SerialAttribute {0} {1} {2}", JoinNumber, Name, (int) RwType);
 
 	        LinkDeviceKey = config.LinkDeviceKey;
 	        LinkDeviceFeedback = config.LinkDeviceFeedback;
 	        LinkDeviceMethod = config.LinkDeviceMethod;
+            StringValueFeedback = new StringFeedback(() => StringValue);
 
 	    }
 
 	    public override void LinkData()
         {
-            Debug.Console(0, "Linking Serial Data for {0} : LinkDeviceKey - {1}, LinkDeviceFeedback - {2}, LinkDeviceMethod - {3}", Name, LinkDeviceKey, LinkDeviceFeedback, LinkDeviceMethod);
 
             if (string.IsNullOrEmpty(LinkDeviceKey)) return;
             if (!string.IsNullOrEmpty(LinkDeviceFeedback))
             {
                 try
                 {
-                    StringValueFeedback = new StringFeedback(() => StringValue);
-
                     var fb = DeviceJsonApi.GetPropertyByName(LinkDeviceKey, LinkDeviceFeedback) as StringFeedback;
-                    if (fb == null) return;
+                    if (fb == null)
+                    {
+                        Debug.Console(0, "Unable to link Feedback for serial attribute {0}", Name);
+                        return;
+                    }
                     fb.OutputChange += ((sender, args) =>
                     {
                         StringValue = args.StringValue;
+                        StringValueFeedback.FireUpdate();
                         Debug.Console(2, "SerialAttribute {0} from device {2} = {1}", Name, StringValue, LinkDeviceKey);
                     });
                 }
@@ -252,24 +230,9 @@ namespace DynFusion
 
         }
 
-
 		public StringFeedback StringValueFeedback { get; set; }
-		private String _StringValue { get; set; }
-		public String StringValue
-		{
-			get
-			{
-				return _StringValue;
+		public string StringValue { get; set; }
 
-			}
-			set
-			{
-				_StringValue = value;
-				StringValueFeedback.FireUpdate();
-
-			}
-
-		}
 	}
 	
     
@@ -288,6 +251,14 @@ namespace DynFusion
             SignalType = type;
             JoinNumber = joinNumber;
             RwType = rwType;
+        }
+        public DynFusionAttributeBase(string name, eSigType type, UInt32 joinNumber, eReadWrite rwType, ushort bridgeJoin)
+        {
+            Name = name;
+            SignalType = type;
+            JoinNumber = joinNumber;
+            RwType = rwType;
+            BridgeJoin = bridgeJoin;
         }
 
 		[JsonProperty("signalType")]
@@ -315,6 +286,9 @@ namespace DynFusion
 
         [JsonProperty("invertFeedback")]
         public bool InvertFeedback { get; set; }
+
+        [JsonProperty("bridgeJoin")]
+        public ushort BridgeJoin { get; set; }
 
 	    public virtual void ExecuteAction()
 	    {

@@ -49,6 +49,7 @@ namespace DynFusion
             : base(key, name)
         {
             Debug.Console(0, this, "Constructing new DynFusionDevice instance");
+            Name = name;
             _Config = config;
             DigitalAttributesToFusion = new Dictionary<UInt32, DynFusionDigitalAttribute>();
             AnalogAttributesToFusion = new Dictionary<UInt32, DynFusionAnalogAttribute>();
@@ -58,13 +59,15 @@ namespace DynFusion
             SerialAttributesFromFusion = new Dictionary<UInt32, DynFusionSerialAttribute>();
             JoinMapStatic = new DynFusionJoinMap(1);
             Debug.Console(2, "Creating Fusion Symbol {0} {1}", _Config.Control.IpId, Key);
-            FusionSymbol = new FusionRoom(_Config.Control.IpIdInt, Global.ControlSystem, "", Guid.NewGuid().ToString());
+            FusionSymbol = new FusionRoom(_Config.Control.IpIdInt, Global.ControlSystem, String.IsNullOrEmpty(Name) ? "" : Name , Guid.NewGuid().ToString());
 
             if (FusionSymbol.Register() != eDeviceRegistrationUnRegistrationResponse.Success)
             {
                 Debug.Console(0, this, "Faliure to register Fusion Symbol");
             }
             FusionSymbol.ExtenderFusionRoomDataReservedSigs.Use();
+            AddCustomAssets();
+
 
         }
 
@@ -74,6 +77,45 @@ namespace DynFusion
         {
             Initialize();
             return true;
+        }
+
+        private void AddCustomAssets()
+        {
+            if (_Config.Assets == null) return;
+            if (_Config.Assets.OccupancySensors != null)
+            {
+                var sensors = from occSensorConfig in _Config.Assets.OccupancySensors
+                    select
+                        new DynFusionAssetOccupancySensor(
+                            occSensorConfig.Key,
+                            occSensorConfig.LinkToDeviceKey,
+                            FusionSymbol,
+                            GetNextAvailableAssetNumber(FusionSymbol), this);
+
+                sensors
+                    .ToList()
+                    .ForEach(sensor =>
+                        FusionSymbol.AddAsset(
+                            eAssetType.OccupancySensor,
+                            sensor.AssetNumber,
+                            sensor.Key,
+                            "Occupancy Sensor",
+                            Guid.NewGuid().ToString()));
+            }
+            if (_Config.Assets.StaticAssets != null)
+            {
+
+                foreach (
+                    var newStaticAsset in
+                        _Config.Assets.StaticAssets.Select(staticAssetConfig => new DynFusionStaticAsset(
+                            staticAssetConfig,
+                            FusionSymbol,
+                            GetNextAvailableAssetNumber(FusionSymbol), this)))
+                {
+                    AddPostActivationAction(newStaticAsset.LinkAllAttributeData);
+                    DeviceManager.AddDevice(newStaticAsset);
+                }
+            }
         }
 
         private void Initialize()
@@ -131,43 +173,6 @@ namespace DynFusion
                     }
                 }
 
-                if (_Config.Assets != null)
-                {
-                    if (_Config.Assets.OccupancySensors != null)
-                    {
-                        var sensors = from occSensorConfig in _Config.Assets.OccupancySensors
-                            select
-                                new DynFusionAssetOccupancySensor(
-                                    occSensorConfig.Key,
-                                    occSensorConfig.LinkToDeviceKey,
-                                    FusionSymbol,
-                                    GetNextAvailableAssetNumber(FusionSymbol), this);
-
-                        sensors
-                            .ToList()
-                            .ForEach(sensor =>
-                                FusionSymbol.AddAsset(
-                                    eAssetType.OccupancySensor,
-                                    sensor.AssetNumber,
-                                    sensor.Key,
-                                    "Occupancy Sensor",
-                                    Guid.NewGuid().ToString()));
-                    }
-                    if (_Config.Assets.StaticAssets != null)
-                    {
-                        Debug.Console(2, this, "Made it to Static Assets");
-
-                        foreach (
-                            var newStaticAsset in
-                                _Config.Assets.StaticAssets.Select(staticAssetConfig => new DynFusionStaticAsset(
-                                    staticAssetConfig,
-                                    FusionSymbol,
-                                    GetNextAvailableAssetNumber(FusionSymbol), this)))
-                        {
-                            AddPostActivationAction(newStaticAsset.LinkAllAttributeData);
-                        }
-                    }
-                }
 
 
                 if (_Config.CallStatistics != null)
@@ -189,13 +194,6 @@ namespace DynFusion
                 }
 
                 DeviceUsageFactory();
-                // Scheduling Bits for Future 
-                //FusionSymbol.ExtenderRoomViewSchedulingDataReservedSigs.Use();
-                //FusionSymbol.ExtenderRoomViewSchedulingDataReservedSigs.DeviceExtenderSigChange += new DeviceExtenderJoinChangeEventHandler(ExtenderRoomViewSchedulingDataReservedSigs_DeviceExtenderSigChange);
-
-                // Future for time sync
-                // FusionSymbol.ExtenderFusionRoomDataReservedSigs.DeviceExtenderSigChange += new DeviceExtenderJoinChangeEventHandler(ExtenderFusionRoomDataReservedSigs_DeviceExtenderSigChange);
-
 
                 FusionRVI.GenerateFileForAllFusionDevices();
             }
