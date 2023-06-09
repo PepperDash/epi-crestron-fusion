@@ -1,13 +1,8 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using Crestron.SimplSharp;
+﻿using System.Collections.Generic;
 using DynFusion.Config;
 using PepperDash.Core;
 using PepperDash.Essentials.Core;
 
-using Newtonsoft.Json;
 
 namespace DynFusion
 {
@@ -19,7 +14,7 @@ namespace DynFusion
             MinimumEssentialsFrameworkVersion = "1.5.5";
 
             // In the constructor we initialize the list with the typenames that will build an instance of this device
-            TypeNames = new List<string>() { "DynFusion"};
+            TypeNames = new List<string> { "DynFusion"};
         }
 
         // Builds and returns an instance of EssentialsPluginDeviceTemplate

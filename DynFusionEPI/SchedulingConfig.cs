@@ -1,17 +1,11 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using Crestron.SimplSharp;
-using PepperDash.Essentials.Core;
-using Newtonsoft.Json;
-using Newtonsoft.Json.Converters;
+﻿using Newtonsoft.Json;
 
 namespace DynFusion
 {
 	public class SchedulingConfig
 	{
-		public string DynFusionKey {get; set;}
+        [JsonProperty("dynFusionKey")]
+        public string DynFusionKey { get; set; }
 	}
 
 

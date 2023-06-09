@@ -1,6 +1,4 @@
 ﻿using System;
-using System.Collections.Generic;
-using System.Linq;
 using Crestron.SimplSharp.Reflection;
 using PepperDash.Essentials.Core;
 using Newtonsoft.Json;
@@ -16,7 +14,7 @@ namespace DynFusion
 	public class DynFusionDigitalAttribute : DynFusionAttributeBase
 	{
 
-		public DynFusionDigitalAttribute(string name, UInt32 joinNumber)
+	    public DynFusionDigitalAttribute(string name, UInt32 joinNumber)
 			: base(name, eSigType.Bool, joinNumber)
 		{
 			BoolValueFeedback = new BoolFeedback(() => BoolValue);
@@ -32,9 +30,8 @@ namespace DynFusion
             LinkDeviceMethod = config.LinkDeviceMethod;
             InvertFeedback = config.InvertFeedback;
             BoolValueFeedback = new BoolFeedback(() => BoolValue);
-
-
 		}
+
 	    public override void LinkData()
 	    {
 	        if (string.IsNullOrEmpty(LinkDeviceKey)) return;
@@ -65,7 +62,7 @@ namespace DynFusion
 	        {
 	            try
 	            {
-	                var actionWrapper = new DeviceActionWrapper()
+	                var actionWrapper = new DeviceActionWrapper
 	                {
 	                    DeviceKey = LinkDeviceKey,
 	                    MethodName = LinkDeviceMethod
@@ -143,7 +140,7 @@ namespace DynFusion
             {
                 try
                 {
-                    var actionWrapper = new DeviceActionWrapper()
+                    var actionWrapper = new DeviceActionWrapper
                     {
                         DeviceKey = LinkDeviceKey,
                         MethodName = LinkDeviceMethod
@@ -224,7 +221,7 @@ namespace DynFusion
             {
                 try
                 {
-                    var actionWrapper = new DeviceActionWrapper()
+                    var actionWrapper = new DeviceActionWrapper
                     {
                         DeviceKey = LinkDeviceKey,
                         MethodName = LinkDeviceMethod
@@ -352,13 +349,16 @@ namespace DynFusion
 
 
 	}
-	public enum eReadWrite
+
+    [Flags]
+// ReSharper disable once InconsistentNaming
+    public enum eReadWrite
 	{
 		Read = 1,
 		Write = 2,
 		R = 1, 
 		W = 2,
 		ReadWrite = 3,
-		RW = 3
+		Rw = 3
 	}
 }

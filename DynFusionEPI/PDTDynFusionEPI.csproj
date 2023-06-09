@@ -107,7 +107,7 @@
     <Compile Include="Config\CustomProperties.cs" />
     <Compile Include="Config\DeviceUsage.cs" />
     <Compile Include="Config\DeviceUsageDevice.cs" />
-    <Compile Include="Config\DeviceUsageSoruce.cs" />
+    <Compile Include="Config\DeviceUsageSource.cs" />
     <Compile Include="Config\DisplayUsageDevice.cs" />
     <Compile Include="Config\FusionCustomProperty.cs" />
     <Compile Include="Config\FusionEssentialsAsset.cs" />
