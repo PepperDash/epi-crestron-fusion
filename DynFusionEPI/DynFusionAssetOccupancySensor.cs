@@ -12,8 +12,8 @@ namespace DynFusion
         public uint AssetNumber { get; private set; }
         public readonly string LinkKey;
 
-        public DynFusionAssetOccupancySensor(string key, string linkKey, FusionRoom symbol, uint assetNumber)
-            : base(string.Format("{0}-OccAsset#{1}", symbol.Name, assetNumber))
+        public DynFusionAssetOccupancySensor(string key, string linkKey, FusionRoom symbol, uint assetNumber, IKeyed parent)
+            : base(string.Format("{0}-OccAsset-{1}", parent.Key, key))
         {
             Key = key;
             LinkKey = linkKey;
@@ -48,7 +48,6 @@ namespace DynFusion
 
             }
         }
-
 
         public override void LinkToApi(Crestron.SimplSharpPro.DeviceSupport.BasicTriList trilist, uint joinStart,
             string joinMapKey, EiscApiAdvanced bridge)

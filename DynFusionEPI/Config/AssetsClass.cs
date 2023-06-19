@@ -11,5 +11,6 @@ namespace DynFusion.Config
         public List<FusionEssentialsAsset> AnalogLinks { get; set; }
         [JsonProperty("serialLinks")]
         public List<FusionEssentialsAsset> SerialLinks { get; set; }
+        public List<FusionStaticAssetConfig> StaticAssets { get; set; } 
     }
 }

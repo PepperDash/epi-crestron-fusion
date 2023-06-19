@@ -1,9 +1,11 @@
 ﻿using System;
+using Crestron.SimplSharp.Reflection;
 using PepperDash.Essentials.Core;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Converters;
 using Crestron.SimplSharpPro;
 using PepperDash.Core;
+using PepperDash.Essentials.Core.DeviceInfo;
 
 namespace DynFusion
 {
@@ -11,89 +13,156 @@ namespace DynFusion
 
 	public class DynFusionDigitalAttribute : DynFusionAttributeBase
 	{
-	    private readonly string _boolAction;
 
 	    public DynFusionDigitalAttribute(string name, UInt32 joinNumber)
 			: base(name, eSigType.Bool, joinNumber)
 		{
 			BoolValueFeedback = new BoolFeedback(() => BoolValue);
-			Debug.Console(2, "Creating DigitalAttribute {0} {1} {2}", JoinNumber, Name, RwType);
+            Debug.Console(2, "Creating DigitalAttribute {0} {1} {2}", JoinNumber, Name, (int)RwType);
 		}
-		public DynFusionDigitalAttribute(string name, UInt32 joinNumber, string deviceKey, string boolAction, string boolFeedback)
-			: base(name, eSigType.Bool, joinNumber)
-		{
-		    _boolAction = boolAction;
+        public DynFusionDigitalAttribute(DynFusionAttributeBase config)
+            : base(config.Name, eSigType.Bool, config.JoinNumber, config.RwType, config.BridgeJoin)
+        {
+            Debug.Console(2, "Creating DigitalAttribute {0} {1} {2}", JoinNumber, Name, (int)RwType);
 
-		    BoolValueFeedback = new BoolFeedback(() => BoolValue);
-			Debug.Console(2, "Creating DigitalAttribute {0} {1} {2}", JoinNumber, Name, RwType);
-
-		    if (deviceKey == null) return;
-		    if (boolFeedback == null) return;
-		    try
-		    {
-		        var fb = DeviceJsonApi.GetPropertyByName(deviceKey, boolFeedback) as BoolFeedback;
-		        if (fb != null) fb.OutputChange += ((sender, args) => 
-		        {
-		            BoolValue = args.BoolValue;
-		        });
-		    }
-		    catch (Exception ex)
-		    {
-		        Debug.Console(0, Debug.ErrorLogLevel.Error, "DynFuison Issue linking Device {0} BoolFB {1}\n{2}", deviceKey, boolFeedback, ex);
-		    }
-		}
-		public BoolFeedback BoolValueFeedback { get; set; }
-
-	    private bool _boolValue;
-		public bool BoolValue
-		{
-			get
-			{
-				
-				return _boolValue;
-
-			}
-			set
-			{
-				_boolValue = value;
-				BoolValueFeedback.FireUpdate();
-				Debug.Console(2, "Changed Value of DigitalAttribute {0} {1} {2}", JoinNumber, Name, value);
-
-			}
+            LinkDeviceKey = config.LinkDeviceKey;
+            LinkDeviceFeedback = config.LinkDeviceFeedback;
+            LinkDeviceMethod = config.LinkDeviceMethod;
+            InvertFeedback = config.InvertFeedback;
+            BoolValueFeedback = new BoolFeedback(() => BoolValue);
 		}
 
-	    public string BoolAction
+	    public override void LinkData()
 	    {
-	        get { return _boolAction; }
+	        if (string.IsNullOrEmpty(LinkDeviceKey)) return;
+	        if (!string.IsNullOrEmpty(LinkDeviceFeedback))
+	        {
+	            try
+	            {
+	                var fb = DeviceJsonApi.GetPropertyByName(LinkDeviceKey, LinkDeviceFeedback) as BoolFeedback;
+	                if (fb == null)
+	                {
+	                    Debug.Console(0, "Unable to link Feedback for digital attribute {0}", Name);
+	                    return;
+	                }
+	                fb.OutputChange += ((sender, args) =>
+	                {
+	                    BoolValue = InvertFeedback ? !args.BoolValue : args.BoolValue;
+                        BoolValueFeedback.FireUpdate();
+	                });
+	            }
+	            catch (Exception ex)
+	            {
+	                Debug.Console(0, Debug.ErrorLogLevel.Error, "DynFusion Issue linking Device {0} BoolFB {1}\n{2}",
+	                    LinkDeviceKey, LinkDeviceFeedback, ex);
+	            }
+	        }
+
+	        if (!string.IsNullOrEmpty(LinkDeviceMethod))
+	        {
+	            try
+	            {
+	                var actionWrapper = new DeviceActionWrapper
+	                {
+	                    DeviceKey = LinkDeviceKey,
+	                    MethodName = LinkDeviceMethod
+
+	                };
+	                AttributeAction = () => DeviceJsonApi.DoDeviceAction(actionWrapper);
+	            }
+	            catch (Exception ex)
+	            {
+	                Debug.Console(0, Debug.ErrorLogLevel.Error, "Unable to execute Action {1} on Device {0}\n{2}",
+	                    LinkDeviceKey,
+	                    LinkDeviceMethod, ex);
+	            }
+	        }
 	    }
+
+        public BoolFeedback BoolValueFeedback { get; set; }
+        public bool BoolValue { get; set; }
+
 	}
+
+
 	public class DynFusionAnalogAttribute : DynFusionAttributeBase
 	{
-		public DynFusionAnalogAttribute(string name, UInt32 joinNumber)
-			: base(name, eSigType.UShort, joinNumber)
-		{
-			UShortValueFeedback = new IntFeedback( () => (int)UShortValue);
+        public DynFusionAnalogAttribute(string name, UInt32 joinNumber)
+            : base(name, eSigType.UShort, joinNumber)
+        {
+            UShortValueFeedback = new IntFeedback(() => (int)UShortValue);
 
-			Debug.Console(2, "Creating AnalogAttribute {0} {1} {2}", JoinNumber, Name, RwType);
-		}
+            Debug.Console(2, "Creating AnalogAttribute {0} {1} {2}", JoinNumber, Name, (int)RwType);
+        }
+
+        public DynFusionAnalogAttribute(DynFusionAttributeBase config)
+            : base(config.Name, eSigType.UShort, config.JoinNumber, config.RwType, config.BridgeJoin)
+	    {
+            LinkDeviceKey = config.LinkDeviceKey;
+            LinkDeviceFeedback = config.LinkDeviceFeedback;
+            LinkDeviceMethod = config.LinkDeviceMethod;
+            UShortValueFeedback = new IntFeedback(() => (int)UShortValue);
+            IsDeviceInfo = config.IsDeviceInfo;
+
+
+            Debug.Console(2, "Creating AnalogAttribute {0} {1} {2}", JoinNumber, Name, (int)RwType);
+
+	    }
+
+        public override void LinkData()
+        {
+
+            if (string.IsNullOrEmpty(LinkDeviceKey)) return;
+            if (!string.IsNullOrEmpty(LinkDeviceFeedback))
+            {
+                try
+                {
+                    var fb = DeviceJsonApi.GetPropertyByName(LinkDeviceKey, LinkDeviceFeedback) as IntFeedback;
+                    if (fb == null)
+                    {
+                        Debug.Console(0, "Unable to link Feedback for analog attribute {0}", Name);
+                        return;
+                    }
+                    fb.OutputChange += ((sender, args) =>
+                    {
+                        UShortValue = args.UShortValue;
+                        UShortValueFeedback.FireUpdate();
+                        Debug.Console(2, "AnalogAttribute {0} from device {2} = {1}", Name, UShortValue, LinkDeviceKey);
+                    });
+                }
+                catch (Exception ex)
+                {
+                    Debug.Console(0, Debug.ErrorLogLevel.Error, "DynFusion Issue linking Device {0} UShortFb {1}\n{2}",
+                        LinkDeviceKey, LinkDeviceFeedback, ex);
+                }
+            }
+            if (!string.IsNullOrEmpty(LinkDeviceMethod))
+            {
+                try
+                {
+                    var actionWrapper = new DeviceActionWrapper
+                    {
+                        DeviceKey = LinkDeviceKey,
+                        MethodName = LinkDeviceMethod
+
+                    };
+                    AttributeAction = () => DeviceJsonApi.DoDeviceAction(actionWrapper);
+                }
+                catch (Exception ex)
+                {
+                    Debug.Console(0, Debug.ErrorLogLevel.Error, "Unable to execute Action {1} on Device {0}\n{2}", LinkDeviceKey,
+                        LinkDeviceMethod, ex);
+                }
+            }
+
+        }
+
 
 		public IntFeedback UShortValueFeedback { get; set; }
-	    private UInt32 _uShortValue;
-		public UInt32 UShortValue
-		{
-			get
-			{
-				return _uShortValue;
-
-			}
-			set
-			{
-				_uShortValue = value;
-				UShortValueFeedback.FireUpdate();
-
-			}
-		}
+		public UInt32 UShortValue { get; set; }
 	}
+
+
 	public class DynFusionSerialAttribute : DynFusionAttributeBase
 	{
 		public DynFusionSerialAttribute(string name, UInt32 joinNumber)
@@ -101,35 +170,138 @@ namespace DynFusion
 		{
 			StringValueFeedback = new StringFeedback(() => StringValue);
 
-			Debug.Console(2, "Creating StringAttribute {0} {1} {2}", JoinNumber, Name, RwType);
+            Debug.Console(2, "Creating SerialAttribute {0} {1} {2}", JoinNumber, Name, (int)RwType);
 		}
+
+	    public DynFusionSerialAttribute(DynFusionAttributeBase config)
+            : base(config.Name, eSigType.String, config.JoinNumber, config.RwType, config.BridgeJoin)
+	    {
+	        Debug.Console(2, "Creating SerialAttribute {0} {1} {2}", JoinNumber, Name, (int) RwType);
+
+	        LinkDeviceKey = config.LinkDeviceKey;
+	        LinkDeviceFeedback = config.LinkDeviceFeedback;
+	        LinkDeviceMethod = config.LinkDeviceMethod;
+            StringValueFeedback = new StringFeedback(() => StringValue);
+
+	    }
+
+	    public override void LinkData()
+        {
+
+            if (string.IsNullOrEmpty(LinkDeviceKey)) return;
+            if (IsDeviceInfo)
+            {
+                LinkDeviceInfo();
+                return;
+            }
+            if (!string.IsNullOrEmpty(LinkDeviceFeedback))
+            {
+                try
+                {
+                    var fb = DeviceJsonApi.GetPropertyByName(LinkDeviceKey, LinkDeviceFeedback) as StringFeedback;
+                    if (fb == null)
+                    {
+                        Debug.Console(0, "Unable to link Feedback for serial attribute {0}", Name);
+                        return;
+                    }
+                    fb.OutputChange += ((sender, args) =>
+                    {
+                        StringValue = args.StringValue;
+                        StringValueFeedback.FireUpdate();
+                        Debug.Console(2, "SerialAttribute {0} from device {2} = {1}", Name, StringValue, LinkDeviceKey);
+                    });
+                }
+                catch (Exception ex)
+                {
+                    Debug.Console(0, Debug.ErrorLogLevel.Error, "DynFusion Issue linking Device {0} StringFb {1}\n{2}",
+                        LinkDeviceKey, LinkDeviceFeedback, ex);
+                }
+            }
+            if (!string.IsNullOrEmpty(LinkDeviceMethod))
+            {
+                try
+                {
+                    var actionWrapper = new DeviceActionWrapper
+                    {
+                        DeviceKey = LinkDeviceKey,
+                        MethodName = LinkDeviceMethod
+
+                    };
+                    AttributeAction = () => DeviceJsonApi.DoDeviceAction(actionWrapper);
+                }
+                catch (Exception ex)
+                {
+                    Debug.Console(0, Debug.ErrorLogLevel.Error, "Unable to execute Action {1} on Device {0}\n{2}", LinkDeviceKey,
+                        LinkDeviceMethod, ex);
+                }
+            }
+
+        }
+
+        private void LinkDeviceInfo()
+        {
+            try
+            {
+                if (string.IsNullOrEmpty(LinkDeviceFeedback)) return;
+                var device = DeviceManager.GetDeviceForKey(LinkDeviceKey);
+                if (device == null) return;
+                var infoProvider = device as IDeviceInfoProvider;
+                if (infoProvider == null) return;
+                infoProvider.DeviceInfoChanged += (s, a) =>
+                {
+                    var devInfo = a.DeviceInfo;
+                    var props = devInfo.GetType().GetCType().GetProperties();
+
+                    foreach (var prop in props)
+                    {
+                        var name = prop.Name;
+                        if (name.ToLower() != LinkDeviceFeedback) continue;
+                        var propValue = (string) prop.GetValue(devInfo, null);
+                        if (string.IsNullOrEmpty(propValue)) return;
+                        StringValue = propValue;
+                        StringValueFeedback.FireUpdate();
+                        return;
+                    }
+                };
+            }
+            catch (Exception ex)
+            {
+                Debug.Console(0, Debug.ErrorLogLevel.Error, "Unable to link to DeviceInfo {1} on Device {0}\n{2}", LinkDeviceKey,
+                    LinkDeviceFeedback, ex);
+            }
+        }
+
+
 		public StringFeedback StringValueFeedback { get; set; }
-	    private String _stringValue;
-		public String StringValue
-		{
-			get
-			{
-				return _stringValue;
+		public string StringValue { get; set; }
 
-			}
-			set
-			{
-				_stringValue = value;
-				StringValueFeedback.FireUpdate();
-
-			}
-
-		}
 	}
-	public class DynFusionAttributeBase
+	
+    
+    public class DynFusionAttributeBase
 	{
-		public DynFusionAttributeBase (string name, eSigType type, UInt32 joinNumber)
-		{
-			Name = name; 
-			SignalType = type;
-			JoinNumber = joinNumber;
-
-		}
+        [JsonConstructor]
+        public DynFusionAttributeBase(string name, eSigType type, UInt32 joinNumber)
+        {
+            Name = name;
+            SignalType = type;
+            JoinNumber = joinNumber;
+        }
+        public DynFusionAttributeBase(string name, eSigType type, UInt32 joinNumber, eReadWrite rwType)
+        {
+            Name = name;
+            SignalType = type;
+            JoinNumber = joinNumber;
+            RwType = rwType;
+        }
+        public DynFusionAttributeBase(string name, eSigType type, UInt32 joinNumber, eReadWrite rwType, ushort bridgeJoin)
+        {
+            Name = name;
+            SignalType = type;
+            JoinNumber = joinNumber;
+            RwType = rwType;
+            BridgeJoin = bridgeJoin;
+        }
 
 		[JsonProperty("signalType")]
 		[JsonConverter(typeof(StringEnumConverter))]
@@ -153,6 +325,27 @@ namespace DynFusion
 
 		[JsonProperty("linkDeviceFeedback")]
 		public string LinkDeviceFeedback { get; set; }
+
+        [JsonProperty("invertFeedback")]
+        public bool InvertFeedback { get; set; }
+
+        [JsonProperty("bridgeJoin")]
+        public ushort BridgeJoin { get; set; }
+
+        [JsonProperty("isDeviceInfo")]
+        public bool IsDeviceInfo { get; set; }
+
+	    public virtual void ExecuteAction()
+	    {
+	        AttributeAction.Invoke();
+	    }
+
+	    public Action AttributeAction;
+
+        public virtual void LinkData()
+        {
+            Debug.Console(0, "LinkData in base Attribute");
+        }
 
 
 	}

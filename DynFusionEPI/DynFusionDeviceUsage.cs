@@ -155,27 +155,25 @@ namespace DynFusion
 		}
 		public void StopDevice(string key)
 		{
-		    if (!UsageInfoDict.ContainsKey(key)) return;
-		    {
-		        var minUsed = (int)(DateTime.Now - UsageInfoDict[key].StartTime).TotalMinutes;
-		        if (minUsed >= UsageMinThreshold)
-		        {
-		            var usageString = string.Format("USAGE||{0}||{1}||TIME||{2}||{3}||-||{4}||-||{5}||{6}||",
-		                DateTime.Now.ToString("yyyy-MM-dd"),
-		                DateTime.Now.ToString("HH:mm:ss"),
-		                UsageInfoDict[key].type,
-		                UsageInfoDict[key].name,
-		                minUsed,
-		                "",
-		                "");
-		            _dynFusionDevice.FusionSymbol.DeviceUsage.InputSig.StringValue = usageString;
-		            Debug.Console(1,this, "DynFusionDeviceUsage message \n{0}", usageString);
-		        }
-		        else
-		        {
-		            Debug.Console(1,this, "DynFusionDeviceUsage did not pass threshord {0}", key);
-		        }
-		    }
+            if (!UsageInfoDict.ContainsKey(key)) return;
+            var minUsed = (int)(DateTime.Now - UsageInfoDict[key].StartTime).TotalMinutes;
+            if (minUsed >= UsageMinThreshold)
+            {
+                var usageString = string.Format("USAGE||{0}||{1}||TIME||{2}||{3}||-||{4}||-||{5}||{6}||",
+                DateTime.Now.ToString("yyyy-MM-dd"),
+                DateTime.Now.ToString("HH:mm:ss"),
+                UsageInfoDict[key].type,
+                UsageInfoDict[key].name,
+                minUsed,
+                "",
+                "");
+                _dynFusionDevice.FusionSymbol.DeviceUsage.InputSig.StringValue = usageString;
+                Debug.Console(1, this, "DynFusionDeviceUsage message \n{0}", usageString);
+            }
+            else
+            {
+                Debug.Console(1, this, "DynFusionDeviceUsage did not pass threshord {0}", key);
+            }
 		}
 
 	    public void NameDevice(ushort deviceNumber, string name)
