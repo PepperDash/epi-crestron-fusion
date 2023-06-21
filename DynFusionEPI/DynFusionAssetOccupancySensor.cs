@@ -11,6 +11,10 @@ namespace DynFusion
         private readonly FusionRoom _fusionSymbol;
         public uint AssetNumber { get; private set; }
         public readonly string LinkKey;
+        private GlsOccupancySensorBaseController Sensor { get; set; }
+        private GlsOdtOccupancySensorController UsSensor { get; set; }
+        private bool HasUltrasonic { get; set; }
+        public BoolFeedback SensorEnable { get; set; }
 
         public DynFusionAssetOccupancySensor(string key, string linkKey, FusionRoom symbol, uint assetNumber, IKeyed parent)
             : base(string.Format("{0}-OccAsset-{1}", parent.Key, key))
@@ -19,7 +23,98 @@ namespace DynFusion
             LinkKey = linkKey;
             _fusionSymbol = symbol;
             AssetNumber = assetNumber;
-            // _fusionSymbol.FusionAssetStateChange += new FusionAssetStateEventHandler(_fusionSymbol_FusionAssetStateChange);
+            AddPostActivationAction(GetSensor);
+        }
+
+        private void GetSensor()
+        {
+            if (string.IsNullOrEmpty(LinkKey)) return;
+            var sensor = DeviceManager.GetDeviceForKey(LinkKey) as GlsOccupancySensorBaseController;
+            if (sensor == null) return;
+            Sensor = sensor;
+            UsSensor = Sensor as GlsOdtOccupancySensorController;
+            if (UsSensor != null)
+            {
+                HasUltrasonic = true;
+                SensorEnable =
+                    new BoolFeedback(
+                        () =>
+                            UsSensor.PirSensorEnabledFeedback.BoolValue     || 
+                            UsSensor.UltrasonicAEnabledFeedback.BoolValue   ||
+                            UsSensor.UltrasonicBEnabledFeedback.BoolValue);
+            }
+            else
+            {
+                SensorEnable = new BoolFeedback(() => Sensor.PirSensorEnabledFeedback.BoolValue);
+            }
+            HasUltrasonic = (Sensor is GlsOdtOccupancySensorController);
+
+            LinkSensor();
+        }
+
+        private void DisableSensor()
+        {
+            if (HasUltrasonic)
+            {
+                UsSensor.SetUsAEnable(false);
+                UsSensor.SetUsBEnable(false);
+            }
+            Sensor.SetPirEnable(false);
+        }
+
+        private void EnableSensor()
+        {
+            if (HasUltrasonic)
+            {
+                UsSensor.SetUsAEnable(true);
+                UsSensor.SetUsBEnable(true);
+            }
+            Sensor.SetPirEnable(true);
+        }
+
+        private void LinkSensor()
+        {
+            if (Sensor == null) return;
+            Sensor.CurrentTimeoutFeedback.OutputChange += (s, a) =>
+            {
+                ((FusionOccupancySensor)_fusionSymbol.UserConfigurableAssetDetails[AssetNumber].Asset)
+                .OccupancySensorTimeout.InputSig.UShortValue = Sensor.CurrentTimeoutFeedback.UShortValue;
+            };
+            SensorEnable.OutputChange += (s, a) =>
+            {
+                ((FusionOccupancySensor)_fusionSymbol.UserConfigurableAssetDetails[AssetNumber].Asset)
+                        .EnableOccupancySensor.InputSig.BoolValue = SensorEnable.BoolValue;
+            };
+            Sensor.RoomIsOccupiedFeedback.OutputChange += (s, a) =>
+            {
+                ((FusionOccupancySensor)_fusionSymbol.UserConfigurableAssetDetails[AssetNumber].Asset).RoomOccupied
+                .InputSig.BoolValue = Sensor.RoomIsOccupiedFeedback.BoolValue;
+            };
+
+            _fusionSymbol.FusionAssetStateChange += (s, a) =>
+            {
+                Debug.Console(2, this, "OccupancySensor State Change {0} recieved EventID {1}", s, a.EventId);
+                // Debug.Console(2, this, "OccupancySensor State Change {0} recieved EventID {1}", device, args.EventId);
+                switch (a.EventId)
+                {
+                    case FusionAssetEventId.DisableOccupancySensorReceivedEventId:
+                    {
+                        DisableSensor();
+                            break;
+                        }
+                    case FusionAssetEventId.EnableOccupancySensorReceivedEventId:
+                        {
+                            EnableSensor();
+                            break;
+                        }
+                    case FusionAssetEventId.OccupancySensorTimeoutReceivedEventId:
+                        {
+                            Sensor.SetRemoteTimeout(((FusionOccupancySensor)_fusionSymbol.UserConfigurableAssetDetails[AssetNumber].Asset)
+                                    .OccupancySensorTimeout.OutputSig.UShortValue);
+                            break;
+                        }
+                }
+            };
         }
 
         public void SendChange(string message)
