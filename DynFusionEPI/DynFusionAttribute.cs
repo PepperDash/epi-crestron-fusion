@@ -21,7 +21,7 @@ namespace DynFusion
             Debug.Console(2, "Creating DigitalAttribute {0} {1} {2}", JoinNumber, Name, (int)RwType);
 		}
         public DynFusionDigitalAttribute(DynFusionAttributeBase config)
-            : base(config.Name, eSigType.Bool, config.JoinNumber, config.RwType, config.BridgeJoin)
+            : base(config.Name, eSigType.Bool, config.JoinNumber, config.RwType, config.BridgeJoin, config.IsStaticData)
         {
             Debug.Console(2, "Creating DigitalAttribute {0} {1} {2}", JoinNumber, Name, (int)RwType);
 
@@ -30,10 +30,21 @@ namespace DynFusion
             LinkDeviceMethod = config.LinkDeviceMethod;
             InvertFeedback = config.InvertFeedback;
             BoolValueFeedback = new BoolFeedback(() => BoolValue);
+            LinkStaticData(config);
 		}
+
+	    public override sealed void LinkStaticData(DynFusionAttributeBase config)
+	    {
+	        BoolValue = config.StaticDigital;
+            BoolValueFeedback.FireUpdate();
+	    }
 
 	    public override void LinkData()
 	    {
+	        if (IsStaticData)
+	        {
+	            return;
+	        }
 	        if (string.IsNullOrEmpty(LinkDeviceKey)) return;
 	        if (!string.IsNullOrEmpty(LinkDeviceFeedback))
 	        {
@@ -96,22 +107,33 @@ namespace DynFusion
         }
 
         public DynFusionAnalogAttribute(DynFusionAttributeBase config)
-            : base(config.Name, eSigType.UShort, config.JoinNumber, config.RwType, config.BridgeJoin)
+            : base(config.Name, eSigType.UShort, config.JoinNumber, config.RwType, config.BridgeJoin, config.IsStaticData)
 	    {
             LinkDeviceKey = config.LinkDeviceKey;
             LinkDeviceFeedback = config.LinkDeviceFeedback;
             LinkDeviceMethod = config.LinkDeviceMethod;
             UShortValueFeedback = new IntFeedback(() => (int)UShortValue);
             IsDeviceInfo = config.IsDeviceInfo;
+            LinkStaticData(config);
 
 
             Debug.Console(2, "Creating AnalogAttribute {0} {1} {2}", JoinNumber, Name, (int)RwType);
 
 	    }
 
+        public override sealed void LinkStaticData(DynFusionAttributeBase config)
+        {
+            UShortValue = config.StaticAnalog;
+            UShortValueFeedback.FireUpdate();
+        }
+
+
         public override void LinkData()
         {
-
+            if (IsStaticData)
+            {
+                return;
+            }
             if (string.IsNullOrEmpty(LinkDeviceKey)) return;
             if (!string.IsNullOrEmpty(LinkDeviceFeedback))
             {
@@ -174,7 +196,7 @@ namespace DynFusion
 		}
 
 	    public DynFusionSerialAttribute(DynFusionAttributeBase config)
-            : base(config.Name, eSigType.String, config.JoinNumber, config.RwType, config.BridgeJoin)
+            : base(config.Name, eSigType.String, config.JoinNumber, config.RwType, config.BridgeJoin, config.IsStaticData)
 	    {
 	        Debug.Console(2, "Creating SerialAttribute {0} {1} {2}", JoinNumber, Name, (int) RwType);
 
@@ -182,11 +204,21 @@ namespace DynFusion
 	        LinkDeviceFeedback = config.LinkDeviceFeedback;
 	        LinkDeviceMethod = config.LinkDeviceMethod;
             StringValueFeedback = new StringFeedback(() => StringValue);
-
+            LinkStaticData(config);
 	    }
+
+        public override sealed void LinkStaticData(DynFusionAttributeBase config)
+        {
+            StringValue = config.StaticSerial;
+            StringValueFeedback.FireUpdate();
+        }
 
 	    public override void LinkData()
         {
+            if (IsStaticData)
+            {
+                return;
+            }
 
             if (string.IsNullOrEmpty(LinkDeviceKey)) return;
             if (IsDeviceInfo)
@@ -235,7 +267,6 @@ namespace DynFusion
                         LinkDeviceMethod, ex);
                 }
             }
-
         }
 
         private void LinkDeviceInfo()
@@ -302,6 +333,15 @@ namespace DynFusion
             RwType = rwType;
             BridgeJoin = bridgeJoin;
         }
+        public DynFusionAttributeBase(string name, eSigType type, UInt32 joinNumber, eReadWrite rwType, ushort bridgeJoin, bool isStaticData)
+        {
+            Name = name;
+            SignalType = type;
+            JoinNumber = joinNumber;
+            RwType = rwType;
+            BridgeJoin = bridgeJoin;
+            IsStaticData = isStaticData;
+        }
 
 		[JsonProperty("signalType")]
 		[JsonConverter(typeof(StringEnumConverter))]
@@ -335,6 +375,19 @@ namespace DynFusion
         [JsonProperty("isDeviceInfo")]
         public bool IsDeviceInfo { get; set; }
 
+        [JsonProperty("isStaticData")]
+        public bool IsStaticData { get; set; }
+
+        [JsonProperty("staticDigital")]
+        public bool StaticDigital { get; set; }
+
+        [JsonProperty("staticAnalog")]
+        public ushort StaticAnalog { get; set; }
+
+        [JsonProperty("staticSerial")]
+        public string StaticSerial { get; set; }
+
+
 	    public virtual void ExecuteAction()
 	    {
 	        AttributeAction.Invoke();
@@ -345,6 +398,11 @@ namespace DynFusion
         public virtual void LinkData()
         {
             Debug.Console(0, "LinkData in base Attribute");
+        }
+
+        public virtual void LinkStaticData(DynFusionAttributeBase config)
+        {
+            Debug.Console(0, "Link Static Data");
         }
 
 
@@ -361,4 +419,5 @@ namespace DynFusion
 		ReadWrite = 3,
 		Rw = 3
 	}
+
 }
