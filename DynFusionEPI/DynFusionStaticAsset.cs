@@ -343,6 +343,25 @@ namespace DynFusion
 					new DynFusionDigitalAttribute(join.Metadata.Description, join.JoinNumber));
 				_digitalAttributesToFusion[join.JoinNumber].BoolValueFeedback.LinkInputSig(sig.InputSig);
 			}
+
+			switch (sig.Name)
+			{
+				case "PowerOn":
+				{
+					_asset.PowerOn.AddSigToRVIFile = true;
+					break;
+				}
+				case "PowerOff":
+				{
+					_asset.PowerOff.AddSigToRVIFile = true;
+					break;
+				}
+				case "Connected":
+				{
+					_asset.Connected.AddSigToRVIFile = true;
+					break;
+				}
+			}
 		}
 
 		private void CreateStandardAttributeJoin(JoinDataComplete join, UShortSigDataFixedName sig)
@@ -363,6 +382,14 @@ namespace DynFusion
 				_analogAttributesToFusion.Add(join.JoinNumber,
 					new DynFusionAnalogAttribute(join.Metadata.Description, join.JoinNumber));
 				_analogAttributesToFusion[join.JoinNumber].UShortValueFeedback.LinkInputSig(sig.InputSig);
+			}
+
+			switch (sig.Name)
+			{
+				default:
+					{						
+						break;
+					}
 			}
 		}
 
@@ -385,73 +412,91 @@ namespace DynFusion
 					new DynFusionSerialAttribute(join.Metadata.Description, join.JoinNumber));
 				_serialAttributesToFusion[join.JoinNumber].StringValueFeedback.LinkInputSig(sig.InputSig);
 			}
+
+			switch (sig.Name)
+			{
+				case "AssetUsage":
+					{
+						_asset.AssetUsage.AddSigToRVIFile = true;
+						break;
+					}
+				case "AssetError":
+					{
+						_asset.AssetError.AddSigToRVIFile = true;
+						break;
+					}
+			}
 		}
 
 		private void CreateCustomAttributeJoin(IEnumerable<DynFusionAttributeBase> attributes, uint offset, eSigType sigType)
 		{
 			foreach (var attribute in attributes)
 			{
-				var attributeJoinNumber = attribute.JoinNumber + offset;
+				var name = attribute.Name; 
+				var joinNumber = attribute.JoinNumber + offset;
+				var linkDeviceKey = attribute.LinkDeviceKey;
+				var linkDeviceMethod = attribute.LinkDeviceMethod;
+				var linkDeviceFeedback = attribute.LinkDeviceFeedback;
 				var rwType = attribute.RwType;
 				var ioMask = DynFusionDevice.GetIOMask(rwType);
 
 				Debug.Console(DebugExtensions.Verbose, this, "CreateCustomAttributeJoin: {0} ({1}, {2}, {3})",
-					attribute.Name, attributeJoinNumber, ioMask.ToString(), rwType.ToString());
+					name, joinNumber, ioMask.ToString(), rwType.ToString());
 
-				_fusionSymbol.AddSig(AssetNumber, sigType, attributeJoinNumber, AssetName, ioMask);
+				_fusionSymbol.AddSig(AssetNumber, sigType, joinNumber, name, ioMask);
 
 				switch (sigType)
 				{
 					case (eSigType.Bool):
 						{
-							if (attribute.RwType == eReadWrite.ReadWrite || attribute.RwType == eReadWrite.Read)
+							if (rwType == eReadWrite.ReadWrite || rwType == eReadWrite.Read)
 							{
-								_digitalAttributesToFusion.Add(attributeJoinNumber, new DynFusionDigitalAttribute(
-									attribute.Name, attributeJoinNumber, attribute.LinkDeviceKey, attribute.LinkDeviceMethod, attribute.LinkDeviceFeedback));
+								_digitalAttributesToFusion.Add(joinNumber, new DynFusionDigitalAttribute(
+									name, joinNumber, linkDeviceKey, linkDeviceMethod, linkDeviceFeedback));
 
-								_digitalAttributesToFusion[attributeJoinNumber].BoolValueFeedback.LinkInputSig(
-									_asset.FusionGenericAssetDigitalsAsset1.UserDefinedBooleanSigDetails[attributeJoinNumber].InputSig);
+								_digitalAttributesToFusion[joinNumber].BoolValueFeedback.LinkInputSig(
+									_asset.FusionGenericAssetDigitalsAsset1.UserDefinedBooleanSigDetails[joinNumber].InputSig);
 							}
 
-							if (attribute.RwType == eReadWrite.ReadWrite || attribute.RwType == eReadWrite.Write)
+							if (rwType == eReadWrite.ReadWrite || rwType == eReadWrite.Write)
 							{
-								_digitalAttributesFromFusion.Add(attributeJoinNumber, new DynFusionDigitalAttribute(attribute.Name, attributeJoinNumber));
+								_digitalAttributesFromFusion.Add(joinNumber, new DynFusionDigitalAttribute(name, joinNumber));
 							}
 
 							break;
 						}
 					case (eSigType.UShort):
 						{
-							if (attribute.RwType == eReadWrite.ReadWrite || attribute.RwType == eReadWrite.Read)
+							if (rwType == eReadWrite.ReadWrite || rwType == eReadWrite.Read)
 							{
 
-								_analogAttributesToFusion.Add(attributeJoinNumber, new DynFusionAnalogAttribute(attribute.Name, attributeJoinNumber));
+								_analogAttributesToFusion.Add(joinNumber, new DynFusionAnalogAttribute(name, joinNumber));
 
-								_analogAttributesToFusion[attributeJoinNumber].UShortValueFeedback.LinkInputSig(
-									_asset.FusionGenericAssetAnalogsAsset2.UserDefinedUShortSigDetails[attributeJoinNumber].InputSig);
+								_analogAttributesToFusion[joinNumber].UShortValueFeedback.LinkInputSig(
+									_asset.FusionGenericAssetAnalogsAsset2.UserDefinedUShortSigDetails[joinNumber].InputSig);
 							}
 
-							if (attribute.RwType == eReadWrite.ReadWrite || attribute.RwType == eReadWrite.Write)
+							if (rwType == eReadWrite.ReadWrite || rwType == eReadWrite.Write)
 							{
-								_analogAttributesFromFusion.Add(attributeJoinNumber, new DynFusionAnalogAttribute(attribute.Name, attributeJoinNumber));
+								_analogAttributesFromFusion.Add(joinNumber, new DynFusionAnalogAttribute(name, joinNumber));
 							}
 
 							break;
 						}
 					case (eSigType.String):
 						{
-							if (attribute.RwType == eReadWrite.ReadWrite || attribute.RwType == eReadWrite.Read)
+							if (rwType == eReadWrite.ReadWrite || rwType == eReadWrite.Read)
 							{
 
-								_serialAttributesToFusion.Add(attributeJoinNumber, new DynFusionSerialAttribute(attribute.Name, attributeJoinNumber));
+								_serialAttributesToFusion.Add(joinNumber, new DynFusionSerialAttribute(name, joinNumber));
 
-								_serialAttributesToFusion[attributeJoinNumber].StringValueFeedback.LinkInputSig(
-									_asset.FusionGenericAssetSerialsAsset3.UserDefinedStringSigDetails[attributeJoinNumber].InputSig);
+								_serialAttributesToFusion[joinNumber].StringValueFeedback.LinkInputSig(
+									_asset.FusionGenericAssetSerialsAsset3.UserDefinedStringSigDetails[joinNumber].InputSig);
 							}
 
-							if (attribute.RwType == eReadWrite.ReadWrite || attribute.RwType == eReadWrite.Write)
+							if (rwType == eReadWrite.ReadWrite || rwType == eReadWrite.Write)
 							{
-								_serialAttributesFromFusion.Add(attributeJoinNumber, new DynFusionSerialAttribute(attribute.Name, attributeJoinNumber));
+								_serialAttributesFromFusion.Add(joinNumber, new DynFusionSerialAttribute(name, joinNumber));
 							}
 
 							break;
