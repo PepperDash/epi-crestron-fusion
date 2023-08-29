@@ -15,6 +15,7 @@ using Crestron.SimplSharpPro;
 using Crestron.SimplSharp.CrestronXml;
 using Crestron.SimplSharp.CrestronXml.Serialization;
 using Crestron.SimplSharp;
+using PepperDash.Essentials.Devices.Common.VideoCodec.Cisco;
 
 
 namespace DynFusion
@@ -67,14 +68,14 @@ namespace DynFusion
             FusionSymbol.ExtenderFusionRoomDataReservedSigs.Use();
         }
 
-        public override bool CustomActivate()
-        {
-            Initialize();
-            return true;
-        }
+		//public override bool CustomActivate()
+		//{
+		//    Initialize();
+		//    return true;
+		//}
 
-        private void Initialize()
-        {
+        public override void Initialize()
+	    {
             try
             {
                 // Online Status 
@@ -97,6 +98,7 @@ namespace DynFusion
                         DigitalAttributesToFusion.Add(att.JoinNumber,
                             new DynFusionDigitalAttribute(att.Name, att.JoinNumber, att.LinkDeviceKey,
                                 att.LinkDeviceMethod, att.LinkDeviceFeedback));
+
                         DigitalAttributesToFusion[att.JoinNumber].BoolValueFeedback.LinkInputSig(
                             FusionSymbol.UserDefinedBooleanSigDetails[att.JoinNumber - FusionJoinOffset].InputSig);
                     }
@@ -116,6 +118,7 @@ namespace DynFusion
                     {
                         AnalogAttributesToFusion.Add(att.JoinNumber,
                             new DynFusionAnalogAttribute(att.Name, att.JoinNumber));
+
                         AnalogAttributesToFusion[att.JoinNumber].UShortValueFeedback.LinkInputSig(
                             FusionSymbol.UserDefinedUShortSigDetails[att.JoinNumber - FusionJoinOffset].InputSig);
                     }
@@ -133,6 +136,7 @@ namespace DynFusion
                     {
                         SerialAttributesToFusion.Add(att.JoinNumber,
                             new DynFusionSerialAttribute(att.Name, att.JoinNumber));
+
                         SerialAttributesToFusion[att.JoinNumber].StringValueFeedback.LinkInputSig(
                             FusionSymbol.UserDefinedStringSigDetails[att.JoinNumber - FusionJoinOffset].InputSig);
                     }
@@ -215,6 +219,33 @@ namespace DynFusion
                                     "Occupancy Sensor",
                                     Guid.NewGuid().ToString()));
                     }
+
+					Debug.Console(DebugExtensions.Trace, this, "DynFusionDevice Initialize: StaticAssets config {0} null", 
+						_Config.Assets.StaticAssets == null ? "==" : "!=");
+
+	                if (_Config.Assets.StaticAssets != null)
+	                {
+		                var staticAssets = from staticAssetsConfig in _Config.Assets.StaticAssets
+			                select
+				                new DynFusionStaticAsset(
+					                FusionSymbol,
+					                GetNextAvailableAssetNumber(FusionSymbol),
+					                staticAssetsConfig);
+
+		                //staticAssets
+		                //    .ToList()
+		                //    .ForEach(staticAsset =>
+		                //        FusionSymbol.AddAsset(
+		                //            eAssetType.StaticAsset,
+		                //            staticAsset.AssetNumber,
+		                //            staticAsset.Key,
+		                //            staticAsset.AssetType,
+		                //            Guid.NewGuid().ToString()));
+
+		                staticAssets
+			                .ToList()
+			                .ForEach(staticAsset => staticAsset.Initialize());
+	                }
                 }
 
                 if (_Config.CallStatistics != null)
@@ -386,10 +417,11 @@ namespace DynFusion
         private void FusionSymbol_RoomDataDeviceExtenderSigChange(DeviceExtender currentDeviceExtender,
             SigEventArgs args)
         {
-            Debug.Console(2, this,
+            Debug.Console(DebugExtensions.Verbose, this,
                 string.Format("DynFusion DeviceExtenderChange {0} {1} {2} {3}", currentDeviceExtender.ToString(),
                     args.Sig.Number, args.Sig.Type, args.Sig.StringValue));
-            ushort joinNumber = (ushort) args.Sig.Number;
+           
+			var joinNumber = (ushort) args.Sig.Number;
 
             switch (args.Sig.Type)
             {
@@ -427,8 +459,9 @@ namespace DynFusion
 
         private void FusionSymbol_FusionStateChange(FusionBase device, FusionStateEventArgs args)
         {
-            Debug.Console(2, this, "DynFusion FusionStateChange {0} {1}", args.EventId,
+            Debug.Console(DebugExtensions.Verbose, this, "DynFusion FusionStateChange {0} {1}", args.EventId,
                 args.UserConfiguredSigDetail.ToString());
+
             switch (args.EventId)
             {
                 case FusionEventIds.SystemPowerOnReceivedEventId:
@@ -546,9 +579,10 @@ namespace DynFusion
                 case FusionEventIds.UserConfiguredBoolSigChangeEventId:
                 {
                     var sigDetails = args.UserConfiguredSigDetail as BooleanSigData;
-                    uint joinNumber = (uint) (sigDetails.Number + FusionJoinOffset);
+                    var joinNumber = sigDetails.Number + FusionJoinOffset;
                     DynFusionDigitalAttribute output;
-                    Debug.Console(2, this, "DynFusion UserAttribute Digital Join:{0} Name:{1} Value:{2}", joinNumber,
+
+                    Debug.Console(DebugExtensions.Verbose, this, "DynFusion UserAttribute Digital Join:{0} Name:{1} Value:{2}", joinNumber,
                         sigDetails.Name, sigDetails.OutputSig.BoolValue);
 
                     if (DigitalAttributesFromFusion.TryGetValue(joinNumber, out output))
@@ -561,9 +595,10 @@ namespace DynFusion
                 case FusionEventIds.UserConfiguredUShortSigChangeEventId:
                 {
                     var sigDetails = args.UserConfiguredSigDetail as UShortSigData;
-                    uint joinNumber = (uint) (sigDetails.Number + FusionJoinOffset);
+                    var joinNumber = sigDetails.Number + FusionJoinOffset;
                     DynFusionAnalogAttribute output;
-                    Debug.Console(2, this, "DynFusion UserAttribute Analog Join:{0} Name:{1} Value:{2}", joinNumber,
+
+                    Debug.Console(DebugExtensions.Verbose, this, "DynFusion UserAttribute Analog Join:{0} Name:{1} Value:{2}", joinNumber,
                         sigDetails.Name, sigDetails.OutputSig.UShortValue);
 
                     if (AnalogAttributesFromFusion.TryGetValue(joinNumber, out output))
@@ -575,9 +610,10 @@ namespace DynFusion
                 case FusionEventIds.UserConfiguredStringSigChangeEventId:
                 {
                     var sigDetails = args.UserConfiguredSigDetail as StringSigData;
-                    uint joinNumber = (uint) (sigDetails.Number + FusionJoinOffset);
+                    var joinNumber = sigDetails.Number + FusionJoinOffset;
                     DynFusionSerialAttribute output;
-                    Debug.Console(2, this, "DynFusion UserAttribute Analog Join:{0} Name:{1} Value:{2}", joinNumber,
+                    
+					Debug.Console(DebugExtensions.Verbose, this, "DynFusion UserAttribute Analog Join:{0} Name:{1} Value:{2}", joinNumber,
                         sigDetails.Name, sigDetails.OutputSig.StringValue);
 
                     if (SerialAttributesFromFusion.TryGetValue(joinNumber, out output))
@@ -598,7 +634,7 @@ namespace DynFusion
             }
         }
 
-        private static eSigIoMask GetIOMask(eReadWrite mask)
+        public static eSigIoMask GetIOMask(eReadWrite mask)
         {
             var type = eSigIoMask.NA;
 
@@ -617,7 +653,7 @@ namespace DynFusion
             return (type);
         }
 
-        private static eSigIoMask GetIOMask(string mask)
+        public static eSigIoMask GetIOMask(string mask)
         {
             var _RWType = eSigIoMask.NA;
 
@@ -671,7 +707,8 @@ namespace DynFusion
             }
             else
                 slotNum = slotNum + 1;
-            Debug.Console(2, string.Format("#Next available fusion asset number is: {0}", slotNum));
+
+            Debug.Console(DebugExtensions.Verbose, string.Format("#Next available fusion asset number is: {0}", slotNum));
 
             return slotNum;
         }
@@ -688,14 +725,16 @@ namespace DynFusion
                         String.Format(
                             "<RequestRoomConfiguration><RequestID>RoomConfigurationRequest</RequestID><CustomProperties><Property></Property></CustomProperties></RequestRoomConfiguration>");
 
-                    Debug.Console(2, this, "Room Request: {0}", fusionRoomConfigRequest);
+                    Debug.Console(DebugExtensions.Verbose, this, "Room Request: {0}", fusionRoomConfigRequest);
                     FusionSymbol.ExtenderFusionRoomDataReservedSigs.RoomConfigQuery.StringValue =
                         fusionRoomConfigRequest;
                 }
             }
             catch (Exception e)
             {
-                Debug.Console(2, this, "GetRoomConfig Error {0}", e);
+                Debug.Console(DebugExtensions.Warn, this, "GetRoomConfig Exception Message: {0}", e.Message);
+				Debug.Console(DebugExtensions.Verbose, this, "GetRoomConfig Exception StackTrace: {0}", e.StackTrace);
+				if(e.InnerException != null) Debug.Console(DebugExtensions.Verbose, this, "GetRoomConfig Exception InnerException: {0}", e.InnerException);
             }
         }
 
@@ -743,7 +782,7 @@ namespace DynFusion
                 {
                     ErrorLogTimer = new CTimer(o =>
                     {
-                        Debug.Console(2, this, "Sent Message {0}", ErrorLogLastMessageSent);
+                        Debug.Console(DebugExtensions.Verbose, this, "SendToLog Message:{0}", ErrorLogLastMessageSent);
                         FusionSymbol.ErrorMessage.InputSig.StringValue = ErrorLogLastMessageSent;
                     }, errorlogThrottleTime);
                 }
@@ -836,14 +875,16 @@ namespace DynFusion
             }
             catch (Exception e)
             {
-                Debug.Console(2, this, "GetRoomConfig Error {0}", e);
+                Debug.Console(DebugExtensions.Warn, this, "GetRoomConfig Exception Message: {0}", e.Message);
+				Debug.Console(DebugExtensions.Verbose, this, "GetRoomConfig Exception StackTrace: {0}", e.StackTrace);
+				if(e.InnerException != null) Debug.Console(DebugExtensions.Verbose, this, "GetRoomConfig Exception InnerException: {0}", e.InnerException);
             }
         }
 
         public override void LinkToApi(BasicTriList trilist, uint joinStart, string joinMapKey, EiscApiAdvanced bridge)
         {
-            Debug.Console(1, "Linking to Trilist '{0}'", trilist.ID.ToString("X"));
-            Debug.Console(0, "Linking to Bridge Type {0}", GetType().Name);
+            Debug.Console(DebugExtensions.Warn, "Linking to Trilist '{0}'", trilist.ID.ToString("X"));
+            Debug.Console(DebugExtensions.Trace, "Linking to Bridge AssetType {0}", GetType().Name);
             var joinMap = new DynFusionJoinMap(joinStart);
 
             foreach (var att in DigitalAttributesToFusion)

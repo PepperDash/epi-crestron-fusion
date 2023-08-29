@@ -167,7 +167,7 @@ namespace DynFusion
         /// Constructor to use when extending this Join map
         /// </summary>
         /// <param name="joinStart">Join this join map will start at</param>
-        /// <param name="type">Type of the child join map</param>
+        /// <param name="type">AssetType of the child join map</param>
 		protected SchedulingJoinMap(uint joinStart, System.Type type)
 			: base(joinStart, type)
         {

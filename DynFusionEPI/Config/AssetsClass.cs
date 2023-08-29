@@ -8,6 +8,9 @@ namespace DynFusion.Config
 		[JsonProperty("occupancySensors")]
         public List<FusionOccupancyAsset> OccupancySensors { get; set; }
 
+		[JsonProperty("staticAssets")]
+		public List<FusionStaticAssetConfig> StaticAssets { get; set; }
+		
 		[JsonProperty("analogLinks")]
         public List<FusionEssentialsAsset> AnalogLinks { get; set; }
 

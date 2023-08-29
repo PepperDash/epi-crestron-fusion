@@ -86,19 +86,19 @@ namespace DynFusion
 
 		private void getAvailableRoomsTimeout(object unused)
 		{
-			Debug.ConsoleWithLog(2, "Error getAvailableRoomsTimeout", 3);
+			Debug.ConsoleWithLog(DebugExtensions.Warn, "getAvailableRoomsTimeout error", 3);
 			this.AvailableRoomStatus = false;
 		}
 		public void sendFreeBusyStatusAvailableUntil(DateTime AvailableUntilTime)
 		{
 			// "2017-12-09T00:00:00"
 			_DynFusion.FusionSymbol.FreeBusyStatusToRoom.InputSig.StringValue = string.Format("{0}", AvailableUntilTime.ToString("yyyy-MM-ddTHH:mm:00"));
-			Debug.Console(2, string.Format("Sending FreeBusyStatus {0}", AvailableUntilTime.ToString("yyyy-MM-ddTHH:mm:00")));
+			Debug.Console(DebugExtensions.Verbose, string.Format("Sending FreeBusyStatus {0}", AvailableUntilTime.ToString("yyyy-MM-ddTHH:mm:00")));
 		}
 		public void sendFreeBusyStatusAvailable()
 		{
 			_DynFusion.FusionSymbol.FreeBusyStatusToRoom.InputSig.StringValue = string.Format("{0}", DateTime.Now.AddDays(5).ToString("yyyy-MM-ddT00:00:00"));
-			Debug.Console(2, "Sending FreeBusyStatus {0}", DateTime.Now.AddDays(5).ToString("yyyy-MM-ddT00:00:00"));
+			Debug.Console(DebugExtensions.Verbose, "Sending FreeBusyStatus {0}", DateTime.Now.AddDays(5).ToString("yyyy-MM-ddT00:00:00"));
 		}
 		public void sendFreeBusyStatusNotAvailable()
 		{
@@ -120,14 +120,14 @@ namespace DynFusion
 					string fusionRoomListRequest = "";
 					//TODO This needs to be implemented 
 				//	fusionRoomListRequest = String.Format("<RequestRoomList><RequestID>RoomListRequest</RequestID><Property>Location</Property><Value>{0}</Value></RequestRoomList>", _DynFusion.FusionRoomInfo.roomInformation.Location);
-					Debug.Console(2, String.Format("RoomList Request: {0}", fusionRoomListRequest));
+					Debug.Console(DebugExtensions.Verbose, String.Format("RoomList Request: {0}", fusionRoomListRequest));
 
 					_DynFusion.FusionSymbol.ExtenderFusionRoomDataReservedSigs.RoomListQuery.StringValue = fusionRoomListRequest;
 				}
 			}
 			catch (Exception e)
 			{
-				Debug.Console(2, String.Format("Error Requesting Room List: {0}", e.ToString()));
+				Debug.Console(DebugExtensions.Verbose, String.Format("Error Requesting Room List: {0}", e.ToString()));
 			}
 		}
 		public void getAvailableRooms()
@@ -144,7 +144,7 @@ namespace DynFusion
 					}
 					string messageFooter = String.Format("</RequestRoomAttributeList>");
 					_DynFusion.FusionSymbol.ExtenderFusionRoomDataReservedSigs.RoomAttributeQuery.StringValue = string.Format("{0}{1}{2}", messageHeader, messageBody, messageFooter);
-					Debug.Console(2, String.Format("RequestRoomAttributeList {0}{1}{2}", messageHeader, messageBody, messageFooter));
+					Debug.Console(DebugExtensions.Verbose, String.Format("RequestRoomAttributeList {0}{1}{2}", messageHeader, messageBody, messageFooter));
 					/* 
 					 * if (_DynFusion.FusionSchedule.isRegisteredForSchedulePushNotifications) {
 						schedulePushTimer.Stop();
@@ -154,8 +154,8 @@ namespace DynFusion
 			}
 			catch (Exception ex)
 			{
-				Debug.Console(2, String.Format("getAvailableRooms Error: {0}", ex.Message));
-				Debug.ConsoleWithLog(2, ex.ToString());
+				Debug.Console(DebugExtensions.Verbose, String.Format("getAvailableRooms Error: {0}", ex.Message));
+				Debug.ConsoleWithLog(DebugExtensions.Verbose, ex.ToString());
 			}
 		}
 		void FusionRoomDataExtenderSigChange(DeviceExtender currentDeviceExtender, SigEventArgs args)
@@ -246,7 +246,7 @@ namespace DynFusion
 								Debug.Console(2, String.Format("RoomAttributeListResponseRoomElement: {0} Value: {1}", attributeElement.Name, attributeElement.InnerXml));
 								string attributeType = attributeElement.GetElementsByTagName("Name").Item(0).InnerXml;
 								string attributeValue = attributeElement.GetElementsByTagName("Value").Item(0).InnerXml;
-								Debug.Console(2, String.Format("RoomAttributeListResponseRoomAttribute Type: {0} Value: {1}", attributeType, attributeValue));
+								Debug.Console(2, String.Format("RoomAttributeListResponseRoomAttribute AssetType: {0} Value: {1}", attributeType, attributeValue));
 								switch (attributeType)
 								{
 									case ("Online Status"): { if (attributeValue == "2") { RoomList[index].OnlineStatus = true; } else { RoomList[index].OnlineStatus = false; } break; }
@@ -334,7 +334,7 @@ namespace DynFusion
 									Room roomListRoom = new Room();
 
 									roomListRoom = CrestronXMLSerialization.DeSerializeObject<Room>(reader);
-									Debug.Console(2, String.Format("Var is: {0}, Type: {1}", roomListRoom.RoomName, roomListRoom.GetType()));
+									Debug.Console(2, String.Format("Var is: {0}, AssetType: {1}", roomListRoom.RoomName, roomListRoom.GetType()));
 
 									// AvailableRooms.RoomList.Add(roomAvailable); 
 									RoomList.Add(roomListRoom);

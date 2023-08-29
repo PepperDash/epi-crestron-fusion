@@ -23,6 +23,7 @@ namespace DynFusion
 			BoolValueFeedback = new BoolFeedback(() => { return BoolValue; });
 			Debug.Console(2, "Creating DigitalAttribute {0} {1} {2}", this.JoinNumber, this.Name, this.RwType);
 		}
+
 		public DynFusionDigitalAttribute(string name, UInt32 joinNumber, string deviceKey, string boolAction, string boolFeedback)
 			: base(name, eSigType.Bool, joinNumber)
 		{
@@ -140,14 +141,14 @@ namespace DynFusion
 		public eSigType	SignalType { get; set; }
 
 		[JsonProperty("JoinNumber")]
-		public UInt32		JoinNumber { get; set; }
+		public UInt32 JoinNumber { get; set; }
 		
 		[JsonProperty("Name")]
-		public string		Name { get; set; }
+		public string Name { get; set; }
 
 		[JsonProperty("RwType")]
 		[JsonConverter(typeof(StringEnumConverter))]
-		public eReadWrite		RwType { get; set; }
+		public eReadWrite RwType { get; set; }
 
 		[JsonProperty("LinkDeviceKey")]
 		public string LinkDeviceKey { get; set; }

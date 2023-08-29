@@ -112,9 +112,13 @@
     <Compile Include="Config\FusionCustomProperty.cs" />
     <Compile Include="Config\FusionEssentialsAsset.cs" />
     <Compile Include="Config\FusionOccupancyAsset.cs" />
+    <Compile Include="Config\FusionStaticAssetConfig.cs" />
+    <Compile Include="DebugExtension.cs" />
+    <Compile Include="DynFusionStaticAsset.cs" />
     <Compile Include="DynFusionCallStatisticsDevice.cs" />
     <Compile Include="DynFusionDeviceUsage.cs" />
     <Compile Include="DynFusionScheduleFactory.cs" />
+    <Compile Include="DynFusionStaticAssetJoinMap.cs" />
     <Compile Include="SchedulingConfig.cs" />
     <Compile Include="FeedbackExtensions.cs" />
     <Compile Include="SchedulingJoinMap.cs" />
