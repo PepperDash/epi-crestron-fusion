@@ -63,27 +63,27 @@ namespace DynFusion
 
 			_joinMap = new DynFusionStaticAssetJoinMap(config.AttributeJoinOffset + 1);
 
-			Debug.Console(DebugExtensions.Warn, this, "Adding StaticAsset");
-
-			SetupAsset(config);
+			Debug.Console(DebugExtensions.Warn, this, "Adding StaticAsset");			
 
 			_fusionSymbol = symbol;
 			_fusionSymbol.AddAsset(eAssetType.StaticAsset, AssetNumber, AssetName, AssetType, Guid.NewGuid().ToString());
 			_fusionSymbol.FusionAssetStateChange += _fusionSymbol_FusionAssetStateChange;
 
 			_asset = _fusionSymbol.UserConfigurableAssetDetails[AssetNumber].Asset as FusionStaticAsset;
+
+			SetupAsset(config);
 		}
 
 		public void SetupAsset(FusionStaticAssetConfig config)
 		{
-			Debug.Console(DebugExtensions.Warn, this, "StaticAsset is {0}", _asset == null ? "null, setup failed" : "checking config for setup");
+			Debug.Console(DebugExtensions.Warn, this, "SetupAsset: _asset is {0}", _asset == null ? "null, setup failed" : "checking config for setup");
 			if (_asset == null) return;
 
-			Debug.Console(DebugExtensions.Warn, this, "StaticAsset config is {0}", config == null ? "null, setup failed" : "running setup");
+			Debug.Console(DebugExtensions.Warn, this, "SetupAsset: config is {0}", config == null ? "null, setup failed" : "running setup");
 			if (config == null) return;
 
 			try
-			{
+			{				
 				_asset.ParamMake.Value = Make;
 				_asset.ParamModel.Value = Model;
 				

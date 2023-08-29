@@ -1,10 +1,10 @@
 ﻿<?xml version="1.0" encoding="utf-8"?>
 <RoomViewInfo>
-     <TimeDateStamp>08/28/2023 16:49:45</TimeDateStamp>
+     <TimeDateStamp>08/29/2023 10:41:15</TimeDateStamp>
      <SymbolInfo>
           <Version>8.1</Version>
           <RoomName></RoomName>
-          <InstanceID>faf63d8b-cbbb-4080-8260-04f005c49867</InstanceID>
+          <InstanceID>ac2df883-a5da-4a1b-9fbf-5269cd53efe5</InstanceID>
           <IPID>FA</IPID>
           <Slot>
                <SlotNum>01</SlotNum>
@@ -190,7 +190,7 @@
                <Param>
                     <Name>InstanceID</Name>
                     <DataType>Serial</DataType>
-                    <Value>71c928c7-dc4d-454d-8ee2-de1a8eb4c998</Value>
+                    <Value>7d963343-76ad-432d-879d-a27d154670ba</Value>
                </Param>
                <SignalPair>
                     <Join>1</Join>
@@ -239,59 +239,65 @@
                <Param>
                     <Name>InstanceID</Name>
                     <DataType>Serial</DataType>
-                    <Value>f47628bf-9199-4730-8e6d-21abdaf1f55f</Value>
+                    <Value>1a3deb3a-0a90-4ac0-8260-4b4e1894ba12</Value>
                </Param>
                <Param>
                     <Name>Make</Name>
                     <DataType>Serial</DataType>
-                    <Value></Value>
+                    <Value>Test Make</Value>
                </Param>
                <Param>
                     <Name>Model</Name>
                     <DataType>Serial</DataType>
-                    <Value></Value>
+                    <Value>Test Model</Value>
                </Param>
-               <SignalPair>
-                    <Join>1</Join>
-                    <Type>Digital</Type>
-                    <Label>PowerIsOn</Label>
-                    <IOmask>3</IOmask>
-               </SignalPair>
-               <SignalPair>
-                    <Join>2</Join>
-                    <Type>Digital</Type>
-                    <Label>PowerOff</Label>
-                    <IOmask>1</IOmask>
-               </SignalPair>
-               <SignalPair>
-                    <Join>3</Join>
-                    <Type>Digital</Type>
-                    <Label>Connected</Label>
-                    <IOmask>2</IOmask>
-               </SignalPair>
-               <SignalPair>
-                    <Join>1</Join>
-                    <Type>Serial</Type>
-                    <Label>AssetUsage</Label>
-                    <IOmask>2</IOmask>
-               </SignalPair>
-               <SignalPair>
-                    <Join>2</Join>
-                    <Type>Serial</Type>
-                    <Label>AssetError</Label>
-                    <IOmask>2</IOmask>
-               </SignalPair>
                <Slot>
                     <SlotNum>01</SlotNum>
                     <SlotName>Fusion Generic Asset Digitals</SlotName>
+                    <SignalPair>
+                         <Join>99</Join>
+                         <Type>Digital</Type>
+                         <Label>Custom Asset 1</Label>
+                         <IOmask>2</IOmask>
+                    </SignalPair>
+                    <SignalPair>
+                         <Join>100</Join>
+                         <Type>Digital</Type>
+                         <Label>Custom Asset 1</Label>
+                         <IOmask>2</IOmask>
+                    </SignalPair>
                </Slot>
                <Slot>
                     <SlotNum>02</SlotNum>
                     <SlotName>Fusion Generic Asset Analogs</SlotName>
+                    <SignalPair>
+                         <Join>99</Join>
+                         <Type>Analog</Type>
+                         <Label>Custom Asset 1</Label>
+                         <IOmask>2</IOmask>
+                    </SignalPair>
+                    <SignalPair>
+                         <Join>100</Join>
+                         <Type>Analog</Type>
+                         <Label>Custom Asset 1</Label>
+                         <IOmask>2</IOmask>
+                    </SignalPair>
                </Slot>
                <Slot>
                     <SlotNum>03</SlotNum>
                     <SlotName>Fusion Generic Asset Serials</SlotName>
+                    <SignalPair>
+                         <Join>99</Join>
+                         <Type>Serial</Type>
+                         <Label>Custom Asset 1</Label>
+                         <IOmask>2</IOmask>
+                    </SignalPair>
+                    <SignalPair>
+                         <Join>100</Join>
+                         <Type>Serial</Type>
+                         <Label>Custom Asset 1</Label>
+                         <IOmask>2</IOmask>
+                    </SignalPair>
                </Slot>
           </Slot>
      </SymbolInfo>
