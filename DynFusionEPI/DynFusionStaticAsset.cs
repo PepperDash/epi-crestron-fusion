@@ -22,8 +22,8 @@ namespace DynFusion
 		public string Model;
 
 		private readonly FusionStaticAsset _asset;
-		private readonly uint _attributeOffset;
-		private readonly uint _customAttributeOffset;
+		public readonly uint AttributeOffset;
+		public readonly uint CustomAttributeOffset;
 		private const uint FusionJoinOffset = 49;
 
 		private readonly DynFusionStaticAssetJoinMap _joinMap;
@@ -51,8 +51,8 @@ namespace DynFusion
 			Make = string.IsNullOrEmpty(Config.Make) ? string.Empty : Config.Make;
 			Model = string.IsNullOrEmpty(Config.Model) ? string.Empty : Config.Model;
 
-			_attributeOffset = config.AttributeJoinOffset;
-			_customAttributeOffset = config.CustomAttributeJoinOffset;
+			AttributeOffset = config.AttributeJoinOffset;
+			CustomAttributeOffset = config.CustomAttributeJoinOffset;
 
 			_digitalAttributesToFusion = new Dictionary<UInt32, DynFusionDigitalAttribute>();
 			_analogAttributesToFusion = new Dictionary<UInt32, DynFusionAnalogAttribute>();
@@ -124,7 +124,7 @@ namespace DynFusion
 		{
 			Debug.Console(DebugExtensions.Warn, "Linking to Trilist '{0}'", trilist.ID.ToString("X"));
 			Debug.Console(DebugExtensions.Warn, "Linking to Bridge AssetType {0}", GetType().Name);
-			var joinMap = new DynFusionStaticAssetJoinMap(joinStart + _attributeOffset);
+			var joinMap = new DynFusionStaticAssetJoinMap(joinStart + AttributeOffset);
 
 			LinkDigitalAttributesToApi(trilist, joinMap);
 			LinkAnalogAttributesToApi(trilist, joinMap);
@@ -206,7 +206,7 @@ namespace DynFusion
 				foreach (var attribute in _serialAttributesFromFusion)
 				{
 					var attLocal = attribute.Value;
-					var bridgeJoin = attLocal.JoinNumber + _attributeOffset;
+					var bridgeJoin = attLocal.JoinNumber + AttributeOffset;
 					var trilistLocal = sender as BasicTriList;
 
 					if (trilistLocal == null)

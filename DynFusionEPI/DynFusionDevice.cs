@@ -36,6 +36,9 @@ namespace DynFusion
         private readonly IDictionary<uint, DynFusionCallStatisticsDevice> _callStatisticsDevices 
             = new Dictionary<uint, DynFusionCallStatisticsDevice>();
 
+		private readonly IDictionary<uint, DynFusionStaticAsset> _staticAssets 
+			= new Dictionary<uint, DynFusionStaticAsset>();
+
         private static DynFusionJoinMap JoinMapStatic;
 
         public BoolFeedback FusionOnlineFeedback;
@@ -242,9 +245,15 @@ namespace DynFusion
 		                //            staticAsset.AssetType,
 		                //            Guid.NewGuid().ToString()));
 
+
+
 		                staticAssets
 			                .ToList()
-			                .ForEach(staticAsset => staticAsset.Initialize());
+			                .ForEach(staticAsset =>
+			                {
+				                _staticAssets.Add(staticAsset.AssetNumber, staticAsset);
+								staticAsset.Initialize();
+			                });
 	                }
                 }
 
@@ -920,6 +929,12 @@ namespace DynFusion
             }
 
             trilist.SetSigTrueAction(joinMap.RoomConfig.JoinNumber, () => GetRoomConfig());
+
+	        foreach (var staticAsset in _staticAssets)
+	        {		        
+		        var device = staticAsset;				
+		        device.Value.LinkToApi(trilist, joinStart, joinMapKey, bridge);
+	        }
 
             foreach (var callStatisticsDevice in _callStatisticsDevices)
             {
