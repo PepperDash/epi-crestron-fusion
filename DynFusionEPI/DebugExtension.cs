@@ -21,9 +21,9 @@ namespace DynFusion
 
 		public static void ResetLevels()
 		{
-			Trace = 0;		// 0
-			Warn = 0;		// 1
-			Verbose = 0;	// 2
+			Trace = 0;
+			Warn = 1;
+			Verbose = 2;
 		}
 	}	
 }
