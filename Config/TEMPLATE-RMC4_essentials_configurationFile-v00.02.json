@@ -101,6 +101,7 @@
 								"make": "Test Make",
 								"model": "Test Model",
 								"attributeJoinOffset": 500,
+								"customAttributeJoinOffset": 503,
 								"attributes": {
 									"digitalAttributes": [									
 										{ "rwType": "RW" , "name": "PowerOn"   , "joinNumber": 1 },
