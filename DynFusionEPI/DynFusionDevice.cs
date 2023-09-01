@@ -15,6 +15,7 @@ using Crestron.SimplSharpPro;
 using Crestron.SimplSharp.CrestronXml;
 using Crestron.SimplSharp.CrestronXml.Serialization;
 using Crestron.SimplSharp;
+using PepperDash.Essentials.Devices.Common.VideoCodec.Cisco;
 
 
 namespace DynFusion
@@ -34,6 +35,9 @@ namespace DynFusion
 
         private readonly IDictionary<uint, DynFusionCallStatisticsDevice> _callStatisticsDevices 
             = new Dictionary<uint, DynFusionCallStatisticsDevice>();
+
+		private readonly IDictionary<uint, DynFusionStaticAsset> _staticAssets 
+			= new Dictionary<uint, DynFusionStaticAsset>();
 
         private static DynFusionJoinMap JoinMapStatic;
 
@@ -67,190 +71,221 @@ namespace DynFusion
             FusionSymbol.ExtenderFusionRoomDataReservedSigs.Use();
         }
 
-        public override bool CustomActivate()
-        {
-            Initialize();
-            return true;
-        }
+		public override bool CustomActivate()
+		{
+			try
+			{
+				// Online Status 
+				FusionOnlineFeedback = new BoolFeedback(() => { return FusionSymbol.IsOnline; });
+				FusionSymbol.OnlineStatusChange += new OnlineStatusChangeEventHandler(FusionSymbol_OnlineStatusChange);
 
-        private void Initialize()
-        {
-            try
-            {
-                // Online Status 
-                FusionOnlineFeedback = new BoolFeedback(() => { return FusionSymbol.IsOnline; });
-                FusionSymbol.OnlineStatusChange += new OnlineStatusChangeEventHandler(FusionSymbol_OnlineStatusChange);
+				// Attribute State Changes 
+				FusionSymbol.FusionStateChange += new FusionStateEventHandler(FusionSymbol_FusionStateChange);
+				FusionSymbol.ExtenderFusionRoomDataReservedSigs.DeviceExtenderSigChange +=
+					new DeviceExtenderJoinChangeEventHandler(FusionSymbol_RoomDataDeviceExtenderSigChange);
 
-                // Attribute State Changes 
-                FusionSymbol.FusionStateChange += new FusionStateEventHandler(FusionSymbol_FusionStateChange);
-                FusionSymbol.ExtenderFusionRoomDataReservedSigs.DeviceExtenderSigChange +=
-                    new DeviceExtenderJoinChangeEventHandler(FusionSymbol_RoomDataDeviceExtenderSigChange);
+				// Create Custom Atributes 
+				foreach (var att in _Config.CustomAttributes.DigitalAttributes)
+				{
+					FusionSymbol.AddSig(eSigType.Bool, att.JoinNumber - FusionJoinOffset, att.Name,
+						GetIOMask(att.RwType));
 
-                // Create Custom Atributes 
-                foreach (var att in _Config.CustomAttributes.DigitalAttributes)
-                {
-                    FusionSymbol.AddSig(eSigType.Bool, att.JoinNumber - FusionJoinOffset, att.Name,
-                        GetIOMask(att.RwType));
+					if (att.RwType == eReadWrite.ReadWrite || att.RwType == eReadWrite.Read)
+					{
+						DigitalAttributesToFusion.Add(att.JoinNumber,
+							new DynFusionDigitalAttribute(att.Name, att.JoinNumber, att.LinkDeviceKey,
+								att.LinkDeviceMethod, att.LinkDeviceFeedback));
 
-                    if (att.RwType == eReadWrite.ReadWrite || att.RwType == eReadWrite.Read)
-                    {
-                        DigitalAttributesToFusion.Add(att.JoinNumber,
-                            new DynFusionDigitalAttribute(att.Name, att.JoinNumber, att.LinkDeviceKey,
-                                att.LinkDeviceMethod, att.LinkDeviceFeedback));
-                        DigitalAttributesToFusion[att.JoinNumber].BoolValueFeedback.LinkInputSig(
-                            FusionSymbol.UserDefinedBooleanSigDetails[att.JoinNumber - FusionJoinOffset].InputSig);
-                    }
-                    if (att.RwType == eReadWrite.ReadWrite || att.RwType == eReadWrite.Write)
-                    {
-                        DigitalAttributesFromFusion.Add(att.JoinNumber,
-                            new DynFusionDigitalAttribute(att.Name, att.JoinNumber));
-                    }
-                }
+						DigitalAttributesToFusion[att.JoinNumber].BoolValueFeedback.LinkInputSig(
+							FusionSymbol.UserDefinedBooleanSigDetails[att.JoinNumber - FusionJoinOffset].InputSig);
+					}
+					if (att.RwType == eReadWrite.ReadWrite || att.RwType == eReadWrite.Write)
+					{
+						DigitalAttributesFromFusion.Add(att.JoinNumber,
+							new DynFusionDigitalAttribute(att.Name, att.JoinNumber));
+					}
+				}
 
-                foreach (var att in _Config.CustomAttributes.AnalogAttributes)
-                {
-                    FusionSymbol.AddSig(eSigType.UShort, att.JoinNumber - FusionJoinOffset, att.Name,
-                        GetIOMask(att.RwType));
+				foreach (var att in _Config.CustomAttributes.AnalogAttributes)
+				{
+					FusionSymbol.AddSig(eSigType.UShort, att.JoinNumber - FusionJoinOffset, att.Name,
+						GetIOMask(att.RwType));
 
-                    if (att.RwType == eReadWrite.ReadWrite || att.RwType == eReadWrite.Read)
-                    {
-                        AnalogAttributesToFusion.Add(att.JoinNumber,
-                            new DynFusionAnalogAttribute(att.Name, att.JoinNumber));
-                        AnalogAttributesToFusion[att.JoinNumber].UShortValueFeedback.LinkInputSig(
-                            FusionSymbol.UserDefinedUShortSigDetails[att.JoinNumber - FusionJoinOffset].InputSig);
-                    }
-                    if (att.RwType == eReadWrite.ReadWrite || att.RwType == eReadWrite.Write)
-                    {
-                        AnalogAttributesFromFusion.Add(att.JoinNumber,
-                            new DynFusionAnalogAttribute(att.Name, att.JoinNumber));
-                    }
-                }
-                foreach (var att in _Config.CustomAttributes.SerialAttributes)
-                {
-                    FusionSymbol.AddSig(eSigType.String, att.JoinNumber - FusionJoinOffset, att.Name,
-                        GetIOMask(att.RwType));
-                    if (att.RwType == eReadWrite.ReadWrite || att.RwType == eReadWrite.Read)
-                    {
-                        SerialAttributesToFusion.Add(att.JoinNumber,
-                            new DynFusionSerialAttribute(att.Name, att.JoinNumber));
-                        SerialAttributesToFusion[att.JoinNumber].StringValueFeedback.LinkInputSig(
-                            FusionSymbol.UserDefinedStringSigDetails[att.JoinNumber - FusionJoinOffset].InputSig);
-                    }
-                    if (att.RwType == eReadWrite.ReadWrite || att.RwType == eReadWrite.Write)
-                    {
-                        SerialAttributesFromFusion.Add(att.JoinNumber,
-                            new DynFusionSerialAttribute(att.Name, att.JoinNumber));
-                    }
-                }
+					if (att.RwType == eReadWrite.ReadWrite || att.RwType == eReadWrite.Read)
+					{
+						AnalogAttributesToFusion.Add(att.JoinNumber,
+							new DynFusionAnalogAttribute(att.Name, att.JoinNumber));
 
-                // Create Links for Standard joins 
-                CreateStandardJoin(JoinMapStatic.SystemPowerOn, FusionSymbol.SystemPowerOn);
-                CreateStandardJoin(JoinMapStatic.SystemPowerOff, FusionSymbol.SystemPowerOff);
-                CreateStandardJoin(JoinMapStatic.DisplayPowerOn, FusionSymbol.DisplayPowerOn);
-                CreateStandardJoin(JoinMapStatic.DisplayPowerOff, FusionSymbol.DisplayPowerOff);
-                CreateStandardJoin(JoinMapStatic.MsgBroadcastEnabled, FusionSymbol.MessageBroadcastEnabled);
-                CreateStandardJoin(JoinMapStatic.AuthenticationSucceeded, FusionSymbol.AuthenticateSucceeded);
-                CreateStandardJoin(JoinMapStatic.AuthenticationFailed, FusionSymbol.AuthenticateFailed);
+						AnalogAttributesToFusion[att.JoinNumber].UShortValueFeedback.LinkInputSig(
+							FusionSymbol.UserDefinedUShortSigDetails[att.JoinNumber - FusionJoinOffset].InputSig);
+					}
+					if (att.RwType == eReadWrite.ReadWrite || att.RwType == eReadWrite.Write)
+					{
+						AnalogAttributesFromFusion.Add(att.JoinNumber,
+							new DynFusionAnalogAttribute(att.Name, att.JoinNumber));
+					}
+				}
+				foreach (var att in _Config.CustomAttributes.SerialAttributes)
+				{
+					FusionSymbol.AddSig(eSigType.String, att.JoinNumber - FusionJoinOffset, att.Name,
+						GetIOMask(att.RwType));
+					if (att.RwType == eReadWrite.ReadWrite || att.RwType == eReadWrite.Read)
+					{
+						SerialAttributesToFusion.Add(att.JoinNumber,
+							new DynFusionSerialAttribute(att.Name, att.JoinNumber));
 
-                CreateStandardJoin(JoinMapStatic.DeviceUsage, FusionSymbol.DisplayUsage);
-                CreateStandardJoin(JoinMapStatic.BoradcasetMsgType, FusionSymbol.BroadcastMessageType);
+						SerialAttributesToFusion[att.JoinNumber].StringValueFeedback.LinkInputSig(
+							FusionSymbol.UserDefinedStringSigDetails[att.JoinNumber - FusionJoinOffset].InputSig);
+					}
+					if (att.RwType == eReadWrite.ReadWrite || att.RwType == eReadWrite.Write)
+					{
+						SerialAttributesFromFusion.Add(att.JoinNumber,
+							new DynFusionSerialAttribute(att.Name, att.JoinNumber));
+					}
+				}
 
-                CreateStandardJoin(JoinMapStatic.HelpMsg, FusionSymbol.Help);
-                CreateStandardJoin(JoinMapStatic.ErrorMsg, FusionSymbol.ErrorMessage);
-                CreateStandardJoin(JoinMapStatic.LogText, FusionSymbol.LogText);
+				// Create Links for Standard joins 
+				CreateStandardJoin(JoinMapStatic.SystemPowerOn, FusionSymbol.SystemPowerOn);
+				CreateStandardJoin(JoinMapStatic.SystemPowerOff, FusionSymbol.SystemPowerOff);
+				CreateStandardJoin(JoinMapStatic.DisplayPowerOn, FusionSymbol.DisplayPowerOn);
+				CreateStandardJoin(JoinMapStatic.DisplayPowerOff, FusionSymbol.DisplayPowerOff);
+				CreateStandardJoin(JoinMapStatic.MsgBroadcastEnabled, FusionSymbol.MessageBroadcastEnabled);
+				CreateStandardJoin(JoinMapStatic.AuthenticationSucceeded, FusionSymbol.AuthenticateSucceeded);
+				CreateStandardJoin(JoinMapStatic.AuthenticationFailed, FusionSymbol.AuthenticateFailed);
 
-                // Room Data Extender 
-                CreateStandardJoin(JoinMapStatic.ActionQuery,
-                    FusionSymbol.ExtenderFusionRoomDataReservedSigs.ActionQuery);
-                CreateStandardJoin(JoinMapStatic.RoomConfig,
-                    FusionSymbol.ExtenderFusionRoomDataReservedSigs.RoomConfigQuery);
+				CreateStandardJoin(JoinMapStatic.DeviceUsage, FusionSymbol.DisplayUsage);
+				CreateStandardJoin(JoinMapStatic.BoradcasetMsgType, FusionSymbol.BroadcastMessageType);
 
-                if (_Config.CustomProperties != null)
-                {
-                    if (_Config.CustomProperties.DigitalProperties != null)
-                    {
-                        foreach (var att in _Config.CustomProperties.DigitalProperties)
-                        {
-                            DigitalAttributesFromFusion.Add(att.JoinNumber,
-                                new DynFusionDigitalAttribute(att.Id, att.JoinNumber));
-                        }
-                    }
-                    if (_Config.CustomProperties.AnalogProperties != null)
-                    {
-                        foreach (var att in _Config.CustomProperties.AnalogProperties)
-                        {
-                            AnalogAttributesFromFusion.Add(att.JoinNumber,
-                                new DynFusionAnalogAttribute(att.Id, att.JoinNumber));
-                        }
-                    }
-                    if (_Config.CustomProperties.SerialProperties != null)
-                    {
-                        foreach (var att in _Config.CustomProperties.SerialProperties)
-                        {
-                            SerialAttributesFromFusion.Add(att.JoinNumber,
-                                new DynFusionSerialAttribute(att.Id, att.JoinNumber));
-                        }
-                    }
-                }
+				CreateStandardJoin(JoinMapStatic.HelpMsg, FusionSymbol.Help);
+				CreateStandardJoin(JoinMapStatic.ErrorMsg, FusionSymbol.ErrorMessage);
+				CreateStandardJoin(JoinMapStatic.LogText, FusionSymbol.LogText);
 
-                if (_Config.Assets != null)
-                {
-                    if (_Config.Assets.OccupancySensors != null)
-                    {
-                        var sensors = from occSensorConfig in _Config.Assets.OccupancySensors
-                            select
-                                new DynFusionAssetOccupancySensor(
-                                    occSensorConfig.Key,
-                                    occSensorConfig.LinkToDeviceKey,
-                                    FusionSymbol,
-                                    GetNextAvailableAssetNumber(FusionSymbol));
+				// Room Data Extender 
+				CreateStandardJoin(JoinMapStatic.ActionQuery,
+					FusionSymbol.ExtenderFusionRoomDataReservedSigs.ActionQuery);
+				CreateStandardJoin(JoinMapStatic.RoomConfig,
+					FusionSymbol.ExtenderFusionRoomDataReservedSigs.RoomConfigQuery);
 
-                        sensors
-                            .ToList()
-                            .ForEach(sensor =>
-                                FusionSymbol.AddAsset(
-                                    eAssetType.OccupancySensor,
-                                    sensor.AssetNumber,
-                                    sensor.Key,
-                                    "Occupancy Sensor",
-                                    Guid.NewGuid().ToString()));
-                    }
-                }
+				if (_Config.CustomProperties != null)
+				{
+					if (_Config.CustomProperties.DigitalProperties != null)
+					{
+						foreach (var att in _Config.CustomProperties.DigitalProperties)
+						{
+							DigitalAttributesFromFusion.Add(att.JoinNumber,
+								new DynFusionDigitalAttribute(att.Id, att.JoinNumber));
+						}
+					}
+					if (_Config.CustomProperties.AnalogProperties != null)
+					{
+						foreach (var att in _Config.CustomProperties.AnalogProperties)
+						{
+							AnalogAttributesFromFusion.Add(att.JoinNumber,
+								new DynFusionAnalogAttribute(att.Id, att.JoinNumber));
+						}
+					}
+					if (_Config.CustomProperties.SerialProperties != null)
+					{
+						foreach (var att in _Config.CustomProperties.SerialProperties)
+						{
+							SerialAttributesFromFusion.Add(att.JoinNumber,
+								new DynFusionSerialAttribute(att.Id, att.JoinNumber));
+						}
+					}
+				}
 
-                if (_Config.CallStatistics != null)
-                {
-                    var callStats = from callStatsConfig in _Config.CallStatistics.Devices
-                        select
-                            new DynFusionCallStatisticsDevice(
-                                Key + "-" + callStatsConfig.Name, 
-                                callStatsConfig.Name,
-                                FusionSymbol, 
-                                callStatsConfig.Type, 
-                                callStatsConfig.UseCallTimer,
-                                callStatsConfig.PostMeetingId, 
-                                callStatsConfig.JoinNumber);
+				if (_Config.Assets != null)
+				{
+					if (_Config.Assets.OccupancySensors != null)
+					{
+						var sensors = from occSensorConfig in _Config.Assets.OccupancySensors
+									  select
+										  new DynFusionAssetOccupancySensor(
+											  occSensorConfig.Key,
+											  occSensorConfig.LinkToDeviceKey,
+											  FusionSymbol,
+											  GetNextAvailableAssetNumber(FusionSymbol));
 
-                    callStats
-                        .ToList()
-                        .ForEach(callStat => _callStatisticsDevices.Add(callStat.JoinNumber, callStat));
-                }
+						sensors
+							.ToList()
+							.ForEach(sensor =>
+								FusionSymbol.AddAsset(
+									eAssetType.OccupancySensor,
+									sensor.AssetNumber,
+									sensor.Key,
+									"Occupancy Sensor",
+									Guid.NewGuid().ToString()));
+					}
 
-                DeviceUsageFactory();
-                // Scheduling Bits for Future 
-                //FusionSymbol.ExtenderRoomViewSchedulingDataReservedSigs.Use();
-                //FusionSymbol.ExtenderRoomViewSchedulingDataReservedSigs.DeviceExtenderSigChange += new DeviceExtenderJoinChangeEventHandler(ExtenderRoomViewSchedulingDataReservedSigs_DeviceExtenderSigChange);
+					Debug.Console(DebugExtensions.Trace, this, "DynFusionDevice SetupAsset: StaticAssets config {0} null",
+						_Config.Assets.StaticAssets == null ? "==" : "!=");
 
-                // Future for time sync
-                // FusionSymbol.ExtenderFusionRoomDataReservedSigs.DeviceExtenderSigChange += new DeviceExtenderJoinChangeEventHandler(ExtenderFusionRoomDataReservedSigs_DeviceExtenderSigChange);
+					if (_Config.Assets.StaticAssets != null)
+					{
+						var staticAssets = from staticAssetsConfig in _Config.Assets.StaticAssets
+										   select
+											   new DynFusionStaticAsset(
+												   this,
+												   FusionSymbol,
+												   GetNextAvailableAssetNumber(FusionSymbol),
+												   staticAssetsConfig);
+
+						//staticAssets
+						//    .ToList()
+						//    .ForEach(staticAsset =>
+						//        FusionSymbol.AddAsset(
+						//            eAssetType.StaticAsset,
+						//            staticAsset.AssetNumber,
+						//            staticAsset.Key,
+						//            staticAsset.AssetType,
+						//            Guid.NewGuid().ToString()));
+
+						staticAssets
+							.ToList()
+							.ForEach(staticAsset =>
+							{
+								_staticAssets.Add(staticAsset.AssetNumber, staticAsset);
+							});
+					}
+				}
+
+				if (_Config.CallStatistics != null)
+				{
+					var callStats = from callStatsConfig in _Config.CallStatistics.Devices
+									select
+										new DynFusionCallStatisticsDevice(
+											Key + "-" + callStatsConfig.Name,
+											callStatsConfig.Name,
+											FusionSymbol,
+											callStatsConfig.Type,
+											callStatsConfig.UseCallTimer,
+											callStatsConfig.PostMeetingId,
+											callStatsConfig.JoinNumber);
+
+					callStats
+						.ToList()
+						.ForEach(callStat => _callStatisticsDevices.Add(callStat.JoinNumber, callStat));
+				}
+
+				DeviceUsageFactory();
+				// Scheduling Bits for Future 
+				//FusionSymbol.ExtenderRoomViewSchedulingDataReservedSigs.Use();
+				//FusionSymbol.ExtenderRoomViewSchedulingDataReservedSigs.DeviceExtenderSigChange += new DeviceExtenderJoinChangeEventHandler(ExtenderRoomViewSchedulingDataReservedSigs_DeviceExtenderSigChange);
+
+				// Future for time sync
+				// FusionSymbol.ExtenderFusionRoomDataReservedSigs.DeviceExtenderSigChange += new DeviceExtenderJoinChangeEventHandler(ExtenderFusionRoomDataReservedSigs_DeviceExtenderSigChange);
 
 
-                FusionRVI.GenerateFileForAllFusionDevices();
-            }
-            catch (Exception ex)
-            {
-                Debug.Console(2, this, "Exception DynFusion Initialize {0}", ex);
-            }
-        }
+				FusionRVI.GenerateFileForAllFusionDevices();
+			}
+			catch (Exception ex)
+			{
+				Debug.Console(2, this, "Exception DynFusion SetupAsset {0}", ex);
+			}
+			return true;
+		}
+
+        
 
         private void DeviceUsageFactory()
         {
@@ -386,10 +421,11 @@ namespace DynFusion
         private void FusionSymbol_RoomDataDeviceExtenderSigChange(DeviceExtender currentDeviceExtender,
             SigEventArgs args)
         {
-            Debug.Console(2, this,
+            Debug.Console(DebugExtensions.Verbose, this,
                 string.Format("DynFusion DeviceExtenderChange {0} {1} {2} {3}", currentDeviceExtender.ToString(),
                     args.Sig.Number, args.Sig.Type, args.Sig.StringValue));
-            ushort joinNumber = (ushort) args.Sig.Number;
+           
+			var joinNumber = (ushort) args.Sig.Number;
 
             switch (args.Sig.Type)
             {
@@ -427,8 +463,9 @@ namespace DynFusion
 
         private void FusionSymbol_FusionStateChange(FusionBase device, FusionStateEventArgs args)
         {
-            Debug.Console(2, this, "DynFusion FusionStateChange {0} {1}", args.EventId,
+            Debug.Console(DebugExtensions.Verbose, this, "DynFusion FusionStateChange {0} {1}", args.EventId,
                 args.UserConfiguredSigDetail.ToString());
+
             switch (args.EventId)
             {
                 case FusionEventIds.SystemPowerOnReceivedEventId:
@@ -546,9 +583,10 @@ namespace DynFusion
                 case FusionEventIds.UserConfiguredBoolSigChangeEventId:
                 {
                     var sigDetails = args.UserConfiguredSigDetail as BooleanSigData;
-                    uint joinNumber = (uint) (sigDetails.Number + FusionJoinOffset);
+                    var joinNumber = sigDetails.Number + FusionJoinOffset;
                     DynFusionDigitalAttribute output;
-                    Debug.Console(2, this, "DynFusion UserAttribute Digital Join:{0} Name:{1} Value:{2}", joinNumber,
+
+                    Debug.Console(DebugExtensions.Verbose, this, "DynFusion UserAttribute Digital Join:{0} Name:{1} Value:{2}", joinNumber,
                         sigDetails.Name, sigDetails.OutputSig.BoolValue);
 
                     if (DigitalAttributesFromFusion.TryGetValue(joinNumber, out output))
@@ -561,9 +599,10 @@ namespace DynFusion
                 case FusionEventIds.UserConfiguredUShortSigChangeEventId:
                 {
                     var sigDetails = args.UserConfiguredSigDetail as UShortSigData;
-                    uint joinNumber = (uint) (sigDetails.Number + FusionJoinOffset);
+                    var joinNumber = sigDetails.Number + FusionJoinOffset;
                     DynFusionAnalogAttribute output;
-                    Debug.Console(2, this, "DynFusion UserAttribute Analog Join:{0} Name:{1} Value:{2}", joinNumber,
+
+                    Debug.Console(DebugExtensions.Verbose, this, "DynFusion UserAttribute Analog Join:{0} Name:{1} Value:{2}", joinNumber,
                         sigDetails.Name, sigDetails.OutputSig.UShortValue);
 
                     if (AnalogAttributesFromFusion.TryGetValue(joinNumber, out output))
@@ -575,9 +614,10 @@ namespace DynFusion
                 case FusionEventIds.UserConfiguredStringSigChangeEventId:
                 {
                     var sigDetails = args.UserConfiguredSigDetail as StringSigData;
-                    uint joinNumber = (uint) (sigDetails.Number + FusionJoinOffset);
+                    var joinNumber = sigDetails.Number + FusionJoinOffset;
                     DynFusionSerialAttribute output;
-                    Debug.Console(2, this, "DynFusion UserAttribute Analog Join:{0} Name:{1} Value:{2}", joinNumber,
+                    
+					Debug.Console(DebugExtensions.Verbose, this, "DynFusion UserAttribute Analog Join:{0} Name:{1} Value:{2}", joinNumber,
                         sigDetails.Name, sigDetails.OutputSig.StringValue);
 
                     if (SerialAttributesFromFusion.TryGetValue(joinNumber, out output))
@@ -598,7 +638,7 @@ namespace DynFusion
             }
         }
 
-        private static eSigIoMask GetIOMask(eReadWrite mask)
+        public static eSigIoMask GetIOMask(eReadWrite mask)
         {
             var type = eSigIoMask.NA;
 
@@ -617,7 +657,7 @@ namespace DynFusion
             return (type);
         }
 
-        private static eSigIoMask GetIOMask(string mask)
+        public static eSigIoMask GetIOMask(string mask)
         {
             var _RWType = eSigIoMask.NA;
 
@@ -671,7 +711,8 @@ namespace DynFusion
             }
             else
                 slotNum = slotNum + 1;
-            Debug.Console(2, string.Format("#Next available fusion asset number is: {0}", slotNum));
+
+            Debug.Console(DebugExtensions.Verbose, string.Format("#Next available fusion asset number is: {0}", slotNum));
 
             return slotNum;
         }
@@ -688,14 +729,16 @@ namespace DynFusion
                         String.Format(
                             "<RequestRoomConfiguration><RequestID>RoomConfigurationRequest</RequestID><CustomProperties><Property></Property></CustomProperties></RequestRoomConfiguration>");
 
-                    Debug.Console(2, this, "Room Request: {0}", fusionRoomConfigRequest);
+                    Debug.Console(DebugExtensions.Verbose, this, "Room Request: {0}", fusionRoomConfigRequest);
                     FusionSymbol.ExtenderFusionRoomDataReservedSigs.RoomConfigQuery.StringValue =
                         fusionRoomConfigRequest;
                 }
             }
             catch (Exception e)
             {
-                Debug.Console(2, this, "GetRoomConfig Error {0}", e);
+                Debug.Console(DebugExtensions.Warn, this, "GetRoomConfig Exception Message: {0}", e.Message);
+				Debug.Console(DebugExtensions.Verbose, this, "GetRoomConfig Exception StackTrace: {0}", e.StackTrace);
+				if(e.InnerException != null) Debug.Console(DebugExtensions.Verbose, this, "GetRoomConfig Exception InnerException: {0}", e.InnerException);
             }
         }
 
@@ -743,7 +786,7 @@ namespace DynFusion
                 {
                     ErrorLogTimer = new CTimer(o =>
                     {
-                        Debug.Console(2, this, "Sent Message {0}", ErrorLogLastMessageSent);
+                        Debug.Console(DebugExtensions.Verbose, this, "SendToLog Message:{0}", ErrorLogLastMessageSent);
                         FusionSymbol.ErrorMessage.InputSig.StringValue = ErrorLogLastMessageSent;
                     }, errorlogThrottleTime);
                 }
@@ -836,14 +879,16 @@ namespace DynFusion
             }
             catch (Exception e)
             {
-                Debug.Console(2, this, "GetRoomConfig Error {0}", e);
+                Debug.Console(DebugExtensions.Warn, this, "GetRoomConfig Exception Message: {0}", e.Message);
+				Debug.Console(DebugExtensions.Verbose, this, "GetRoomConfig Exception StackTrace: {0}", e.StackTrace);
+				if(e.InnerException != null) Debug.Console(DebugExtensions.Verbose, this, "GetRoomConfig Exception InnerException: {0}", e.InnerException);
             }
         }
 
         public override void LinkToApi(BasicTriList trilist, uint joinStart, string joinMapKey, EiscApiAdvanced bridge)
         {
-            Debug.Console(1, "Linking to Trilist '{0}'", trilist.ID.ToString("X"));
-            Debug.Console(0, "Linking to Bridge Type {0}", GetType().Name);
+            Debug.Console(DebugExtensions.Warn, "Linking to Trilist '{0}'", trilist.ID.ToString("X"));
+            Debug.Console(DebugExtensions.Trace, "Linking to Bridge AssetType {0}", GetType().Name);
             var joinMap = new DynFusionJoinMap(joinStart);
 
             foreach (var att in DigitalAttributesToFusion)
@@ -879,6 +924,12 @@ namespace DynFusion
             }
 
             trilist.SetSigTrueAction(joinMap.RoomConfig.JoinNumber, () => GetRoomConfig());
+
+	        foreach (var staticAsset in _staticAssets)
+	        {		        
+		        var device = staticAsset.Value;				
+		        device.LinkToApi(trilist, joinStart, joinMapKey, bridge);				
+	        }
 
             foreach (var callStatisticsDevice in _callStatisticsDevices)
             {

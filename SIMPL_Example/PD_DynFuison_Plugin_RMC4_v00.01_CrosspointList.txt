@@ -1,0 +1,13 @@
+Crosspoint listing for C:\_pdt-github\PD\epi-utilities-dynfusion\SIMPL_Example\PD_DynFuison_Plugin_RMC4_v00.01.SMW
+
+Note:  Crosspoint symbols with EquipID or ControlID set to 0d are not routeable.
+
+Equipment Crosspoint Routing.                                                                       EquipID
+===========================================================================================================
+S-4.2.1                                                                                             21001
+S-4.1.2                                                                                             60001
+
+Control Crosspoint Routing.                                                                         ControlID
+=============================================================================================================
+No symbols of this type found in the program
+

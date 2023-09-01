@@ -1,0 +1,304 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<RoomViewInfo>
+     <TimeDateStamp>08/29/2023 10:41:15</TimeDateStamp>
+     <SymbolInfo>
+          <Version>8.1</Version>
+          <RoomName></RoomName>
+          <InstanceID>ac2df883-a5da-4a1b-9fbf-5269cd53efe5</InstanceID>
+          <IPID>FA</IPID>
+          <Slot>
+               <SlotNum>01</SlotNum>
+               <SlotName>Fusion Digitals</SlotName>
+               <SignalPair>
+                    <Join>3</Join>
+                    <Type>Digital</Type>
+                    <Label>SystemPowerIsOn</Label>
+                    <IOmask>3</IOmask>
+               </SignalPair>
+               <SignalPair>
+                    <Join>4</Join>
+                    <Type>Digital</Type>
+                    <Label>SystemPowerOff</Label>
+                    <IOmask>1</IOmask>
+               </SignalPair>
+               <SignalPair>
+                    <Join>5</Join>
+                    <Type>Digital</Type>
+                    <Label>DisplayPowerIsOn</Label>
+                    <IOmask>3</IOmask>
+               </SignalPair>
+               <SignalPair>
+                    <Join>6</Join>
+                    <Type>Digital</Type>
+                    <Label>DisplayPowerOff</Label>
+                    <IOmask>1</IOmask>
+               </SignalPair>
+               <SignalPair>
+                    <Join>22</Join>
+                    <Type>Digital</Type>
+                    <Label>MsgBroadcastEnabled</Label>
+                    <IOmask>2</IOmask>
+               </SignalPair>
+               <SignalPair>
+                    <Join>30</Join>
+                    <Type>Digital</Type>
+                    <Label>AuthenticateSucceeded</Label>
+                    <IOmask>1</IOmask>
+               </SignalPair>
+               <SignalPair>
+                    <Join>31</Join>
+                    <Type>Digital</Type>
+                    <Label>AuthenticateFailed</Label>
+                    <IOmask>1</IOmask>
+               </SignalPair>
+               <SignalPair>
+                    <Join>51</Join>
+                    <Type>Digital</Type>
+                    <Label>Activity - Share</Label>
+                    <IOmask>3</IOmask>
+               </SignalPair>
+               <SignalPair>
+                    <Join>54</Join>
+                    <Type>Digital</Type>
+                    <Label>Activity - End Meeting</Label>
+                    <IOmask>3</IOmask>
+               </SignalPair>
+               <SignalPair>
+                    <Join>71</Join>
+                    <Type>Digital</Type>
+                    <Label>Audio Mute - Room Speakers - On</Label>
+                    <IOmask>3</IOmask>
+               </SignalPair>
+               <SignalPair>
+                    <Join>72</Join>
+                    <Type>Digital</Type>
+                    <Label>Audio Mute - Room Speakers - On</Label>
+                    <IOmask>3</IOmask>
+               </SignalPair>
+               <SignalPair>
+                    <Join>151</Join>
+                    <Type>Digital</Type>
+                    <Label>Online - Touch Panel 1</Label>
+                    <IOmask>2</IOmask>
+               </SignalPair>
+               <SignalPair>
+                    <Join>161</Join>
+                    <Type>Digital</Type>
+                    <Label>Online - XPanel 1</Label>
+                    <IOmask>2</IOmask>
+               </SignalPair>
+          </Slot>
+          <Slot>
+               <SlotNum>02</SlotNum>
+               <SlotName>Fusion Analogs</SlotName>
+               <SignalPair>
+                    <Join>2</Join>
+                    <Type>Analog</Type>
+                    <Label>DisplayUsage</Label>
+                    <IOmask>2</IOmask>
+               </SignalPair>
+               <SignalPair>
+                    <Join>22</Join>
+                    <Type>Analog</Type>
+                    <Label>BroadcastMsgType</Label>
+                    <IOmask>1</IOmask>
+               </SignalPair>
+               <SignalPair>
+                    <Join>51</Join>
+                    <Type>Analog</Type>
+                    <Label>Volume - Room Speakers</Label>
+                    <IOmask>2</IOmask>
+               </SignalPair>
+          </Slot>
+          <Slot>
+               <SlotNum>03</SlotNum>
+               <SlotName>Fusion Serials</SlotName>
+               <SignalPair>
+                    <Join>1</Join>
+                    <Type>Serial</Type>
+                    <Label>HelpRequest</Label>
+                    <IOmask>3</IOmask>
+               </SignalPair>
+               <SignalPair>
+                    <Join>2</Join>
+                    <Type>Serial</Type>
+                    <Label>ErrorMessage</Label>
+                    <IOmask>2</IOmask>
+               </SignalPair>
+               <SignalPair>
+                    <Join>3</Join>
+                    <Type>Serial</Type>
+                    <Label>LogText</Label>
+                    <IOmask>2</IOmask>
+               </SignalPair>
+               <SignalPair>
+                    <Join>5</Join>
+                    <Type>Serial</Type>
+                    <Label>DeviceUsage</Label>
+                    <IOmask>2</IOmask>
+               </SignalPair>
+               <SignalPair>
+                    <Join>6</Join>
+                    <Type>Serial</Type>
+                    <Label>TextMessage</Label>
+                    <IOmask>3</IOmask>
+               </SignalPair>
+               <SignalPair>
+                    <Join>22</Join>
+                    <Type>Serial</Type>
+                    <Label>BroadcastMsgResponse</Label>
+                    <IOmask>3</IOmask>
+               </SignalPair>
+               <SignalPair>
+                    <Join>23</Join>
+                    <Type>Serial</Type>
+                    <Label>FreeBusyStatus</Label>
+                    <IOmask>2</IOmask>
+               </SignalPair>
+               <SignalPair>
+                    <Join>30</Join>
+                    <Type>Serial</Type>
+                    <Label>AuthenticateRequest</Label>
+                    <IOmask>2</IOmask>
+               </SignalPair>
+               <SignalPair>
+                    <Join>31</Join>
+                    <Type>Serial</Type>
+                    <Label>GroupMembership</Label>
+                    <IOmask>1</IOmask>
+               </SignalPair>
+               <SignalPair>
+                    <Join>290</Join>
+                    <Type>Serial</Type>
+                    <Label>Help Request - Message</Label>
+                    <IOmask>2</IOmask>
+               </SignalPair>
+          </Slot>
+          <Slot>
+               <SlotNum>08</SlotNum>
+               <SlotName>Fusion Occupancy Sensor</SlotName>
+               <Param>
+                    <Name>AssetName</Name>
+                    <DataType>Serial</DataType>
+                    <Value>FUSION ROOM-OccAsset#5</Value>
+               </Param>
+               <Param>
+                    <Name>AssetType</Name>
+                    <DataType>Serial</DataType>
+                    <Value>Occupancy Sensor</Value>
+               </Param>
+               <Param>
+                    <Name>InstanceID</Name>
+                    <DataType>Serial</DataType>
+                    <Value>7d963343-76ad-432d-879d-a27d154670ba</Value>
+               </Param>
+               <SignalPair>
+                    <Join>1</Join>
+                    <Type>Digital</Type>
+                    <Label>OccSensorEnabled</Label>
+                    <IOmask>3</IOmask>
+               </SignalPair>
+               <SignalPair>
+                    <Join>2</Join>
+                    <Type>Digital</Type>
+                    <Label>DisableOccSensor</Label>
+                    <IOmask>1</IOmask>
+               </SignalPair>
+               <SignalPair>
+                    <Join>3</Join>
+                    <Type>Digital</Type>
+                    <Label>RoomOccupied</Label>
+                    <IOmask>3</IOmask>
+               </SignalPair>
+               <SignalPair>
+                    <Join>1</Join>
+                    <Type>Analog</Type>
+                    <Label>OccSensorTimeout</Label>
+                    <IOmask>3</IOmask>
+               </SignalPair>
+               <SignalPair>
+                    <Join>12</Join>
+                    <Type>Serial</Type>
+                    <Label>RoomOccupancyInfo</Label>
+                    <IOmask>3</IOmask>
+               </SignalPair>
+          </Slot>
+          <Slot>
+               <SlotNum>09</SlotNum>
+               <SlotName>Fusion Static Asset</SlotName>
+               <Param>
+                    <Name>AssetName</Name>
+                    <DataType>Serial</DataType>
+                    <Value>Custom Asset 1</Value>
+               </Param>
+               <Param>
+                    <Name>AssetType</Name>
+                    <DataType>Serial</DataType>
+                    <Value>Display</Value>
+               </Param>
+               <Param>
+                    <Name>InstanceID</Name>
+                    <DataType>Serial</DataType>
+                    <Value>1a3deb3a-0a90-4ac0-8260-4b4e1894ba12</Value>
+               </Param>
+               <Param>
+                    <Name>Make</Name>
+                    <DataType>Serial</DataType>
+                    <Value>Test Make</Value>
+               </Param>
+               <Param>
+                    <Name>Model</Name>
+                    <DataType>Serial</DataType>
+                    <Value>Test Model</Value>
+               </Param>
+               <Slot>
+                    <SlotNum>01</SlotNum>
+                    <SlotName>Fusion Generic Asset Digitals</SlotName>
+                    <SignalPair>
+                         <Join>99</Join>
+                         <Type>Digital</Type>
+                         <Label>Custom Asset 1</Label>
+                         <IOmask>2</IOmask>
+                    </SignalPair>
+                    <SignalPair>
+                         <Join>100</Join>
+                         <Type>Digital</Type>
+                         <Label>Custom Asset 1</Label>
+                         <IOmask>2</IOmask>
+                    </SignalPair>
+               </Slot>
+               <Slot>
+                    <SlotNum>02</SlotNum>
+                    <SlotName>Fusion Generic Asset Analogs</SlotName>
+                    <SignalPair>
+                         <Join>99</Join>
+                         <Type>Analog</Type>
+                         <Label>Custom Asset 1</Label>
+                         <IOmask>2</IOmask>
+                    </SignalPair>
+                    <SignalPair>
+                         <Join>100</Join>
+                         <Type>Analog</Type>
+                         <Label>Custom Asset 1</Label>
+                         <IOmask>2</IOmask>
+                    </SignalPair>
+               </Slot>
+               <Slot>
+                    <SlotNum>03</SlotNum>
+                    <SlotName>Fusion Generic Asset Serials</SlotName>
+                    <SignalPair>
+                         <Join>99</Join>
+                         <Type>Serial</Type>
+                         <Label>Custom Asset 1</Label>
+                         <IOmask>2</IOmask>
+                    </SignalPair>
+                    <SignalPair>
+                         <Join>100</Join>
+                         <Type>Serial</Type>
+                         <Label>Custom Asset 1</Label>
+                         <IOmask>2</IOmask>
+                    </SignalPair>
+               </Slot>
+          </Slot>
+     </SymbolInfo>
+</RoomViewInfo>

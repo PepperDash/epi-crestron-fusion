@@ -1,0 +1,178 @@
+{
+	"system": {},
+	"system_url": "http://portal-QA.devcloud.pepperdash.com/templates/0f50640b-bc89-42d5-998f-81d137d3fc98#/template_summary",
+	"template": {
+		"devices": [
+			{
+				"key": "processor",
+				"uid": 0,
+				"type": "rmc4",
+				"name": "RMC4",
+				"group": "processor",
+				"supportedConfigModes": [ "compliance", "essentials" ],
+				"supportedSystemTypes": [ "hudType", "presType", "vtcType", "custom" ],
+				"supportsCompliance": true,
+				"properties": {}
+			},
+			{
+				"key": "deviceMonitor",
+				"name": "Device Monitor",
+				"group": "api",
+				"type": "devicemonitor",
+				"properties": {
+					"logToDeviceKeys": [],
+					"devices": {
+						"device01": { "name": "TP01"       , "logToProcessor": true, "joinNumber": 1  },
+						"device02": { "name": "TP01 Xpanel", "logToProcessor": true, "joinNumber": 2  },
+						"device03": { "name": "TP02"       , "logToProcessor": true, "joinNumber": 6  },
+						"device04": { "name": "TP02 Xpanel", "logToProcessor": true, "joinNumber": 7  }
+					}
+				}
+			},
+			{
+				"key": "deviceMonitor-bridge",
+				"uid": 26,
+				"group": "api",
+				"type": "eiscApiAdvanced",
+				"properties": {
+					"control": { 
+						"tcpSshProperties": {
+							"address":"127.0.0.2",
+							"port": 0
+						},
+						"ipid": "4", "method": "ipidtcp" 
+					},
+					"devices": [ { "deviceKey": "deviceMonitor", "joinStart": 1 } ] 
+				}
+			},
+			{
+				"key": "room01-dynFusion",
+				"uid": 1,
+				"name": "room01",
+				"type": "DynFusion",
+				"group": "Fusion",
+				"properties": {
+					"control": {
+						"ipid": "FA",
+						"method": "ipidTcp",
+						"tcpSshProperties": {
+							"address": "127.0.0.2",
+							"port": 0
+						}
+					},
+					"customAttributes": {
+						"digitalAttributes": [
+							{ "rwType": "RW" , "name": "Activity - Share"                , "joinNumber": 51  },
+							{ "rwType": "RW" , "name": "Activity - End Meeting"          , "joinNumber": 54  },
+							{ "rwType": "RW" , "name": "Audio Mute - Room Speakers - On" , "joinNumber": 71  },
+							{ "rwType": "RW" , "name": "Audio Mute - Room Speakers - On" , "joinNumber": 72  },
+							{ "rwType": "R"  , "name": "Online - Touch Panel 1"          , "joinNumber": 151 },
+							{ "rwType": "R"  , "name": "Online - XPanel 1"               , "joinNumber": 161 }
+						],
+						"analogAttributes": [
+							{ "rwType": "R", "name": "Volume - Room Speakers", "joinNumber": 51 }
+						],
+						"serialAttributes": [
+							{ "rwType": "R", "name": "Help Request - Message", "joinNumber": 290 }							
+						]
+					},
+					"customProperties": {
+						"digitalProperties": [],
+						"analogProperties": [],
+						"serialProperties": [
+							{ "joinNumber": 301, "ID": "PhoneNumber"       },
+							{ "joinNumber": 302, "ID": "TechPassword"      },
+							{ "joinNumber": 303, "ID": "HelpMessage"       },
+							{ "joinNumber": 304, "ID": "HelpNumber"        },
+							{ "joinNumber": 305, "ID": "KeyboardCustomKey" },
+							{ "joinNumber": 316, "ID": "hr01Name"          },
+							{ "joinNumber": 317, "ID": "hr02Name"          },
+							{ "joinNumber": 318, "ID": "hr03Name"          }
+						]
+					},
+					"assets": {
+						"occupancySensors": [
+							{"name" : "OccSensor", "join": 3001}
+						],
+						"staticAssets": [
+							{
+								"name": "Custom Asset 1",
+								"type": "Display",
+								"make": "Test Make",
+								"model": "Test Model",
+								"attributeJoinOffset": 500,
+								"customAttributeJoinOffset": 503,
+								"attributes": {
+									"digitalAttributes": [									
+										{ "rwType": "RW" , "name": "PowerOn"   , "joinNumber": 1 },
+										{ "rwType": "W"  , "name": "PowerOff"  , "joinNumber": 2 },
+										{ "rwType": "R"  , "name": "Connected" , "joinNumber": 3 }
+									],
+									"analogAttributes": [
+										
+									],
+									"serialAttributes": [
+										{ "rwType": "R" , "name": "AssetUsage" , "joinNumber": 1 },
+										{ "rwType": "R" , "name": "AssetError" , "joinNumber": 2 }
+									]
+								},
+								"customAttributes": {
+									"digitalAttributes": [									
+										{ "rwType": "R", "name": "Digital01", "joinNumber": 1 },
+										{ "rwType": "R", "name": "Digital02", "joinNumber": 2 }
+									],
+									"analogAttributes": [
+										{ "rwType": "R", "name": "Analog01", "joinNumber": 1 },
+										{ "rwType": "R", "name": "Analog02", "joinNumber": 2 }
+									],
+									"serialAttributes": [
+										{ "rwType": "R" , "name": "Serial01" , "joinNumber": 1 },
+										{ "rwType": "R" , "name": "Serial02" , "joinNumber": 2 }
+									]
+								}								
+							}
+						]
+					},
+					"deviceUsage": {
+						"usageMinThreshold": 0,
+						"devices": [],
+						"displays": [
+							{ "name": "Display 1", "joinNumber": 1001 }
+						],
+						"sources": [
+							{ "sourceNumber": 1, "name": "None", "type": "Source - Other" },
+							{ "sourceNumber": 2, "name": "TV"  , "type": "Source - Other" }
+						]
+					}
+				}
+			},
+			{
+				"key": "room01-dynFusion-bridge",
+				"group": "api",
+				"name": "room01 dynFusion bridge",
+				"type": "eiscApiAdvanced",
+				"uid": 110,
+				"properties": {
+					"control": { 
+						"tcpSshProperties": {
+							"address":"127.0.0.2",
+							"port": 0
+						},
+						"ipid": "BA", "method": "ipidtcp" 
+					},
+					"devices": [ { "deviceKey": "room01-dynFusion", "joinStart": 1 } ]
+				}
+			}
+		],
+		"info": {
+			"comment": "",
+			"lastModifiedDate": "2017-03-06T23:14:40.290Z",
+			"lastUid": 5,
+			"processorType": "rmc4",
+			"requiredControlSofwareVersion": "",
+			"systemType": "huddle"
+		},
+		"rooms": [],
+		"tieLines": []
+	}
+}
