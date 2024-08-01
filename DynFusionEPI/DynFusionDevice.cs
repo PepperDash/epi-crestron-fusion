@@ -274,8 +274,13 @@ namespace DynFusion
 
 				// Future for time sync
 				// FusionSymbol.ExtenderFusionRoomDataReservedSigs.DeviceExtenderSigChange += new DeviceExtenderJoinChangeEventHandler(ExtenderFusionRoomDataReservedSigs_DeviceExtenderSigChange);
+                if ( string.IsNullOrEmpty(FusionSymbol.ParameterRoomName))
+                {
+                    FusionSymbol.ParameterRoomName = EthernetHelper.LanHelper.Hostname + "-program " + InitialParametersClass.ApplicationNumber + CrestronEthernetHelper.GetEthernetParameter(CrestronEthernetHelper.ETHERNET_PARAMETER_TO_GET.GET_CURRENT_IP_ADDRESS, 0) +CrestronEthernetHelper.GetEthernetParameter(CrestronEthernetHelper.ETHERNET_PARAMETER_TO_GET.GET_MAC_ADDRESS, 0);
 
-
+                }
+                
+               
 				FusionRVI.GenerateFileForAllFusionDevices();
 			}
 			catch (Exception ex)
