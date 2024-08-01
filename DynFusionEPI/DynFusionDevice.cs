@@ -276,7 +276,7 @@ namespace DynFusion
 				// FusionSymbol.ExtenderFusionRoomDataReservedSigs.DeviceExtenderSigChange += new DeviceExtenderJoinChangeEventHandler(ExtenderFusionRoomDataReservedSigs_DeviceExtenderSigChange);
                 if ( string.IsNullOrEmpty(FusionSymbol.ParameterRoomName))
                 {
-                    FusionSymbol.ParameterRoomName = EthernetHelper.LanHelper.Hostname + "-program " + InitialParametersClass.ApplicationNumber + CrestronEthernetHelper.GetEthernetParameter(CrestronEthernetHelper.ETHERNET_PARAMETER_TO_GET.GET_CURRENT_IP_ADDRESS, 0) +CrestronEthernetHelper.GetEthernetParameter(CrestronEthernetHelper.ETHERNET_PARAMETER_TO_GET.GET_MAC_ADDRESS, 0);
+                    FusionSymbol.ParameterRoomName = EthernetHelper.LanHelper.Hostname + " - Program: " + InitialParametersClass.ApplicationNumber + " - " + CrestronEthernetHelper.GetEthernetParameter(CrestronEthernetHelper.ETHERNET_PARAMETER_TO_GET.GET_CURRENT_IP_ADDRESS, 0) + " - " + CrestronEthernetHelper.GetEthernetParameter(CrestronEthernetHelper.ETHERNET_PARAMETER_TO_GET.GET_MAC_ADDRESS, 0);
 
                 }
                 
