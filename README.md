@@ -1,5 +1,3 @@
-![state badge](https://badgen.net/badge/state/BETA/orange?icon=github&scale=2)
-
 # epi-dynfusion
 DynFusion provides the ability to dynamically create and interact with a Fusion symbol using PepperDash Essentials. 
 
@@ -118,7 +116,7 @@ DynFusion provides the ability to dynamically create and interact with a Fusion 
 | SystemPowerOn       | 3       | SystemPowerIsOn       |
 | SystemPowerOff      | 4       | Input 1 Fb [HDMI 1]   |
 | DisplayPowerOn      | 5       | DisplayPowerIsOn      |
-| DispalyPowerOff     | 6       |                       |
+| DisplayPowerOff     | 6       |                       |
 | RESERVED            | 7-21    | RESERVED              |
 | MsgBraodcastEnabled | 22      |                       |
 | RESERVED            | 23-29   | RESERVED              |
@@ -129,7 +127,7 @@ DynFusion provides the ability to dynamically create and interact with a Fusion 
 ### Analogs 
 | Input        | I/O | Output           |
 |--------------|-----|------------------|
-| DispalyUsage | 2   |                  |
+| DisplayUsage | 2   |                  |
 |              | 22  | BraodcastMsgType |
 
 ### Serials
