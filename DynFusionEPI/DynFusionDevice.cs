@@ -896,6 +896,8 @@ namespace DynFusion
             Debug.Console(DebugExtensions.Trace, "Linking to Bridge AssetType {0}", GetType().Name);
             var joinMap = new DynFusionJoinMap(joinStart);
 
+	        FusionOnlineFeedback.LinkInputSig(trilist.BooleanInput[joinMap.Online.JoinNumber]);
+
             foreach (var att in DigitalAttributesToFusion)
             {
                 var attLocal = att.Value;
