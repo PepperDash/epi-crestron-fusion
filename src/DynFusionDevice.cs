@@ -101,9 +101,10 @@ namespace DynFusion
 					}
 					if (att.RwType == eReadWrite.ReadWrite || att.RwType == eReadWrite.Write)
 					{
-						DigitalAttributesFromFusion.Add(att.JoinNumber,
-							new DynFusionDigitalAttribute(att.Name, att.JoinNumber));
-					}
+                        DigitalAttributesToFusion.Add(att.JoinNumber,
+                            new DynFusionDigitalAttribute(att.Name, att.JoinNumber, att.LinkDeviceKey,
+                                att.LinkDeviceMethod, att.LinkDeviceFeedback));
+                    }
 				}
 
 				foreach (var att in _Config.CustomAttributes.AnalogAttributes)
@@ -113,17 +114,19 @@ namespace DynFusion
 
 					if (att.RwType == eReadWrite.ReadWrite || att.RwType == eReadWrite.Read)
 					{
-						AnalogAttributesToFusion.Add(att.JoinNumber,
-							new DynFusionAnalogAttribute(att.Name, att.JoinNumber));
+                        AnalogAttributesToFusion.Add(att.JoinNumber,
+                            new DynFusionAnalogAttribute(att.Name, att.JoinNumber, att.LinkDeviceKey,
+                                att.LinkDeviceMethod, att.LinkDeviceFeedback));
 
-						AnalogAttributesToFusion[att.JoinNumber].UShortValueFeedback.LinkInputSig(
+                        AnalogAttributesToFusion[att.JoinNumber].UShortValueFeedback.LinkInputSig(
 							FusionSymbol.UserDefinedUShortSigDetails[att.JoinNumber - FusionJoinOffset].InputSig);
 					}
 					if (att.RwType == eReadWrite.ReadWrite || att.RwType == eReadWrite.Write)
 					{
-						AnalogAttributesFromFusion.Add(att.JoinNumber,
-							new DynFusionAnalogAttribute(att.Name, att.JoinNumber));
-					}
+                        AnalogAttributesToFusion.Add(att.JoinNumber,
+                            new DynFusionAnalogAttribute(att.Name, att.JoinNumber, att.LinkDeviceKey,
+                                att.LinkDeviceMethod, att.LinkDeviceFeedback));
+                    }
 				}
 				foreach (var att in _Config.CustomAttributes.SerialAttributes)
 				{
@@ -131,17 +134,19 @@ namespace DynFusion
 						GetIOMask(att.RwType));
 					if (att.RwType == eReadWrite.ReadWrite || att.RwType == eReadWrite.Read)
 					{
-						SerialAttributesToFusion.Add(att.JoinNumber,
-							new DynFusionSerialAttribute(att.Name, att.JoinNumber));
+                        SerialAttributesToFusion.Add(att.JoinNumber,
+                            new DynFusionSerialAttribute(att.Name, att.JoinNumber, att.LinkDeviceKey,
+                                att.LinkDeviceMethod, att.LinkDeviceFeedback));
 
-						SerialAttributesToFusion[att.JoinNumber].StringValueFeedback.LinkInputSig(
+                        SerialAttributesToFusion[att.JoinNumber].StringValueFeedback.LinkInputSig(
 							FusionSymbol.UserDefinedStringSigDetails[att.JoinNumber - FusionJoinOffset].InputSig);
 					}
 					if (att.RwType == eReadWrite.ReadWrite || att.RwType == eReadWrite.Write)
 					{
-						SerialAttributesFromFusion.Add(att.JoinNumber,
-							new DynFusionSerialAttribute(att.Name, att.JoinNumber));
-					}
+                        SerialAttributesToFusion.Add(att.JoinNumber,
+                            new DynFusionSerialAttribute(att.Name, att.JoinNumber, att.LinkDeviceKey,
+                                att.LinkDeviceMethod, att.LinkDeviceFeedback));
+                    }
 				}
 
 				// Create Links for Standard joins 
@@ -597,6 +602,7 @@ namespace DynFusion
                     if (DigitalAttributesFromFusion.TryGetValue(joinNumber, out output))
                     {
                         output.BoolValue = sigDetails.OutputSig.BoolValue;
+                        output.CallAction(output.BoolValue);
                     }
                     break;
                 }
@@ -613,6 +619,7 @@ namespace DynFusion
                     if (AnalogAttributesFromFusion.TryGetValue(joinNumber, out output))
                     {
                         output.UShortValue = sigDetails.OutputSig.UShortValue;
+                        output.CallAction(output.UShortValue);
                     }
                     break;
                 }
@@ -628,6 +635,7 @@ namespace DynFusion
                     if (SerialAttributesFromFusion.TryGetValue(joinNumber, out output))
                     {
                         output.StringValue = sigDetails.OutputSig.StringValue;
+                        output.CallAction(output.StringValue);
                     }
                     break;
                 }
