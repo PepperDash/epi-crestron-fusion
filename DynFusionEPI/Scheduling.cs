@@ -248,8 +248,25 @@ namespace DynFusion
 
 					RFCTime = String.Format("{0:s}", DateTime.Now);
 
-					fusionScheduleRequest = String.Format("<RequestSchedule><RequestID>{0}</RequestID><RoomID>{1}</RoomID><Start>{2}</Start><HourSpan>24</HourSpan></RequestSchedule>", requestType, roomID, RFCTime.ToString());
-
+					//fusionScheduleRequest = String.Format("<RequestSchedule><RequestID>{0}</RequestID><RoomID>{1}</RoomID><Start>{2}</Start><HourSpan>24</HourSpan></RequestSchedule>", requestType, roomID, RFCTime.ToString());
+                    fusionScheduleRequest = String.Format(
+                                "<RequestSchedule>" +
+                                "<RequestID>{0}</RequestID>" +
+                                "<RoomID>{1}</RoomID>" +
+                                "<Start>{2}</Start>" +
+                                "<HourSpan>24</HourSpan>" +
+                                "<FieldList>" +
+                                "<Field>MeetingID</Field>" +
+                                "<Field>RVMeetingID</Field>" +
+                                "<Field>Recurring</Field>" +
+                                "<Field>InstanceID</Field>" +
+                                "<Field>dtStart</Field>" +
+                                "<Field>dtEnd</Field>" +
+                                "<Field>Subject</Field>" +
+                                "<Field>Organizer</Field>" +
+                                "</FieldList>" +
+                                "</RequestSchedule>",
+                                requestType, roomID, RFCTime.ToString());
 					_DynFusion.FusionSymbol.ExtenderRoomViewSchedulingDataReservedSigs.ScheduleQuery.StringValue = fusionScheduleRequest;
 
 					//if (isRegisteredForSchedulePushNotifications)
@@ -356,6 +373,8 @@ namespace DynFusion
 
 			try
 			{
+                Debug.ConsoleWithLog(2, this, "Full Schedule Response: {0}", args.Sig.StringValue);
+
 				string result = Regex.Replace(args.Sig.StringValue, "&(?!(amp|apos|quot|lt|gt);)", "&amp;");
 
 				Debug.Console(2, this, String.Format("Args: {0}", result));
