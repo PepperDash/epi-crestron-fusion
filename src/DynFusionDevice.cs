@@ -60,7 +60,6 @@ namespace DynFusion
             DigitalAttributesFromFusion = new Dictionary<UInt32, DynFusionDigitalAttribute>();
             AnalogAttributesFromFusion = new Dictionary<UInt32, DynFusionAnalogAttribute>();
             SerialAttributesFromFusion = new Dictionary<UInt32, DynFusionSerialAttribute>();
-            JoinMapStatic = new DynFusionJoinMap(1);
             Debug.Console(2, "Creating Fusion Symbol {0} {1}", _Config.Control.IpId, Key);
             FusionSymbol = new FusionRoom(_Config.Control.IpIdInt, Global.ControlSystem, "", Guid.NewGuid().ToString());
 
@@ -1026,6 +1025,7 @@ namespace DynFusion
             Debug.Console(DebugExtensions.Warn, "Linking to Trilist '{0}'", trilist.ID.ToString("X"));
             Debug.Console(DebugExtensions.Trace, "Linking to Bridge AssetType {0}", GetType().Name);
             var joinMap = new DynFusionJoinMap(joinStart);
+            JoinMapStatic = joinMap;
             
             bridge.AddJoinMap(Key, joinMap);
 

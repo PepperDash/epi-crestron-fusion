@@ -4,7 +4,7 @@ namespace DynFusion
 {
 	public class DynFusionJoinMap : JoinMapBaseAdvanced
 	{
-	    public JoinDataComplete DeviceName = new JoinDataComplete(new JoinData {JoinNumber = 1, JoinSpan = 1}, new JoinMetadata{Description = "Device Name", JoinCapabilities = eJoinCapabilities.ToSIMPL, JoinType = eJoinType.Serial});
+		public JoinDataComplete DeviceName = new JoinDataComplete(new JoinData {JoinNumber = 1, JoinSpan = 1}, new JoinMetadata{Description = "Device Name", JoinCapabilities = eJoinCapabilities.ToSIMPL, JoinType = eJoinType.Serial});
 
 		// Bools 
 		public JoinDataComplete Online = new JoinDataComplete(new JoinData { JoinNumber = 1, JoinSpan = 1 }, new JoinMetadata { Description = "Fusion Online", JoinCapabilities = eJoinCapabilities.ToSIMPL, JoinType = eJoinType.Digital });
@@ -47,9 +47,14 @@ namespace DynFusion
 		*/
 
 		public DynFusionJoinMap(uint joinStart) 
-            :base(joinStart)
+            : this(joinStart, typeof(DynFusionJoinMap))
 		{
 			
+		}
+
+		protected DynFusionJoinMap(uint joinStart, System.Type type)
+			: base(joinStart, type)
+		{
 		}
 		
 
