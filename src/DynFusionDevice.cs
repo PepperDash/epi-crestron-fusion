@@ -1034,32 +1034,112 @@ namespace DynFusion
             foreach (var att in DigitalAttributesToFusion)
             {
                 var attLocal = att.Value;
+                var joinData = new JoinDataComplete(new JoinData { JoinNumber = attLocal.JoinNumber, JoinSpan = 1 },
+                    new JoinMetadata
+                    {
+                        JoinType = eJoinType.Digital,
+                        Description = attLocal.Name,
+                        JoinCapabilities = eJoinCapabilities.FromSIMPL
+                    });
+                
+                if(!joinMap.Joins.ContainsKey(attLocal.Name))
+                {
+                    joinMap.Joins.Add(attLocal.Name, joinData);
+                }
+                
                 trilist.SetBoolSigAction(attLocal.JoinNumber, (b) => { attLocal.BoolValue = b; });
             }
             foreach (var att in DigitalAttributesFromFusion)
             {
                 var attLocal = att.Value;
+
+                var joinData = new JoinDataComplete(new JoinData { JoinNumber = attLocal.JoinNumber, JoinSpan = 1 },
+                    new JoinMetadata
+                    {
+                        JoinType = eJoinType.Digital,
+                        Description = attLocal.Name,
+                        JoinCapabilities = eJoinCapabilities.ToSIMPL
+                    });
+
+                if (!joinMap.Joins.ContainsKey(attLocal.Name))
+                {
+                    joinMap.Joins.Add(attLocal.Name, joinData);
+                }
+                
                 attLocal.BoolValueFeedback.LinkInputSig(trilist.BooleanInput[attLocal.JoinNumber]);
             }
             foreach (var att in AnalogAttributesToFusion)
             {
                 var attLocal = att.Value;
+
+                var joinData = new JoinDataComplete(new JoinData { JoinNumber = attLocal.JoinNumber, JoinSpan = 1 },
+                    new JoinMetadata
+                    {
+                        JoinType = eJoinType.Analog,
+                        Description = attLocal.Name,
+                        JoinCapabilities = eJoinCapabilities.FromSIMPL
+                    });
+
+                if (!joinMap.Joins.ContainsKey(attLocal.Name))
+                {
+                    joinMap.Joins.Add(attLocal.Name, joinData);
+                }
                 trilist.SetUShortSigAction(attLocal.JoinNumber, (a) => { attLocal.UShortValue = a; });
             }
             foreach (var att in AnalogAttributesFromFusion)
             {
                 var attLocal = att.Value;
+
+                var joinData = new JoinDataComplete(new JoinData { JoinNumber = attLocal.JoinNumber, JoinSpan = 1 },
+                    new JoinMetadata
+                    {
+                        JoinType = eJoinType.Analog,
+                        Description = attLocal.Name,
+                        JoinCapabilities = eJoinCapabilities.ToSIMPL
+                    });
+
+                if (!joinMap.Joins.ContainsKey(attLocal.Name))
+                {
+                    joinMap.Joins.Add(attLocal.Name, joinData);
+                }
+
                 attLocal.UShortValueFeedback.LinkInputSig(trilist.UShortInput[attLocal.JoinNumber]);
             }
 
             foreach (var att in SerialAttributesToFusion)
             {
                 var attLocal = att.Value;
+
+                var joinData = new JoinDataComplete(new JoinData { JoinNumber = attLocal.JoinNumber, JoinSpan = 1 },
+                    new JoinMetadata
+                    {
+                        JoinType = eJoinType.Serial,
+                        Description = attLocal.Name,
+                        JoinCapabilities = eJoinCapabilities.FromSIMPL
+                    });
+
+                if (!joinMap.Joins.ContainsKey(attLocal.Name))
+                {
+                    joinMap.Joins.Add(attLocal.Name, joinData);
+                }
                 trilist.SetStringSigAction(attLocal.JoinNumber, (a) => { attLocal.StringValue = a; });
             }
             foreach (var att in SerialAttributesFromFusion)
             {
                 var attLocal = att.Value;
+
+                var joinData = new JoinDataComplete(new JoinData { JoinNumber = attLocal.JoinNumber, JoinSpan = 1 },
+                    new JoinMetadata
+                    {
+                        JoinType = eJoinType.Serial,
+                        Description = attLocal.Name,
+                        JoinCapabilities = eJoinCapabilities.ToSIMPL
+                    });
+
+                if (!joinMap.Joins.ContainsKey(attLocal.Name))
+                {
+                    joinMap.Joins.Add(attLocal.Name, joinData);
+                }
                 attLocal.StringValueFeedback.LinkInputSig(trilist.StringInput[attLocal.JoinNumber]);
             }
 
