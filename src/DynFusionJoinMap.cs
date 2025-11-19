@@ -48,8 +48,8 @@ namespace DynFusion
 		public JoinDataComplete GroupMembership = new JoinDataComplete(new JoinData { JoinNumber = 31, JoinSpan = 1 }, new JoinMetadata { Description = "GroupMembership", JoinCapabilities = eJoinCapabilities.ToSIMPL, JoinType = eJoinType.Serial });
 
 		// Scheduling Data Extender
-		[JoinName("SchedulingQuerey")]
-		public JoinDataComplete SchedulingQuerey = new JoinDataComplete(new JoinData { JoinNumber = 32, JoinSpan = 1 }, new JoinMetadata { Description = "SchedulingQuerey", JoinCapabilities = eJoinCapabilities.ToFromSIMPL, JoinType = eJoinType.Serial });
+		[JoinName("SchedulingQuery")]
+		public JoinDataComplete SchedulingQuery = new JoinDataComplete(new JoinData { JoinNumber = 32, JoinSpan = 1 }, new JoinMetadata { Description = "SchedulingQuery", JoinCapabilities = eJoinCapabilities.ToFromSIMPL, JoinType = eJoinType.Serial });
 		[JoinName("SchedulingCreate")]
 		public JoinDataComplete SchedulingCreate = new JoinDataComplete(new JoinData { JoinNumber = 33, JoinSpan = 1 }, new JoinMetadata { Description = "SchedulingCreate", JoinCapabilities = eJoinCapabilities.ToFromSIMPL, JoinType = eJoinType.Serial });
 		[JoinName("SchedulingRemove")]

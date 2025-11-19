@@ -1,15 +1,9 @@
 ﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using Crestron.SimplSharp;
 using PepperDash.Essentials.Core;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Converters;
 using Crestron.SimplSharpPro;
 using PepperDash.Core;
-using Crestron.SimplSharp.Reflection;
-using Newtonsoft.Json;
 
 namespace DynFusion
 {
@@ -18,50 +12,50 @@ namespace DynFusion
 	public class DynFusionDigitalAttribute : DynFusionAttributeBase
 	{
 
-		public DynFusionDigitalAttribute(string name, UInt32 joinNumber)
+		public DynFusionDigitalAttribute(string name, uint joinNumber)
 			: base(name, eSigType.Bool, joinNumber)
 		{
 			BoolValueFeedback = new BoolFeedback(() => { return BoolValue; });
-			Debug.Console(2, "Creating DigitalAttribute {0} {1} {2}", this.JoinNumber, this.Name, this.RwType);
+			Debug.LogVerbose("Creating DigitalAttribute {joinNumber} {joinName} {rwType}", JoinNumber, Name, RwType);
 		}
 
-		public DynFusionDigitalAttribute(string name, UInt32 joinNumber, string deviceKey, string boolAction, string boolFeedback)
+		public DynFusionDigitalAttribute(string name, uint joinNumber, string deviceKey, string boolAction, string boolFeedback)
 			: base(name, eSigType.Bool, joinNumber)
 		{
-			
+
 			BoolValueFeedback = new BoolFeedback(() => { return BoolValue; });
-			Debug.Console(2, "Creating DigitalAttribute {0} {1} {2}", this.JoinNumber, this.Name, this.RwType);
+			Debug.LogVerbose("Creating DigitalAttribute {joinNumber} {joinName} {rwType}", JoinNumber, Name, RwType);
 
 
-		if (!string.IsNullOrEmpty(deviceKey))
-		{
-			_devicekey = deviceKey;
-			if (!string.IsNullOrEmpty(boolAction))
+			if (!string.IsNullOrEmpty(deviceKey))
 			{
-				_action = boolAction;
-			}
-
-			if (!string.IsNullOrEmpty(boolFeedback))
-			{
-				try
+				_devicekey = deviceKey;
+				if (!string.IsNullOrEmpty(boolAction))
 				{
-					var fb = DeviceJsonApi.GetPropertyByName(deviceKey, boolFeedback) as BoolFeedback;
-					if (fb != null)
+					_action = boolAction;
+				}
+
+				if (!string.IsNullOrEmpty(boolFeedback))
+				{
+					try
 					{
-						fb.OutputChange += ((sender, args) => 
+						var fb = DeviceJsonApi.GetPropertyByName(deviceKey, boolFeedback) as BoolFeedback;
+						if (fb != null)
 						{
-							this.BoolValue = args.BoolValue;
-						});
+							fb.OutputChange += ((sender, args) =>
+							{
+								BoolValue = args.BoolValue;
+							});
+						}
+					}
+					catch (Exception ex)
+					{
+						Debug.LogError("DynFuison Issue linking Device {deviceKey} BoolFB {value}: {message}", deviceKey, boolFeedback, ex.Message);
+						Debug.LogDebug(ex, "Stack Trace: ");
 					}
 				}
-				catch (Exception ex)
-				{
-					Debug.Console(0, Debug.ErrorLogLevel.Error, "DynFuison Issue linking Device {0} BoolFB {1}\n{2}", deviceKey, boolFeedback, ex);
-				}
-
 			}
 		}
-	}
 
 		private string _devicekey { get; set; }
 		private string _action { get; set; }
@@ -72,7 +66,7 @@ namespace DynFusion
 		{
 			get
 			{
-				
+
 				return _BoolValue;
 
 			}
@@ -80,7 +74,7 @@ namespace DynFusion
 			{
 				_BoolValue = value;
 				BoolValueFeedback.FireUpdate();
-				Debug.Console(2, "Changed Value of DigitalAttribute {0} {1} {2}", this.JoinNumber, this.Name, value);
+				Debug.LogDebug("Changed Value of DigitalAttribute {0} {1} {2}", JoinNumber, Name, value);
 
 			}
 		}
@@ -102,19 +96,19 @@ namespace DynFusion
 	}
 	public class DynFusionAnalogAttribute : DynFusionAttributeBase
 	{
-		public DynFusionAnalogAttribute(string name, UInt32 joinNumber)
+		public DynFusionAnalogAttribute(string name, uint joinNumber)
 			: base(name, eSigType.UShort, joinNumber)
 		{
-			UShortValueFeedback = new IntFeedback( () => { return (int)UShortValue; });
+			UShortValueFeedback = new IntFeedback(() => { return (int)UShortValue; });
 
-			Debug.Console(2, "Creating AnalogAttribute {0} {1} {2}", this.JoinNumber, this.Name, this.RwType);
+			Debug.LogVerbose("Creating AnalogAttribute {joinNumber} {joinName} {rwType}", JoinNumber, Name, RwType);
 		}
 
-		public DynFusionAnalogAttribute(string name, UInt32 joinNumber, string deviceKey, string intAction, string intFeedback)
+		public DynFusionAnalogAttribute(string name, uint joinNumber, string deviceKey, string intAction, string intFeedback)
 			: base(name, eSigType.UShort, joinNumber)
 		{
-			UShortValueFeedback = new IntFeedback( () => { return (int)UShortValue; });
-			Debug.Console(2, "Creating AnalogAttribute {0} {1} {2}", this.JoinNumber, this.Name, this.RwType);
+			UShortValueFeedback = new IntFeedback(() => { return (int)UShortValue; });
+			Debug.LogVerbose("Creating AnalogAttribute {joinNumber} {joinName} {rwType}", JoinNumber, Name, RwType);
 
 			if (!string.IsNullOrEmpty(deviceKey))
 			{
@@ -133,13 +127,14 @@ namespace DynFusion
 						{
 							fb.OutputChange += ((sender, args) =>
 							{
-								this.UShortValue = args.UShortValue;
+								UShortValue = args.UShortValue;
 							});
 						}
 					}
 					catch (Exception ex)
 					{
-						Debug.Console(0, Debug.ErrorLogLevel.Error, "DynFuison Issue linking Device {0} BoolFB {1}\n{2}", deviceKey, intFeedback, ex);
+						Debug.LogError("DynFusion Issue linking Device {deviceKey} BoolFB {value}: {message}", deviceKey, intFeedback, ex.Message);
+						Debug.LogDebug(ex, "Stack Trace: ");
 					}
 
 				}
@@ -149,8 +144,8 @@ namespace DynFusion
 		private string _action { get; set; }
 
 		public IntFeedback UShortValueFeedback { get; set; }
-		private UInt32 _UShortValue { get; set; }
-		public UInt32 UShortValue
+		private uint _UShortValue { get; set; }
+		public uint UShortValue
 		{
 			get
 			{
@@ -182,19 +177,19 @@ namespace DynFusion
 	}
 	public class DynFusionSerialAttribute : DynFusionAttributeBase
 	{
-		public DynFusionSerialAttribute(string name, UInt32 joinNumber)
+		public DynFusionSerialAttribute(string name, uint joinNumber)
 			: base(name, eSigType.String, joinNumber)
 		{
 			StringValueFeedback = new StringFeedback(() => { return StringValue; });
 
-			Debug.Console(2, "Creating StringAttribute {0} {1} {2}", this.JoinNumber, this.Name, this.RwType);
+			Debug.LogVerbose("Creating StringAttribute {joinNumber} {joinName} {rwType}", JoinNumber, Name, RwType);
 		}
 
-		public DynFusionSerialAttribute(string name, UInt32 joinNumber, string deviceKey, string stringAction, string stringFeedback)
+		public DynFusionSerialAttribute(string name, uint joinNumber, string deviceKey, string stringAction, string stringFeedback)
 			: base(name, eSigType.String, joinNumber)
 		{
 			StringValueFeedback = new StringFeedback(() => { return StringValue; });
-			Debug.Console(2, "Creating StringAttribute {0} {1} {2}", this.JoinNumber, this.Name, this.RwType);
+			Debug.LogVerbose("Creating StringAttribute {joinNumber} {joinName} {rwType}", JoinNumber, Name, RwType);
 
 			if (!string.IsNullOrEmpty(deviceKey))
 			{
@@ -213,13 +208,14 @@ namespace DynFusion
 						{
 							fb.OutputChange += ((sender, args) =>
 							{
-								this.StringValue = args.StringValue;
+								StringValue = args.StringValue;
 							});
 						}
 					}
 					catch (Exception ex)
 					{
-						Debug.Console(0, Debug.ErrorLogLevel.Error, "DynFuison Issue linking Device {0} BoolFB {1}\n{2}", deviceKey, stringFeedback, ex);
+						Debug.LogError("DynFusion Issue linking Device {deviceKey} BoolFB {value}: {message}", deviceKey, stringFeedback, ex.Message);
+						Debug.LogDebug(ex, "Stack Trace: ");
 					}
 
 				}
@@ -229,8 +225,8 @@ namespace DynFusion
 		private string _action { get; set; }
 
 		public StringFeedback StringValueFeedback { get; set; }
-		private String _StringValue { get; set; }
-		public String StringValue
+		private string _StringValue { get; set; }
+		public string StringValue
 		{
 			get
 			{
@@ -248,8 +244,8 @@ namespace DynFusion
 
 		public void CallAction(string value)
 		{
-			if (this._devicekey != null && this._action != null)
-            {
+			if (_devicekey != null && _action != null)
+			{
 				var payload = new
 				{
 					deviceKey = _devicekey,
@@ -263,9 +259,9 @@ namespace DynFusion
 	}
 	public class DynFusionAttributeBase
 	{
-		public DynFusionAttributeBase (string name, eSigType type, UInt32 joinNumber)
+		public DynFusionAttributeBase(string name, eSigType type, uint joinNumber)
 		{
-			Name = name; 
+			Name = name;
 			SignalType = type;
 			JoinNumber = joinNumber;
 
@@ -273,11 +269,11 @@ namespace DynFusion
 
 		[JsonProperty("SignalType")]
 		[JsonConverter(typeof(StringEnumConverter))]
-		public eSigType	SignalType { get; set; }
+		public eSigType SignalType { get; set; }
 
 		[JsonProperty("JoinNumber")]
-		public UInt32 JoinNumber { get; set; }
-		
+		public uint JoinNumber { get; set; }
+
 		[JsonProperty("Name")]
 		public string Name { get; set; }
 
@@ -300,7 +296,7 @@ namespace DynFusion
 	{
 		Read = 1,
 		Write = 2,
-		R = 1, 
+		R = 1,
 		W = 2,
 		ReadWrite = 3,
 		RW = 3

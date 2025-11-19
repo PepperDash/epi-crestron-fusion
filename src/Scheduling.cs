@@ -1,78 +1,70 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Linq;
-using System.Text;
 using System.Text.RegularExpressions;
-using Crestron.SimplSharp.CrestronIO;
 using Crestron.SimplSharp.CrestronXml;
 using Crestron.SimplSharp.CrestronXml.Serialization;
-using Crestron.SimplSharp.CrestronXmlLinq;
 using Crestron.SimplSharp;
 using Crestron.SimplSharpPro;
-using Crestron.SimplSharpPro.Fusion;
-using System.Threading;
-using Crestron.SimplSharpPro.CrestronThread;
-using Crestron.SimplSharp.Net;
 using PepperDash.Core;
 using PepperDash.Essentials.Core;
+using PepperDash.Core.Logging;
 
 namespace DynFusion
 {
 	public class DynFusionScheduleChangeEventArgs : EventArgs
 	{
-		string data;
+		private readonly string data;
 		public DynFusionScheduleChangeEventArgs(string someString)
 		{
 			data = someString;
 		}
 
 	}
-	public class DynFusionSchedule : EssentialsBridgeableDevice	
+	public class DynFusionSchedule : EssentialsBridgeableDevice
 	{
 		public bool fusionOnline = false;
 
-		//public event EventHandler<EventArgs> ScheduleChanged;
 		public event EventHandler<DynFusionScheduleChangeEventArgs> ScheduleChanged;
 		public event EventHandler UpdateRemainingTime;
 
 
-		BoolWithFeedback enableMeetingReserve15 = new BoolWithFeedback();
-		BoolWithFeedback enableMeetingReserve30 = new BoolWithFeedback();
-		BoolWithFeedback enableMeetingReserve45 = new BoolWithFeedback();
-		BoolWithFeedback enableMeetingReserve60 = new BoolWithFeedback();
-		BoolWithFeedback enableMeetingReserve90 = new BoolWithFeedback();
-		BoolWithFeedback enableMeetingExtend15 = new BoolWithFeedback();
-		BoolWithFeedback enableMeetingExtend30 = new BoolWithFeedback();
-		BoolWithFeedback enableMeetingExtend45 = new BoolWithFeedback();
-		BoolWithFeedback enableMeetingExtend60 = new BoolWithFeedback();
-		BoolWithFeedback enableMeetingExtend90 = new BoolWithFeedback();
+		private readonly BoolWithFeedback enableMeetingReserve15 = new BoolWithFeedback();
+		private readonly BoolWithFeedback enableMeetingReserve30 = new BoolWithFeedback();
+		private readonly BoolWithFeedback enableMeetingReserve45 = new BoolWithFeedback();
+		private readonly BoolWithFeedback enableMeetingReserve60 = new BoolWithFeedback();
+		private readonly BoolWithFeedback enableMeetingReserve90 = new BoolWithFeedback();
+		private readonly BoolWithFeedback enableMeetingExtend15 = new BoolWithFeedback();
+		private readonly BoolWithFeedback enableMeetingExtend30 = new BoolWithFeedback();
+		private readonly BoolWithFeedback enableMeetingExtend45 = new BoolWithFeedback();
+		private readonly BoolWithFeedback enableMeetingExtend60 = new BoolWithFeedback();
+		private readonly BoolWithFeedback enableMeetingExtend90 = new BoolWithFeedback();
 
-		long schedulePullTimerTimeout = 300000;
-		long schedulePushTimerTimeout = 90000;
+		private readonly long schedulePullTimerTimeout = 300000;
+		private readonly long schedulePushTimerTimeout = 90000;
 
-		DynFusionDevice _DynFusion;
-		CTimer schedulePullTimer = null;
-		CTimer schedulePushTimer;
-		CTimer UpdateRemainingTimeTimer = null;
-		CTimer getScheduleTimeOut = null;
+		private DynFusionDevice _DynFusion;
+		private CTimer schedulePullTimer = null;
+		private CTimer schedulePushTimer;
+		private CTimer UpdateRemainingTimeTimer = null;
+		private CTimer getScheduleTimeOut = null;
 
-		SchedulingConfig _Config; 
+		private readonly SchedulingConfig _Config;
 
-		RoomSchedule CurrentSchedule;
-		public DynFusionScheduleAvailableRooms AvailableRooms;
+		private RoomSchedule CurrentSchedule;
+		public AvailableRooms AvailableRooms;
 
-		List<ScheduleResponse> RoomAvailabilityScheduleResponse = new List<ScheduleResponse>();
+		private List<ScheduleResponse> RoomAvailabilityScheduleResponse = new List<ScheduleResponse>();
 
-		private BoolWithFeedback RegisterdForPush = new BoolWithFeedback();
-		private BoolWithFeedback ScheduleBusy = new BoolWithFeedback();
+		private readonly BoolWithFeedback RegisterdForPush = new BoolWithFeedback();
+		private readonly BoolWithFeedback ScheduleBusy = new BoolWithFeedback();
 
-		
+
 		public Event CurrentMeeting;
-		Event NextMeeting;
-		Event ThirdMeeting;
-		Event FourthMeeting;
-		Event FifthMeeting;
-		Event SixthMeeting;
+		private Event NextMeeting;
+		private Event ThirdMeeting;
+		private Event FourthMeeting;
+		private Event FifthMeeting;
+		private Event SixthMeeting;
 
 
 		public DynFusionSchedule(string key, string name, SchedulingConfig config)
@@ -84,8 +76,8 @@ namespace DynFusion
 			}
 			catch (Exception e)
 			{
-				Debug.Console(2, this, String.Format("Get Schedule Error: {0}", e.Message));
-				Debug.ConsoleWithLog(2, this, e.ToString());
+				this.LogError("Exception in DynFusionSchedule constructor: {message}", e.Message);
+				this.LogDebug(e, "Stack Trace: ");
 			}
 		}
 
@@ -96,80 +88,68 @@ namespace DynFusion
 			if (_Config.DynFusionKey != null)
 			{
 				_DynFusion = (DynFusionDevice)DeviceManager.GetDeviceForKey(_Config.DynFusionKey);
-				
+
 			}
 			else
 			{
-				Debug.Console(0, Debug.ErrorLogLevel.Error, "DynFusionDeviceKey is not present in config file");
-				return false; 
+				this.LogError("DynFusionDeviceKey is not present in config file");
+				return false;
 			}
 			if (_DynFusion == null)
 			{
-				Debug.Console(0, Debug.ErrorLogLevel.Error, "Error getting DynFusionDevice for key {0}", _Config.DynFusionKey);
+				this.LogError("Error getting DynFusionDevice for key {key}", _Config.DynFusionKey);
 				return false;
 			}
 			_DynFusion.FusionSymbol.ExtenderRoomViewSchedulingDataReservedSigs.Use();
 			_DynFusion.FusionSymbol.OnlineStatusChange += new OnlineStatusChangeEventHandler(FusionSymbolStatusChange);
 			_DynFusion.FusionSymbol.ExtenderRoomViewSchedulingDataReservedSigs.DeviceExtenderSigChange += new DeviceExtenderJoinChangeEventHandler(FusionScheduleExtenderSigChange);
 			_DynFusion.FusionSymbol.ExtenderFusionRoomDataReservedSigs.DeviceExtenderSigChange += new DeviceExtenderJoinChangeEventHandler(FusionRoomDataExtenderSigChange);
-			AvailableRooms = new DynFusionScheduleAvailableRooms(_DynFusion);
+			AvailableRooms = new AvailableRooms(_DynFusion);
 			return true;
 		}
 
 		public void StartSchedPushTimer()
 		{
-			//Debug.ConsoleWithLog(2, this, "StartSchedPushTimer", 1);
-			if (schedulePushTimer == null)
+			if (schedulePushTimer != null)
 			{
-				Debug.ConsoleWithLog(2, this, "StartSchedPushTimer START", 1);
-				schedulePushTimer = new CTimer(new CTimerCallbackFunction(GetRoomSchedule), null, schedulePushTimerTimeout, schedulePushTimerTimeout);
+				return;
 			}
+			schedulePushTimer = new CTimer(new CTimerCallbackFunction(GetRoomSchedule), null, schedulePushTimerTimeout, schedulePushTimerTimeout);
 		}
 
-		public void ResetSchedPushTimer()
+		public void ResetSchedulePushTimer()
 		{
-			Debug.Console(2, this, "ResetSchedPushTimer", 1);
-			if (schedulePushTimer != null && !schedulePushTimer.Disposed)
+			if (schedulePushTimer == null || schedulePushTimer.Disposed)
 			{
-				Debug.ConsoleWithLog(2, this, "ResetSchedPushTimer RESET", 1);
-				schedulePushTimer.Reset(schedulePushTimerTimeout, schedulePushTimerTimeout);
+				return;
 			}
+			schedulePushTimer.Reset(schedulePushTimerTimeout, schedulePushTimerTimeout);
 		}
 		public void StopSchedPushTimer()
 		{
-			//Debug.ConsoleWithLog(2, this, "StopSchedPushTimer", 1);
-			if (schedulePushTimer != null && !schedulePushTimer.Disposed)
+			if (schedulePushTimer == null || schedulePushTimer.Disposed)
 			{
-				Debug.ConsoleWithLog(2, this, "StopSchedPushTimer STOP", 1);
-				schedulePullTimer.Stop();
-				schedulePullTimer.Dispose();
+				return;
 			}
+
+			schedulePullTimer.Stop();
+			schedulePullTimer.Dispose();
 		}
 
-
-
-		void AvailableRooms_OnAvailableRoomsUpdate()
+		private void FusionSymbolStatusChange(object o, OnlineOfflineEventArgs e)
 		{
-			throw new NotImplementedException();
-		}
-
-		void FusionSymbolStatusChange(object o, OnlineOfflineEventArgs e)
-		{
-			Debug.Console(2, this, "FusionSymbolStatusChange {0}", e.DeviceOnLine);
+			this.LogDebug("FusionSymbolStatusChange {0}", e.DeviceOnLine);
 			fusionOnline = e.DeviceOnLine;
-			if (fusionOnline)
+			if (!fusionOnline)
 			{
-				// GetRoomSchedule();
-				GetPushSchedule();
-				StartUpdateRemainingTimeTimer();
+				return;
 			}
-			else
-			{
-				//UpdateRemainingTimeTimer.Stop();
-			}
+
+			GetPushSchedule();
+			StartUpdateRemainingTimeTimer();
 		}
 
-		void GetPushSchedule()
+		private void GetPushSchedule()
 		{
 			try
 			{
@@ -178,7 +158,7 @@ namespace DynFusion
 					string requestID = "InitialPushRequest";
 					string fusionActionRequest = "";
 
-					fusionActionRequest = String.Format("<RequestAction>\n<RequestID>{0}</RequestID>\n" +
+					fusionActionRequest = string.Format("<RequestAction>\n<RequestID>{0}</RequestID>\n" +
 												"<ActionID>RegisterPushModel</ActionID>\n" +
 												"<Parameters>\n" +
 													"<Parameter ID=\"Enabled\" Value=\"1\" />\n" +
@@ -207,37 +187,38 @@ namespace DynFusion
 			}
 			catch (Exception e)
 			{
-				Debug.ConsoleWithLog(2, this, String.Format("Get Push Schedule Error: {0}", e.Message), 3);
+				this.LogError("Get Push Schedule Error: {message}", e.Message);
+				this.LogDebug(e, "Stack Trace: ");
 			}
 		}
 
-		void GetRoomSchedule(object unused)
+		private void GetRoomSchedule(object unused)
 		{
 			GetRoomSchedule();
 		}
 
 		public void GetRoomSchedule()
 		{
-			if (ScheduleBusy.Value == false)
+			if (ScheduleBusy.Value)
 			{
-				ScheduleBusy.Value = true;
-				getScheduleTimeOut = new CTimer(getRoomScheduleTimeOut, 6000);
-				Debug.Console(2, this, String.Format("Get RoomSchedule"));
-				string roomID = _DynFusion.RoomInformation.ID;
-				string requestType = "ScheduleRequest";
-				GetFullRoomSchedule(roomID, requestType.ToString());
-
+				return;
 			}
+
+			ScheduleBusy.Value = true;
+			getScheduleTimeOut = new CTimer(GetRoomScheduleTimeOut, 6000);
+			string roomID = _DynFusion.RoomInformation.ID;
+			string requestType = "ScheduleRequest";
+			GetFullRoomSchedule(roomID, requestType.ToString());
 		}
 
-		public void getRoomScheduleTimeOut(object unused)
+		public void GetRoomScheduleTimeOut(object unused)
 		{
 			ScheduleBusy.Value = false;
-			Debug.ConsoleWithLog(2, this, "Error getRoomScheduleTimeOut");
+			this.LogError("Error getRoomScheduleTimeOut");
 		}
 
 
-		void GetFullRoomSchedule(string roomID, string requestType)
+		private void GetFullRoomSchedule(string roomID, string requestType)
 		{
 			try
 			{
@@ -246,119 +227,111 @@ namespace DynFusion
 					string fusionScheduleRequest = "";
 					string RFCTime;
 
-					RFCTime = String.Format("{0:s}", DateTime.Now);
+					RFCTime = string.Format("{0:s}", DateTime.Now);
 
-					fusionScheduleRequest = String.Format("<RequestSchedule><RequestID>{0}</RequestID><RoomID>{1}</RoomID><Start>{2}</Start><HourSpan>24</HourSpan></RequestSchedule>", requestType, roomID, RFCTime.ToString());
+					fusionScheduleRequest = string.Format("<RequestSchedule><RequestID>{0}</RequestID><RoomID>{1}</RoomID><Start>{2}</Start><HourSpan>24</HourSpan></RequestSchedule>", requestType, roomID, RFCTime.ToString());
 
 					_DynFusion.FusionSymbol.ExtenderRoomViewSchedulingDataReservedSigs.ScheduleQuery.StringValue = fusionScheduleRequest;
-
-					//if (isRegisteredForSchedulePushNotifications)
-					//schedulePushTimer.Stop();                   
 				}
 			}
 			catch (Exception e)
 			{
-				Debug.Console(2, this, String.Format("Get Full Schedule Error: {0}", e.Message));
-				Debug.ConsoleWithLog(2, this, e.ToString());
+				this.LogError("Get Full Schedule Error: {message}", e.Message);
+				this.LogDebug(e, "Stack Trace: ");
 			}
 		}
 
-		void ExtendMeeting(int extendTimeIn)
+		private void ExtendMeeting(int extendTimeIn)
 		{
 			try
 			{
-				if (fusionOnline)
+				if (!fusionOnline || CurrentMeeting == null)
 				{
-					if (CurrentMeeting != null)
-					{
-						if (CurrentMeeting.isInProgress)
-						{
-							string fusionExtendMeetingRequest = "";
-							string extendTime;
-							string meetingID = CurrentMeeting.MeetingID;
-
-							if (extendTimeIn != 0)
-							{
-								TimeSpan timeToExtend = CurrentMeeting.dtEnd.Subtract(DateTime.Now);
-								ushort totalMeetingExtend = (ushort)(timeToExtend.TotalMinutes + extendTimeIn);
-								extendTime = totalMeetingExtend.ToString();
-							}
-							else
-								extendTime = extendTimeIn.ToString();
-
-
-							fusionExtendMeetingRequest = String.Format("<RequestAction><RequestID>ExtendMeetingRequest</RequestID><ActionID>MeetingChange</ActionID><Parameters>" +
-												 "<Parameter ID=\"MeetingID\" Value=\"{0}\" /><Parameter ID=\"EndTime\" Value=\"{1}\" /></Parameters></RequestAction>", meetingID, extendTime.ToString());
-
-							Debug.Console(2, this, String.Format("ExtendRequest: {0}", fusionExtendMeetingRequest));
-							_DynFusion.FusionSymbol.ExtenderFusionRoomDataReservedSigs.ActionQuery.StringValue = fusionExtendMeetingRequest;
-						}
-						else
-						{
-							Debug.Console(2, this, String.Format("No Meeting in Progress"));
-						}
-					}
+					return;
 				}
+
+				if (!CurrentMeeting.isInProgress)
+				{
+					this.LogVerbose("No Meeting in Progress");
+					return;
+				}
+
+				string fusionExtendMeetingRequest = "";
+				string extendTime;
+				string meetingID = CurrentMeeting.MeetingID;
+
+				if (extendTimeIn != 0)
+				{
+					TimeSpan timeToExtend = CurrentMeeting.dtEnd.Subtract(DateTime.Now);
+					ushort totalMeetingExtend = (ushort)(timeToExtend.TotalMinutes + extendTimeIn);
+					extendTime = totalMeetingExtend.ToString();
+				}
+				else
+					extendTime = extendTimeIn.ToString();
+
+
+				fusionExtendMeetingRequest = string.Format("<RequestAction><RequestID>ExtendMeetingRequest</RequestID><ActionID>MeetingChange</ActionID><Parameters>" +
+									 "<Parameter ID=\"MeetingID\" Value=\"{0}\" /><Parameter ID=\"EndTime\" Value=\"{1}\" /></Parameters></RequestAction>", meetingID, extendTime.ToString());
+
+				this.LogVerbose("ExtendRequest: {request}", fusionExtendMeetingRequest);
+				_DynFusion.FusionSymbol.ExtenderFusionRoomDataReservedSigs.ActionQuery.StringValue = fusionExtendMeetingRequest;
+
 			}
 			catch (Exception e)
 			{
-				Debug.ConsoleWithLog(2, this, e.ToString());
+				this.LogError("Exception extending meeting: {message}", e.Message);
+				this.LogDebug(e, "Stack Trace: ");
 			}
 		}
 
-		void CreateMeeting(ushort meetingTimeIn)
+		private void CreateMeeting(ushort meetingTimeIn)
 		{
 			try
 			{
-				if (fusionOnline)
+				if (!fusionOnline)
 				{
-					if (CurrentMeeting == null)
-					{
-						string fusionCreateMeetingRequest = "";
-						string meetingTime = meetingTimeIn.ToString();
-						string startTime;
-						string endTime;
-
-						TimeSpan meetingLength = new TimeSpan(0, (int)meetingTimeIn, 0);
-
-						startTime = String.Format("{0:s}", DateTime.Now);
-						endTime = String.Format("{0:s}", DateTime.Now.Add(meetingLength));
-
-						Debug.Console(2, this, String.Format("Start Time: {0}, End Time: {1}", startTime, endTime));
-
-						fusionCreateMeetingRequest = String.Format("<CreateSchedule><RequestID>ExtendMeetingRequest</RequestID>" +
-																	"<Event><dtStart>{0}</dtStart><dtEnd>{1}</dtEnd><Subject>Ad-Hoc Meeting Created</Subject><Organizer>{2}</Organizer>" +
-																	"<WelcomeMsg>Meeting Created></WelcomeMsg></Event></CreateSchedule>", startTime, endTime, _DynFusion.RoomInformation.Name.ToString());
-
-						Debug.Console(2, this, String.Format("Create Meeting Request: {0}", fusionCreateMeetingRequest));
-						_DynFusion.FusionSymbol.ExtenderRoomViewSchedulingDataReservedSigs.CreateMeeting.StringValue = fusionCreateMeetingRequest;
-					}
-					else
-					{
-						Debug.Console(2, this, String.Format("Meeting In Progress"));
-					}
+					return;
 				}
+
+				if (CurrentMeeting != null)
+				{
+					this.LogVerbose("Meeting In Progress");
+					return;
+				}
+
+				string fusionCreateMeetingRequest = "";
+				string meetingTime = meetingTimeIn.ToString();
+				string startTime;
+				string endTime;
+
+				TimeSpan meetingLength = new TimeSpan(0, (int)meetingTimeIn, 0);
+
+				startTime = string.Format("{0:s}", DateTime.Now);
+				endTime = string.Format("{0:s}", DateTime.Now.Add(meetingLength));
+
+				this.LogVerbose("Start Time: {0}, End Time: {1}", startTime, endTime);
+
+				fusionCreateMeetingRequest = string.Format("<CreateSchedule><RequestID>ExtendMeetingRequest</RequestID>" +
+															"<Event><dtStart>{0}</dtStart><dtEnd>{1}</dtEnd><Subject>Ad-Hoc Meeting Created</Subject><Organizer>{2}</Organizer>" +
+															"<WelcomeMsg>Meeting Created></WelcomeMsg></Event></CreateSchedule>", startTime, endTime, _DynFusion.RoomInformation.Name.ToString());
+
+				this.LogVerbose("Create Meeting Request: {0}", fusionCreateMeetingRequest);
+				_DynFusion.FusionSymbol.ExtenderRoomViewSchedulingDataReservedSigs.CreateMeeting.StringValue = fusionCreateMeetingRequest;
 			}
 			catch (Exception e)
 			{
-				Debug.ConsoleWithLog(2, this, e.ToString());
+				this.LogError("Exception creating meeting: {message}", e.Message);
+				this.LogDebug(e, "Stack Trace: ");
 			}
 		}
 
-
-
-		void FusionRoomAttributeExtenderSigChange(DeviceExtender currentDeviceExtender, SigEventArgs args)
-		{
-			Debug.Console(2, this, String.Format("RoomAttributeQuery Response: {0}", args.Sig.StringValue));
-		}
-		void FusionRoomDataExtenderSigChange(DeviceExtender currentDeviceExtender, SigEventArgs args)
+		private void FusionRoomDataExtenderSigChange(DeviceExtender currentDeviceExtender, SigEventArgs args)
 		{
 
 			try
 			{
 				string result = Regex.Replace(args.Sig.StringValue, "&(?!(amp|apos|quot|lt|gt);)", "&amp;");
 
-				Debug.Console(2, this, String.Format("Args: {0}", result));
 				if (args.Sig == _DynFusion.FusionSymbol.ExtenderFusionRoomDataReservedSigs.ActionQueryResponse && args.Sig.StringValue != null)
 				{
 
@@ -385,24 +358,24 @@ namespace DynFusion
 
 										if (attributes["ID"].Value == "Registered")
 										{
-											var isRegsitered = Int32.Parse(attributes["Value"].Value.ToString());
+											var isRegistered = int.Parse(attributes["Value"].Value.ToString());
 
-											if (isRegsitered == 1)
+											if (isRegistered == 1)
 											{
 												RegisterdForPush.Value = true;
 
 												// JTA EXTRA Logging
-												Debug.ConsoleWithLog(2, this, string.Format("SchedulePush: {0}", RegisterdForPush.Value), 1);
+												this.LogVerbose("SchedulePush: {value}", RegisterdForPush.Value);
 
-												this.StartSchedPushTimer();
+												StartSchedPushTimer();
 											}
 
-											else if (isRegsitered == 0)
+											else if (isRegistered == 0)
 											{
 												RegisterdForPush.Value = false;
 												// JTA EXTRA Logging
-												Debug.ConsoleWithLog(2, this, string.Format("SchedulePush: {0}", RegisterdForPush.Value), 1);
-												this.StopSchedPushTimer();
+												this.LogVerbose("SchedulePush: {value}", RegisterdForPush.Value);
+												StopSchedPushTimer();
 
 												schedulePullTimer = new CTimer(GetRoomSchedule, null, schedulePullTimerTimeout, schedulePullTimerTimeout);
 											}
@@ -411,7 +384,7 @@ namespace DynFusion
 								}
 							}
 
-							
+
 						}
 
 						if (requestID.InnerText == "ExtendMeetingRequest")
@@ -419,7 +392,7 @@ namespace DynFusion
 
 							if (actionResponse["ActionID"].InnerText == "MeetingChange")
 							{
-								this.GetRoomSchedule(null);
+								GetRoomSchedule(null);
 								var parameters = actionResponse["Parameters"];
 
 								foreach (XmlElement parameter in parameters)
@@ -467,19 +440,20 @@ namespace DynFusion
 			}
 			catch (Exception e)
 			{
-				Debug.ConsoleWithLog(2, this, e.ToString());
+				this.LogError("Exception getting schedule: {message}", e.Message);
+				this.LogDebug(e, "Stack Trace: ");
 			}
 
-			//PrintTodaysSchedule();
+
 
 		}
 
 
-		void FusionScheduleExtenderSigChange(DeviceExtender currentDeviceExtender, SigEventArgs args)
+		private void FusionScheduleExtenderSigChange(DeviceExtender currentDeviceExtender, SigEventArgs args)
 		{
 			try
 			{
-				Debug.Console(2, this, string.Format("FusionScheduleExtenderSigChange args {0}", args.Sig.StringValue));
+				this.LogVerbose("FusionScheduleExtenderSigChange args {value}", args.Sig.StringValue);
 				if (args.Sig == _DynFusion.FusionSymbol.ExtenderRoomViewSchedulingDataReservedSigs.ScheduleResponse)
 				{
 					XmlDocument scheduleXML = new XmlDocument();
@@ -489,15 +463,14 @@ namespace DynFusion
 					if (scheduleXML != null)
 					{
 
-						Debug.Console(2, this, string.Format("Escaped XML {0}", scheduleXML.ToString()));
+						this.LogVerbose("Escaped XML {0}", scheduleXML.ToString());
 
 						var response = scheduleXML["ScheduleResponse"];
 						var responseEvent = scheduleXML.FirstChild.SelectSingleNode("Event");
 
 						if (response != null)
 						{
-							this.ResetSchedPushTimer();
-
+							ResetSchedulePushTimer();
 
 							if (response["RequestID"].InnerText == "RVRequest")
 							{
@@ -521,13 +494,15 @@ namespace DynFusion
 								FifthMeeting = null;
 								SixthMeeting = null;
 
-								ScheduleResponse scheduleResponse = new ScheduleResponse();
-								scheduleResponse.RoomName = scheduleXML.FirstChild.SelectSingleNode("RoomName").InnerText;
-								scheduleResponse.RequestID = scheduleXML.FirstChild.SelectSingleNode("RequestID").InnerText;
-								scheduleResponse.RoomID = scheduleXML.FirstChild.SelectSingleNode("RoomID").InnerText;
+								ScheduleResponse scheduleResponse = new ScheduleResponse
+								{
+									RoomName = scheduleXML.FirstChild.SelectSingleNode("RoomName").InnerText,
+									RequestID = scheduleXML.FirstChild.SelectSingleNode("RequestID").InnerText,
+									RoomID = scheduleXML.FirstChild.SelectSingleNode("RoomID").InnerText
+								};
 
 								var eventStack = scheduleXML.FirstChild.SelectNodes("Event");
-								Debug.Console(2, this, String.Format("EventStack Count: {0}", eventStack.Count));
+								this.LogVerbose("EventStack Count: {count}", eventStack.Count);
 
 								if (eventStack.Count > 0)
 								{
@@ -544,7 +519,7 @@ namespace DynFusion
 										if (eventStack.Count > 4) { FifthMeeting = new Event(); FifthMeeting = CrestronXMLSerialization.DeSerializeObject<Event>(new XmlReader(eventStack.Item(3).OuterXml)); }
 										if (eventStack.Count > 5) { SixthMeeting = new Event(); SixthMeeting = CrestronXMLSerialization.DeSerializeObject<Event>(new XmlReader(eventStack.Item(3).OuterXml)); }
 
-										AvailableRooms.sendFreeBusyStatusNotAvailable();
+										AvailableRooms.SendFreeBusyStatusNotAvailable();
 									}
 									else
 									{
@@ -553,45 +528,35 @@ namespace DynFusion
 										if (eventStack.Count > 2) { FourthMeeting = new Event(); FourthMeeting = CrestronXMLSerialization.DeSerializeObject<Event>(new XmlReader(eventStack.Item(2).OuterXml)); }
 										if (eventStack.Count > 3) { FifthMeeting = new Event(); FifthMeeting = CrestronXMLSerialization.DeSerializeObject<Event>(new XmlReader(eventStack.Item(2).OuterXml)); }
 										if (eventStack.Count > 4) { SixthMeeting = new Event(); SixthMeeting = CrestronXMLSerialization.DeSerializeObject<Event>(new XmlReader(eventStack.Item(2).OuterXml)); }
-										AvailableRooms.sendFreeBusyStatusAvailableUntil(NextMeeting.dtStart);
+										AvailableRooms.SendFreeBusyStatusAvailableUntil(NextMeeting.dtStart);
 									}
 								}
 								else
 								{
-									AvailableRooms.sendFreeBusyStatusAvailable();
+									AvailableRooms.SendFreeBusyStatusAvailable();
 								}
-								if (CurrentMeeting != null) { Debug.Console(2, this, String.Format("Current Meeting {0}", CurrentMeeting.Subject)); }
-								if (NextMeeting != null) { Debug.Console(2, this, String.Format("Next Meeting {0}", NextMeeting.Subject)); }
-								if (ThirdMeeting != null) { Debug.Console(2, this, String.Format("Later Meeting {0}", ThirdMeeting.Subject)); }
-								if (FourthMeeting != null) { Debug.Console(2, this, String.Format("Latest Meeting {0}", FourthMeeting.Subject)); }
-								if (FifthMeeting != null) { Debug.Console(2, this, String.Format("Fifth Meeting {0}", FifthMeeting.Subject)); }
-								if (SixthMeeting != null) { Debug.Console(2, this, String.Format("Sixth Meeting {0}", SixthMeeting.Subject)); }
+								if (CurrentMeeting != null) { this.LogVerbose("Current Meeting {subject}", CurrentMeeting.Subject); }
+								if (NextMeeting != null) { this.LogVerbose("Next Meeting {subject}", NextMeeting.Subject); }
+								if (ThirdMeeting != null) { this.LogVerbose("Later Meeting {subject}", ThirdMeeting.Subject); }
+								if (FourthMeeting != null) { this.LogVerbose("Latest Meeting {subject}", FourthMeeting.Subject); }
+								if (FifthMeeting != null) { this.LogVerbose("Fifth Meeting {subject}", FifthMeeting.Subject); }
+								if (SixthMeeting != null) { this.LogVerbose("Sixth Meeting {subject}", SixthMeeting.Subject); }
 
-
-								/*
-								if (!RegisterdForPush.value)
-								{
-									schedulePullTimer.Reset(schedulePullTimerTimeout, schedulePullTimerTimeout);
-								}
-								 */ 
 								getScheduleTimeOut.Stop();
 								var handler = ScheduleChanged;
-								if(handler != null)
+								if (handler != null)
 								{
-									Debug.Console(2, this, String.Format("Schedule Changed Firing Event!"));
-									handler(this, new DynFusionScheduleChangeEventArgs("BAM!"));
+									this.LogVerbose("Schedule Changed Firing Event!");
+									handler(this, new DynFusionScheduleChangeEventArgs(string.Empty));
 								}
 
-								
-
-								
 								ScheduleBusy.Value = false;
 							}
 							#endregion
 							else if (response["RequestID"].InnerText == "PushNotification")
 							{
-								this.GetRoomSchedule(null);
-								Debug.Console(2, this, String.Format("Got a Push Notification!"));
+								GetRoomSchedule(null);
+								this.LogVerbose("Got a Push Notification!");
 
 							}
 							#region RoomListScheduleRequest
@@ -649,46 +614,22 @@ namespace DynFusion
 
 			catch (Exception e)
 			{
-				Debug.ConsoleWithLog(2, this, "{0}\n{1}\n{2}", e.InnerException, e.Message, e.StackTrace);
+				this.LogError("FusionScheduleExtenderSigChange Exception: {message}", e.Message);
+				this.LogDebug(e, "Stack Trace: ");
 			}
-
 		}
 
-		void StartUpdateRemainingTimeTimer()
+		private void StartUpdateRemainingTimeTimer()
 		{
-			UpdateRemainingTimeTimer = new CTimer(new CTimerCallbackFunction(_UpdateRemainingTime), null, Crestron.SimplSharp.Timeout.Infinite, 60000);
+			UpdateRemainingTimeTimer = new CTimer(UpdateRemainingTimeHandler, null, Crestron.SimplSharp.Timeout.Infinite, 60000);
 		}
 
-
-
-		void _UpdateRemainingTime(object o)
+		private void UpdateRemainingTimeHandler(object o)
 		{
-			var handler = UpdateRemainingTime;
-			if (handler != null)
-			{
-				handler(this, new EventArgs());
-			}
-
+			UpdateRemainingTime?.Invoke(this, new EventArgs());
 		}
 
-
-		// TODO: Eventually we should move this to an event and have the API update based on an event change. Encapsulation. JTA 2018-04-04
-		void UpdateMeetingInfo()
-		{
-			try
-			{
-				Debug.Console(2, this, "UpdateMeetingInfo");
-
-				UpdateRemainingTimeTimer.Reset(0, 60000);
-
-			}
-			catch (Exception ex)
-			{
-				Debug.ConsoleWithLog(2, this, ex.ToString());
-			}
-		}
-
-		void CheckMeetingExtend()
+		private void CheckMeetingExtend()
 		{
 			try
 			{
@@ -767,14 +708,15 @@ namespace DynFusion
 			}
 			catch (Exception e)
 			{
-				Debug.ConsoleWithLog(2, this, e.ToString());
+				this.LogError("Exception in CheckMeetingExtend: {message}", e.Message);
+				this.LogDebug(e, "Stack Trace: ");
 			}
 
 
 
 		}
 
-		void CheckMeetingReserve()
+		private void CheckMeetingReserve()
 		{
 			try
 			{
@@ -853,7 +795,8 @@ namespace DynFusion
 			}
 			catch (Exception e)
 			{
-				Debug.ConsoleWithLog(2, this, e.ToString());
+				this.LogError("Exception in CheckMeetingReserve: {message}", e.Message);
+				this.LogDebug(e, "Stack Trace: ");
 			}
 
 
@@ -904,7 +847,7 @@ namespace DynFusion
 					CheckMeetingReserve();
 					if (CurrentMeeting != null && !CurrentMeeting.isInProgress) { GetRoomSchedule(); }
 					if (NextMeeting != null && NextMeeting.isInProgress) { GetRoomSchedule(); }
-					Debug.Console(2, this, "UpdateRemainingTime");
+
 					if (CurrentMeeting != null)
 					{
 						trilist.StringInput[joinMap.CurrentMeetingRemainingTime.JoinNumber].StringValue = CurrentMeeting.TimeRemainingString;
@@ -934,7 +877,7 @@ namespace DynFusion
 					}
 					if (FourthMeeting != null)
 					{
-						trilist.StringInput[joinMap.FourthMeetingRemainingTime.JoinNumber].StringValue = FourthMeeting.TimeRemainingString;	
+						trilist.StringInput[joinMap.FourthMeetingRemainingTime.JoinNumber].StringValue = FourthMeeting.TimeRemainingString;
 						trilist.UShortInput[joinMap.FourthMeetingRemainingTime.JoinNumber].UShortValue = Convert.ToUInt16(FourthMeeting.TimeRemainingInMin);
 					}
 					if (FifthMeeting != null)
@@ -953,7 +896,6 @@ namespace DynFusion
 				{
 					try
 					{
-						Debug.Console(2, this, "ScheduleChanged");
 						if (CurrentMeeting != null)
 						{
 							trilist.StringInput[joinMap.CurrentMeetingOrganizer.JoinNumber].StringValue = CurrentMeeting.Organizer;
@@ -1110,20 +1052,22 @@ namespace DynFusion
 					}
 					catch (Exception ex)
 					{
-						Debug.Console(0, this, Debug.ErrorLogLevel.Error, ex.Message);
+						this.LogError("LinkToApi ScheduleChanged: {message}", ex.Message);
+						this.LogDebug(ex, "Stack Trace: ");
 					}
 				});
 
 			}
 			catch (Exception ex)
 			{
-				Debug.Console(0, this, Debug.ErrorLogLevel.Error, ex.Message);
+				this.LogError("LinkToApi: {message}", ex.Message);
+				this.LogDebug(ex, "Stack Trace: ");
 			}
 		}
-	
-	
-		}
-	
+
+
+	}
+
 
 
 	//************************************************************************************************************************************ 
@@ -1296,11 +1240,11 @@ namespace DynFusion
 				double minutesRounded = Math.Round(minutes);
 				if (hours > 0)
 				{
-					duration = String.Format("{0} Hours {1} Minutes", hours, minutesRounded);
+					duration = string.Format("{0} Hours {1} Minutes", hours, minutesRounded);
 				}
 				else
 				{
-					duration = String.Format("{0} Minutes", minutesRounded);
+					duration = string.Format("{0} Minutes", minutesRounded);
 				}
 
 				return duration;
@@ -1358,7 +1302,7 @@ namespace DynFusion
 			}
 		}
 
-		bool GetInProgress()
+		private bool GetInProgress()
 		{
 			var now = DateTime.Now;
 

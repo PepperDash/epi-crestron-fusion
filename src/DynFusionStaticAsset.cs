@@ -6,6 +6,7 @@ using Crestron.SimplSharpPro.DeviceSupport;
 using Crestron.SimplSharpPro.Fusion;
 using DynFusion.Config;
 using PepperDash.Core;
+using PepperDash.Core.Logging;
 using PepperDash.Essentials.Core;
 using PepperDash.Essentials.Core.Bridges;
 
@@ -29,12 +30,12 @@ namespace DynFusion
 		private readonly DynFusionStaticAssetJoinMap _joinMap;
 
 		// key is the fusion join number, not the bridge join number
-		private readonly Dictionary<UInt32, DynFusionDigitalAttribute> _digitalAttributesToFusion;
-		private readonly Dictionary<UInt32, DynFusionAnalogAttribute> _analogAttributesToFusion;
-		private readonly Dictionary<UInt32, DynFusionSerialAttribute> _serialAttributesToFusion;
-		private readonly Dictionary<UInt32, DynFusionDigitalAttribute> _digitalAttributesFromFusion;
-		private readonly Dictionary<UInt32, DynFusionAnalogAttribute> _analogAttributesFromFusion;
-		private readonly Dictionary<UInt32, DynFusionSerialAttribute> _serialAttributesFromFusion;
+		private readonly Dictionary<uint, DynFusionDigitalAttribute> _digitalAttributesToFusion;
+		private readonly Dictionary<uint, DynFusionAnalogAttribute> _analogAttributesToFusion;
+		private readonly Dictionary<uint, DynFusionSerialAttribute> _serialAttributesToFusion;
+		private readonly Dictionary<uint, DynFusionDigitalAttribute> _digitalAttributesFromFusion;
+		private readonly Dictionary<uint, DynFusionAnalogAttribute> _analogAttributesFromFusion;
+		private readonly Dictionary<uint, DynFusionSerialAttribute> _serialAttributesFromFusion;
 
 		private uint _powerOffJoin;
 		private uint _powerOnJoin;
@@ -42,8 +43,8 @@ namespace DynFusion
 		public DynFusionStaticAsset(IKeyName parentDevice, FusionRoom symbol, uint assetNumber, FusionStaticAssetConfig config)
 			: base(string.Format("{0}-staticAsset-#{1}-{2}", parentDevice.Key, assetNumber, config.Name.Replace(" ", "")))
 		{
-			_parentDevice = parentDevice; 
-			
+			_parentDevice = parentDevice;
+
 			AssetNumber = assetNumber;
 			AssetName = config.Name;
 			AssetType = config.Type;
@@ -54,16 +55,16 @@ namespace DynFusion
 			AttributeOffset = config.AttributeJoinOffset;
 			CustomAttributeOffset = config.CustomAttributeJoinOffset;
 
-			_digitalAttributesToFusion = new Dictionary<UInt32, DynFusionDigitalAttribute>();
-			_analogAttributesToFusion = new Dictionary<UInt32, DynFusionAnalogAttribute>();
-			_serialAttributesToFusion = new Dictionary<UInt32, DynFusionSerialAttribute>();
-			_digitalAttributesFromFusion = new Dictionary<UInt32, DynFusionDigitalAttribute>();
-			_analogAttributesFromFusion = new Dictionary<UInt32, DynFusionAnalogAttribute>();
-			_serialAttributesFromFusion = new Dictionary<UInt32, DynFusionSerialAttribute>();
+			_digitalAttributesToFusion = new Dictionary<uint, DynFusionDigitalAttribute>();
+			_analogAttributesToFusion = new Dictionary<uint, DynFusionAnalogAttribute>();
+			_serialAttributesToFusion = new Dictionary<uint, DynFusionSerialAttribute>();
+			_digitalAttributesFromFusion = new Dictionary<uint, DynFusionDigitalAttribute>();
+			_analogAttributesFromFusion = new Dictionary<uint, DynFusionAnalogAttribute>();
+			_serialAttributesFromFusion = new Dictionary<uint, DynFusionSerialAttribute>();
 
 			_joinMap = new DynFusionStaticAssetJoinMap(config.AttributeJoinOffset + 1);
 
-			Debug.Console(DebugExtensions.Warn, this, "Adding StaticAsset");			
+			this.LogDebug("Adding StaticAsset");
 
 			_fusionSymbol = symbol;
 			_fusionSymbol.AddAsset(eAssetType.StaticAsset, AssetNumber, AssetName, AssetType, Guid.NewGuid().ToString());
@@ -76,23 +77,23 @@ namespace DynFusion
 
 		public void SetupAsset(FusionStaticAssetConfig config)
 		{
-			Debug.Console(DebugExtensions.Warn, this, "SetupAsset: _asset is {0}", _asset == null ? "null, setup failed" : "checking config for setup");
+			this.LogDebug("SetupAsset: _asset is {status}", _asset == null ? "null, setup failed" : "checking config for setup");
 			if (_asset == null) return;
 
-			Debug.Console(DebugExtensions.Warn, this, "SetupAsset: config is {0}", config == null ? "null, setup failed" : "running setup");
+			this.LogDebug("SetupAsset: config is {status}", config == null ? "null, setup failed" : "running setup");
 			if (config == null) return;
 
 			try
-			{				
+			{
 				_asset.ParamMake.Value = Make;
 				_asset.ParamModel.Value = Model;
-				
+
 				_asset.PowerOn.AddSigToRVIFile = false;
 				_asset.PowerOff.AddSigToRVIFile = false;
 				_asset.Connected.AddSigToRVIFile = false;
 				_asset.AssetError.AddSigToRVIFile = false;
 				_asset.AssetUsage.AddSigToRVIFile = false;
-				
+
 				_powerOffJoin = 0;
 				_powerOnJoin = 0;
 
@@ -102,31 +103,29 @@ namespace DynFusion
 				CreateStandardAttributeJoin(_joinMap.AssetUsage, _asset.AssetUsage);
 				CreateStandardAttributeJoin(_joinMap.AssetError, _asset.AssetError);
 
-				Debug.Console(DebugExtensions.Warn, this, "Preparing CreateCustomAttributeJoin... digitalAttributes.Count:{0}",
+				this.LogDebug("Preparing CreateCustomAttributeJoin... digitalAttributes.Count:{count}",
 					config.CustomAttributes.DigitalAttributes.Count());
 				CreateCustomAttributeJoin(config.CustomAttributes.DigitalAttributes, FusionJoinOffset, eSigType.Bool);
 
-				Debug.Console(DebugExtensions.Warn, this, "Preparing CreateCustomAttributeJoin... analogAttributes.Count:{0}",
+				this.LogDebug("Preparing CreateCustomAttributeJoin... analogAttributes.Count:{count}",
 					config.CustomAttributes.AnalogAttributes.Count());
 				CreateCustomAttributeJoin(config.CustomAttributes.AnalogAttributes, FusionJoinOffset, eSigType.UShort);
 
-				Debug.Console(DebugExtensions.Warn, this, "Preparing CreateCustomAttributeJoin... serialAttributes.Count:{0}",
+				this.LogDebug("Preparing CreateCustomAttributeJoin... serialAttributes.Count:{count}",
 					config.CustomAttributes.SerialAttributes.Count());
 				CreateCustomAttributeJoin(config.CustomAttributes.SerialAttributes, FusionJoinOffset, eSigType.String);
 			}
 			catch (Exception ex)
 			{
-				Debug.Console(DebugExtensions.Trace, this, "DynFusionStaticAsset Exception Message: {0}", ex.Message);
-				Debug.Console(DebugExtensions.Warn, this, "DynFusionStaticAsset Exception StackTrace: {0}", ex.StackTrace);
-				if (ex.InnerException != null)
-					Debug.Console(DebugExtensions.Warn, this, "DynFusionStaticAsset Exception InnerException: {0}", ex.InnerException);
+				this.LogError("DynFusionStaticAsset Exception Message: {message}", ex.Message);
+				this.LogDebug(ex, "Stack Trace: ");
 			}
 		}
 
 		public override void LinkToApi(BasicTriList trilist, uint joinStart, string joinMapKey, EiscApiAdvanced bridge)
 		{
-			Debug.Console(DebugExtensions.Warn, this, "Linking to Trilist '{0}'", trilist.ID.ToString("X"));
-			Debug.Console(DebugExtensions.Warn, this, "Linking to Bridge AssetType {0}", GetType().Name);
+			this.LogDebug("Linking to Trilist '{trilistId}'", trilist.ID.ToString("X"));
+			this.LogDebug("Linking to Bridge AssetType {assetType}", GetType().Name);
 			var joinMap = new DynFusionStaticAssetJoinMap(joinStart + AttributeOffset);
 
 			LinkDigitalAttributesToApi(trilist, joinMap);
@@ -136,16 +135,16 @@ namespace DynFusion
 
 		private void LinkDigitalAttributesToApi(BasicTriList trilist, DynFusionStaticAssetJoinMap joinMap)
 		{
-			Debug.Console(DebugExtensions.Warn, this, "Linking DigitalAttributes to Trilist '{0}'", trilist.ID.ToString("X"));
+			this.LogDebug("Linking DigitalAttributes to Trilist '{trilistId}'", trilist.ID.ToString("X"));
 
 			foreach (var attribute in _digitalAttributesToFusion)
 			{
 				var attLocal = attribute.Value;
-				var bridgeJoin = (attLocal.JoinNumber < FusionJoinOffset) 
+				var bridgeJoin = (attLocal.JoinNumber < FusionJoinOffset)
 					? attLocal.JoinNumber + AttributeOffset
-					: (attLocal.JoinNumber + CustomAttributeOffset) - FusionJoinOffset;
+					: attLocal.JoinNumber + CustomAttributeOffset - FusionJoinOffset;
 
-				Debug.Console(DebugExtensions.Warn, this, "Linking SetBoolSigAction-{0}:{1}", attLocal.Name, bridgeJoin);
+				this.LogDebug("Linking SetBoolSigAction-{name}:{bridgeJoin}", attLocal.Name, bridgeJoin);
 				trilist.SetBoolSigAction(bridgeJoin, (b) => { attLocal.BoolValue = b; });
 			}
 
@@ -154,25 +153,25 @@ namespace DynFusion
 				var attLocal = attribute.Value;
 				var bridgeJoin = (attLocal.JoinNumber < FusionJoinOffset)
 					? attLocal.JoinNumber + AttributeOffset
-					: (attLocal.JoinNumber + CustomAttributeOffset) - FusionJoinOffset;
+					: attLocal.JoinNumber + CustomAttributeOffset - FusionJoinOffset;
 
-				Debug.Console(DebugExtensions.Warn, this, "Linking BoolValueFeedback-{0}:{1}", attLocal.Name, bridgeJoin);
+				this.LogDebug("Linking BoolValueFeedback-{name}:{bridgeJoin}", attLocal.Name, bridgeJoin);
 				attLocal.BoolValueFeedback.LinkInputSig(trilist.BooleanInput[bridgeJoin]);
 			}
 		}
 
 		private void LinkAnalogAttributesToApi(BasicTriList trilist, DynFusionStaticAssetJoinMap joinMap)
 		{
-			Debug.Console(DebugExtensions.Warn, this, "Linking AnalogAttributes to Trilist '{0}'", trilist.ID.ToString("X"));
+			this.LogDebug("Linking AnalogAttributes to Trilist '{trilistId}'", trilist.ID.ToString("X"));
 
 			foreach (var attribute in _analogAttributesToFusion)
 			{
 				var attLocal = attribute.Value;
 				var bridgeJoin = (attLocal.JoinNumber < FusionJoinOffset)
 					? attLocal.JoinNumber + AttributeOffset
-					: (attLocal.JoinNumber + CustomAttributeOffset) - FusionJoinOffset;
+					: attLocal.JoinNumber + CustomAttributeOffset - FusionJoinOffset;
 
-				Debug.Console(DebugExtensions.Warn, this, "Linking SetUshortSigAction-{0}:{1}", attLocal.Name, bridgeJoin);
+				this.LogDebug("Linking SetUshortSigAction-{name}:{bridgeJoin}", attLocal.Name, bridgeJoin);
 				trilist.SetUShortSigAction(bridgeJoin, (a) => { attLocal.UShortValue = a; });
 			}
 
@@ -181,25 +180,25 @@ namespace DynFusion
 				var attLocal = attribute.Value;
 				var bridgeJoin = (attLocal.JoinNumber < FusionJoinOffset)
 					? attLocal.JoinNumber + AttributeOffset
-					: (attLocal.JoinNumber + CustomAttributeOffset) - FusionJoinOffset;
+					: attLocal.JoinNumber + CustomAttributeOffset - FusionJoinOffset;
 
-				Debug.Console(DebugExtensions.Warn, this, "Linking UShortValueFeedback-{0}:{1}", attLocal.Name, bridgeJoin);
+				this.LogDebug("Linking UShortValueFeedback-{name}:{bridgeJoin}", attLocal.Name, bridgeJoin);
 				attLocal.UShortValueFeedback.LinkInputSig(trilist.UShortInput[bridgeJoin]);
 			}
 		}
 
 		private void LinkSerialAttributesToApi(BasicTriList trilist, DynFusionStaticAssetJoinMap joinMap)
 		{
-			Debug.Console(DebugExtensions.Warn, this, "Linking SerialAttributes to Trilist '{0}'", trilist.ID.ToString("X"));
+			this.LogDebug("Linking SerialAttributes to Trilist '{trilistId}'", trilist.ID.ToString("X"));
 
 			foreach (var attribute in _serialAttributesToFusion)
 			{
 				var attLocal = attribute.Value;
 				var bridgeJoin = (attLocal.JoinNumber < FusionJoinOffset)
 					? attLocal.JoinNumber + AttributeOffset
-					: (attLocal.JoinNumber + CustomAttributeOffset) - FusionJoinOffset;
+					: attLocal.JoinNumber + CustomAttributeOffset - FusionJoinOffset;
 
-				Debug.Console(DebugExtensions.Warn, this, "Linking SetStringSigAction-{0}:{1}", attLocal.Name, bridgeJoin);
+				this.LogDebug("Linking SetStringSigAction-{name}:{bridgeJoin}", attLocal.Name, bridgeJoin);
 				trilist.SetStringSigAction(bridgeJoin, (s) => { attLocal.StringValue = s; });
 			}
 
@@ -208,9 +207,9 @@ namespace DynFusion
 				var attLocal = attribute.Value;
 				var bridgeJoin = (attLocal.JoinNumber < FusionJoinOffset)
 					? attLocal.JoinNumber + AttributeOffset
-					: (attLocal.JoinNumber + CustomAttributeOffset) - FusionJoinOffset;
+					: attLocal.JoinNumber + CustomAttributeOffset - FusionJoinOffset;
 
-				Debug.Console(DebugExtensions.Warn, this, "Linking StringValueFeedback-{0}:{1}", attLocal.Name, bridgeJoin);
+				this.LogDebug("Linking StringValueFeedback-{name}:{bridgeJoin}", attLocal.Name, bridgeJoin);
 				attLocal.StringValueFeedback.LinkInputSig(trilist.StringInput[bridgeJoin]);
 			}
 
@@ -223,12 +222,11 @@ namespace DynFusion
 					var attLocal = attribute.Value;
 					var bridgeJoin = (attLocal.JoinNumber < FusionJoinOffset)
 						? attLocal.JoinNumber + AttributeOffset
-						: (attLocal.JoinNumber + CustomAttributeOffset) - FusionJoinOffset;
-					var trilistLocal = sender as BasicTriList;
+						: attLocal.JoinNumber + CustomAttributeOffset - FusionJoinOffset;
 
-					if (trilistLocal == null)
+					if (!(sender is BasicTriList trilistLocal))
 					{
-						Debug.Console(DebugExtensions.Warn, this, "LinkSerialAttributesToApi trilistLocal is null");
+						this.LogDebug("LinkSerialAttributesToApi trilistLocal is null");
 						return;
 					}
 
@@ -239,7 +237,7 @@ namespace DynFusion
 
 		private void _fusionSymbol_FusionAssetStateChange(FusionBase device, FusionAssetStateEventArgs args)
 		{
-			Debug.Console(DebugExtensions.Warn, this, "FusionAssetStateChange Device:{0} EventId:{1} Index:{2}",
+			this.LogDebug("FusionAssetStateChange Device:{device} EventId:{eventId} Index:{index}",
 				device, args.EventId, args.UserConfigurableAssetDetailIndex);
 
 			if (AssetNumber != args.UserConfigurableAssetDetailIndex)
@@ -272,9 +270,9 @@ namespace DynFusion
 				case FusionAssetEventId.StaticAssetAssetBoolAssetSigEventReceivedEventId:
 					{
 						var sigDetails = args.UserConfiguredSigDetail as BooleanSigData;
-						var joinNumber = (sigDetails.Number + FusionJoinOffset);
+						var joinNumber = sigDetails.Number + FusionJoinOffset;
 						DynFusionDigitalAttribute output;
-						Debug.Console(DebugExtensions.Verbose, this, "StaticAsset Digital Join:{0} Name:{1} Value:{2}",
+						this.LogVerbose("StaticAsset Digital Join:{joinNumber} Name:{name} Value:{value}",
 							joinNumber, sigDetails.Name, sigDetails.OutputSig.BoolValue);
 
 						if (_digitalAttributesFromFusion.TryGetValue(joinNumber, out output))
@@ -286,9 +284,9 @@ namespace DynFusion
 				case FusionAssetEventId.StaticAssetAssetUshortAssetSigEventReceivedEventId:
 					{
 						var sigDetails = args.UserConfiguredSigDetail as UShortSigData;
-						var joinNumber = (sigDetails.Number + FusionJoinOffset);
+						var joinNumber = sigDetails.Number + FusionJoinOffset;
 						DynFusionAnalogAttribute output;
-						Debug.Console(DebugExtensions.Verbose, this, "DynFusion StaticAsset Analog Join:{0} Name:{1} Value:{2}",
+						this.LogVerbose("DynFusion StaticAsset Analog Join:{joinNumber} Name:{name} Value:{value}",
 							joinNumber, sigDetails.Name, sigDetails.OutputSig.UShortValue);
 
 						if (_analogAttributesFromFusion.TryGetValue(joinNumber, out output))
@@ -300,9 +298,9 @@ namespace DynFusion
 				case FusionAssetEventId.StaticAssetAssetStringAssetSigEventReceivedEventId:
 					{
 						var sigDetails = args.UserConfiguredSigDetail as StringSigData;
-						var joinNumber = (sigDetails.Number + FusionJoinOffset);
+						var joinNumber = sigDetails.Number + FusionJoinOffset;
 						DynFusionSerialAttribute output;
-						Debug.Console(DebugExtensions.Verbose, this, "DynFusion StaticAsset Serial Join:{0} Name:{1} Value:{2}",
+						this.LogVerbose("DynFusion StaticAsset Serial Join:{joinNumber} Name:{name} Value:{value}",
 							joinNumber, sigDetails.Name, sigDetails.OutputSig.StringValue);
 
 						if (_serialAttributesFromFusion.TryGetValue(joinNumber, out output))
@@ -326,7 +324,7 @@ namespace DynFusion
 
 		private void CreateStandardAttributeJoin(JoinDataComplete join, BooleanSigDataFixedName sig)
 		{
-			Debug.Console(DebugExtensions.Verbose, this, "CreateStandardAttributeJoin: {0} ({1}, {2}, {3})",
+			this.LogVerbose("CreateStandardAttributeJoin: {name} ({ioMask}, {joinNumber}, {joinCapabilities})",
 				sig.Name, sig.SigIoMask.ToString(), join.JoinNumber, join.Metadata.JoinCapabilities.ToString());
 
 			if (join.Metadata.JoinCapabilities == eJoinCapabilities.ToFromSIMPL ||
@@ -347,26 +345,26 @@ namespace DynFusion
 			switch (sig.Name)
 			{
 				case "PowerOn":
-				{
-					_asset.PowerOn.AddSigToRVIFile = true;
-					break;
-				}
+					{
+						_asset.PowerOn.AddSigToRVIFile = true;
+						break;
+					}
 				case "PowerOff":
-				{
-					_asset.PowerOff.AddSigToRVIFile = true;
-					break;
-				}
+					{
+						_asset.PowerOff.AddSigToRVIFile = true;
+						break;
+					}
 				case "Connected":
-				{
-					_asset.Connected.AddSigToRVIFile = true;
-					break;
-				}
+					{
+						_asset.Connected.AddSigToRVIFile = true;
+						break;
+					}
 			}
 		}
 
 		private void CreateStandardAttributeJoin(JoinDataComplete join, UShortSigDataFixedName sig)
 		{
-			Debug.Console(DebugExtensions.Verbose, this, "CreateStandardAttributeJoin: {0} ({1}, {2}, {3})",
+			this.LogVerbose("CreateStandardAttributeJoin: {name} ({ioMask}, {joinNumber}, {joinCapabilities})",
 				sig.Name, sig.SigIoMask.ToString(), join.JoinNumber, join.Metadata.JoinCapabilities.ToString());
 
 			if (join.Metadata.JoinCapabilities == eJoinCapabilities.ToFromSIMPL ||
@@ -387,7 +385,7 @@ namespace DynFusion
 			switch (sig.Name)
 			{
 				default:
-					{						
+					{
 						break;
 					}
 			}
@@ -395,7 +393,7 @@ namespace DynFusion
 
 		private void CreateStandardAttributeJoin(JoinDataComplete join, StringSigDataFixedName sig)
 		{
-			Debug.Console(DebugExtensions.Verbose, this, "CreateStandardAttributeJoin: {0} ({1}, {2}, {3})",
+			this.LogVerbose("CreateStandardAttributeJoin: {name} ({ioMask}, {joinNumber}, {joinCapabilities})",
 				sig.Name, sig.SigIoMask.ToString(), join.JoinNumber, join.Metadata.JoinCapabilities.ToString());
 
 			if (join.Metadata.JoinCapabilities == eJoinCapabilities.ToFromSIMPL ||
@@ -432,7 +430,7 @@ namespace DynFusion
 		{
 			foreach (var attribute in attributes)
 			{
-				var name = attribute.Name; 
+				var name = attribute.Name;
 				var joinNumber = attribute.JoinNumber + offset;
 				var linkDeviceKey = attribute.LinkDeviceKey;
 				var linkDeviceMethod = attribute.LinkDeviceMethod;
@@ -440,14 +438,14 @@ namespace DynFusion
 				var rwType = attribute.RwType;
 				var ioMask = DynFusionDevice.GetIOMask(rwType);
 
-				Debug.Console(DebugExtensions.Verbose, this, "CreateCustomAttributeJoin: {0} ({1}, {2}, {3})",
+				this.LogDebug("CreateCustomAttributeJoin: {name} ({ioMask}, {joinNumber}, {joinCapabilities})",
 					name, joinNumber, ioMask.ToString(), rwType.ToString());
 
 				_fusionSymbol.AddSig(AssetNumber, sigType, joinNumber, name, ioMask);
 
 				switch (sigType)
 				{
-					case (eSigType.Bool):
+					case eSigType.Bool:
 						{
 							if (rwType == eReadWrite.ReadWrite || rwType == eReadWrite.Read)
 							{
@@ -465,7 +463,7 @@ namespace DynFusion
 
 							break;
 						}
-					case (eSigType.UShort):
+					case eSigType.UShort:
 						{
 							if (rwType == eReadWrite.ReadWrite || rwType == eReadWrite.Read)
 							{
@@ -483,7 +481,7 @@ namespace DynFusion
 
 							break;
 						}
-					case (eSigType.String):
+					case eSigType.String:
 						{
 							if (rwType == eReadWrite.ReadWrite || rwType == eReadWrite.Read)
 							{

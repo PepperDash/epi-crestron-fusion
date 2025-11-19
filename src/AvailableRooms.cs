@@ -8,6 +8,7 @@ using Crestron.SimplSharp.CrestronXml.Serialization;
 using Crestron.SimplSharp.CrestronXmlLinq;
 using Crestron.SimplSharpPro.Fusion;
 using Crestron.SimplSharpPro;
+using PepperDash.Core.Logging;
 
 
 
@@ -16,8 +17,9 @@ using PepperDash.Core;
 namespace DynFusion
 {
 
-	public class Room
+	public class Room : IKeyed
 	{
+		public string Key => RoomID;
 		public string RoomID { get; set; }
 		public string RoomName { get; set; }
 		public string Location { get; set; }
@@ -27,10 +29,10 @@ namespace DynFusion
 			get
 			{
 				double returnValue;
-				if (this.FreeBusyStatus.Contains("T"))
+				if (FreeBusyStatus.Contains("T"))
 				{
 					DateTime tempTime = DateTime.Parse(FreeBusyStatus);
-					//CrestronConsole.PrintLine(tempTime.ToString());
+
 					if (tempTime > DateTime.Now)
 					{
 						returnValue = Math.Round(tempTime.Subtract(DateTime.Now).TotalMinutes);
@@ -49,8 +51,9 @@ namespace DynFusion
 	}
 
 
-	public class DynFusionScheduleAvailableRooms
+	public class AvailableRooms : IKeyed
 	{
+		public string Key => "AvailableRooms";
 		public bool includeInAvailbleRooms;
 		private CTimer getAvailableRoomsTimeOut;
 		private bool _availableRoomStatus;
@@ -58,7 +61,7 @@ namespace DynFusion
 		{
 			set
 			{
-				this._availableRoomStatus = value;
+				_availableRoomStatus = value;
 				OnAvailableRoomsBusy(this, _availableRoomStatus);
 				if (_availableRoomStatus) { getAvailableRoomsTimeOut = new CTimer(getAvailableRoomsTimeout, 6000); }
 				else { getAvailableRoomsTimeOut.Stop(); }
@@ -74,7 +77,7 @@ namespace DynFusion
 		public delegate void AvailableRoomsBusy(object sender, bool busyStatus);
 		public event AvailableRoomsBusy OnAvailableRoomsBusy;
 
-		public DynFusionScheduleAvailableRooms(DynFusionDevice DynFusionInstance)
+		public AvailableRooms(DynFusionDevice DynFusionInstance)
 		{
 			_DynFusion = DynFusionInstance;
 			_DynFusion.FusionSymbol.ExtenderFusionRoomDataReservedSigs.DeviceExtenderSigChange += new DeviceExtenderJoinChangeEventHandler(FusionRoomDataExtenderSigChange);
@@ -86,78 +89,72 @@ namespace DynFusion
 
 		private void getAvailableRoomsTimeout(object unused)
 		{
-			Debug.ConsoleWithLog(DebugExtensions.Warn, "getAvailableRoomsTimeout error", 3);
-			this.AvailableRoomStatus = false;
+			this.LogWarning("getAvailableRoomsTimeout error");
+			AvailableRoomStatus = false;
 		}
-		public void sendFreeBusyStatusAvailableUntil(DateTime AvailableUntilTime)
+		public void SendFreeBusyStatusAvailableUntil(DateTime AvailableUntilTime)
 		{
 			// "2017-12-09T00:00:00"
 			_DynFusion.FusionSymbol.FreeBusyStatusToRoom.InputSig.StringValue = string.Format("{0}", AvailableUntilTime.ToString("yyyy-MM-ddTHH:mm:00"));
-			Debug.Console(DebugExtensions.Verbose, string.Format("Sending FreeBusyStatus {0}", AvailableUntilTime.ToString("yyyy-MM-ddTHH:mm:00")));
+			this.LogDebug("Sending FreeBusyStatus {availableUntil}", AvailableUntilTime.ToString("yyyy-MM-ddTHH:mm:00"));
 		}
-		public void sendFreeBusyStatusAvailable()
+		public void SendFreeBusyStatusAvailable()
 		{
 			_DynFusion.FusionSymbol.FreeBusyStatusToRoom.InputSig.StringValue = string.Format("{0}", DateTime.Now.AddDays(5).ToString("yyyy-MM-ddT00:00:00"));
-			Debug.Console(DebugExtensions.Verbose, "Sending FreeBusyStatus {0}", DateTime.Now.AddDays(5).ToString("yyyy-MM-ddT00:00:00"));
+			this.LogDebug("Sending FreeBusyStatus {availableUntil}", DateTime.Now.AddDays(5).ToString("yyyy-MM-ddT00:00:00"));
 		}
-		public void sendFreeBusyStatusNotAvailable()
+		public void SendFreeBusyStatusNotAvailable()
 		{
 			_DynFusion.FusionSymbol.FreeBusyStatusToRoom.InputSig.StringValue = string.Format("-");
-			Debug.Console(2, string.Format("-"));
+			this.LogDebug("Sending FreeBusyStatus {availableUntil}", "-");
 		}
-		private void GetRoomList(object unused)
-		{
-			GetRoomList();
-		}
+
 		public void GetRoomList()
 		{
 			try
 			{
 				if (_DynFusion.FusionSymbol.IsOnline)
 				{
-					this.AvailableRoomStatus = true;
+					AvailableRoomStatus = true;
 
 					string fusionRoomListRequest = "";
 					//TODO This needs to be implemented 
-				//	fusionRoomListRequest = String.Format("<RequestRoomList><RequestID>RoomListRequest</RequestID><Property>Location</Property><Value>{0}</Value></RequestRoomList>", _DynFusion.FusionRoomInfo.roomInformation.Location);
-					Debug.Console(DebugExtensions.Verbose, String.Format("RoomList Request: {0}", fusionRoomListRequest));
+					//	fusionRoomListRequest = String.Format("<RequestRoomList><RequestID>RoomListRequest</RequestID><Property>Location</Property><Value>{0}</Value></RequestRoomList>", _DynFusion.FusionRoomInfo.roomInformation.Location);
+					this.LogDebug("RoomList Request: {fusionRoomListRequest}", fusionRoomListRequest);
 
 					_DynFusion.FusionSymbol.ExtenderFusionRoomDataReservedSigs.RoomListQuery.StringValue = fusionRoomListRequest;
 				}
 			}
 			catch (Exception e)
 			{
-				Debug.Console(DebugExtensions.Verbose, String.Format("Error Requesting Room List: {0}", e.ToString()));
+				this.LogError("Error Requesting Room List: {message}", e.Message);
+				this.LogDebug(e, "Stack Trace: ");
 			}
 		}
-		public void getAvailableRooms()
+		public void GetAvailableRooms()
 		{
 			try
 			{
 				if (_DynFusion.FusionSymbol.IsOnline)
 				{
-					string messageHeader = String.Format("<RequestRoomAttributeList><RequestID>RoomAvailabilityRequest:{0}</RequestID>", Guid.NewGuid().ToString());
+					string messageHeader = string.Format("<RequestRoomAttributeList><RequestID>RoomAvailabilityRequest:{0}</RequestID>", Guid.NewGuid().ToString());
 					string messageBody = "";
 					foreach (Room r in RoomList)
 					{
-						messageBody = String.Format("{0}<Room><RoomID>{1}</RoomID><Read><Attributes><Attribute><Join>a0</Join></Attribute><Attribute><Join>s23</Join></Attribute></Attributes></Read></Room>", messageBody, r.RoomID);
+						messageBody = string.Format("{0}<Room><RoomID>{1}</RoomID><Read><Attributes><Attribute><Join>a0</Join></Attribute><Attribute><Join>s23</Join></Attribute></Attributes></Read></Room>", messageBody, r.RoomID);
 					}
-					string messageFooter = String.Format("</RequestRoomAttributeList>");
+					string messageFooter = string.Format("</RequestRoomAttributeList>");
 					_DynFusion.FusionSymbol.ExtenderFusionRoomDataReservedSigs.RoomAttributeQuery.StringValue = string.Format("{0}{1}{2}", messageHeader, messageBody, messageFooter);
-					Debug.Console(DebugExtensions.Verbose, String.Format("RequestRoomAttributeList {0}{1}{2}", messageHeader, messageBody, messageFooter));
-					/* 
-					 * if (_DynFusion.FusionSchedule.isRegisteredForSchedulePushNotifications) {
-						schedulePushTimer.Stop();
-						}
-					 */
+					this.LogVerbose("RequestRoomAttributeList {header}{body}{footer}", messageHeader, messageBody, messageFooter);
 				}
 			}
 			catch (Exception ex)
 			{
-				Debug.Console(DebugExtensions.Verbose, String.Format("getAvailableRooms Error: {0}", ex.Message));
-				Debug.ConsoleWithLog(DebugExtensions.Verbose, ex.ToString());
+				this.LogError("getAvailableRooms Error: {message}", ex.Message);
+				this.LogDebug(ex, "Stack Trace: ");
 			}
 		}
+
 		void FusionRoomDataExtenderSigChange(DeviceExtender currentDeviceExtender, SigEventArgs args)
 		{
 			#region Attribute Query Response Example
@@ -221,43 +218,43 @@ namespace DynFusion
 			#region Attribute Query Response
 			if (args.Sig == _DynFusion.FusionSymbol.ExtenderFusionRoomDataReservedSigs.RoomAttributeResponse)
 			{
-				Debug.Console(2, String.Format("RoomAttributeResponse Args: {0}", args.Sig.StringValue));
+				this.LogVerbose("RoomAttributeResponse Args: {args}", args.Sig.StringValue);
 				XmlDocument availableRoomResponseXML = new XmlDocument();
 				availableRoomResponseXML.LoadXml(args.Sig.StringValue);
 
 				var availableRoomResponse = availableRoomResponseXML["RoomAttributeListResponse"];
-				Debug.Console(2, String.Format("RequestID Args: {0}", availableRoomResponse));
+				this.LogVerbose("RequestID Args: {args}", availableRoomResponse);
 				if (availableRoomResponse != null)
 				{
 					// It may be more efficent to get rid of this foreach JTA 2017-12-06
 					foreach (XmlElement responseElement in availableRoomResponse)
 					{
-						Debug.Console(2, String.Format("RoomAttributeListResponseElement: {0} Value: {1}", responseElement.Name, responseElement.InnerXml));
+						this.LogVerbose("RoomAttributeListResponseElement: {name} Value: {value}", responseElement.Name, responseElement.InnerXml);
 						if (responseElement.Name == "Room")
 						{
 							XmlNodeList roomIDXml = responseElement.GetElementsByTagName("RoomID");
-							Debug.Console(2, String.Format("RoomID: {0}", roomIDXml.Item(0).InnerXml));
+							this.LogVerbose("RoomID: {id}", roomIDXml.Item(0).InnerXml);
 							int index = RoomList.FindIndex(x => x.RoomID == roomIDXml.Item(0).InnerXml);
 
 							XmlNodeList roomAttributes = responseElement.GetElementsByTagName("Attribute");
 
 							foreach (XmlElement attributeElement in roomAttributes)
 							{
-								Debug.Console(2, String.Format("RoomAttributeListResponseRoomElement: {0} Value: {1}", attributeElement.Name, attributeElement.InnerXml));
+								this.LogVerbose("RoomAttributeListResponseRoomElement: {name} Value: {value}", attributeElement.Name, attributeElement.InnerXml);
 								string attributeType = attributeElement.GetElementsByTagName("Name").Item(0).InnerXml;
 								string attributeValue = attributeElement.GetElementsByTagName("Value").Item(0).InnerXml;
-								Debug.Console(2, String.Format("RoomAttributeListResponseRoomAttribute AssetType: {0} Value: {1}", attributeType, attributeValue));
+								this.LogVerbose("RoomAttributeListResponseRoomAttribute AssetType: {type} Value: {value}", attributeType, attributeValue);
 								switch (attributeType)
 								{
-									case ("Online Status"): { if (attributeValue == "2") { RoomList[index].OnlineStatus = true; } else { RoomList[index].OnlineStatus = false; } break; }
-									case ("Free Busy Status"): { RoomList[index].FreeBusyStatus = attributeValue; break; }
+									case "Online Status": { if (attributeValue == "2") { RoomList[index].OnlineStatus = true; } else { RoomList[index].OnlineStatus = false; } break; }
+									case "Free Busy Status": { RoomList[index].FreeBusyStatus = attributeValue; break; }
 								}
 							}
 						}
 					}
 				}
 				OnAvailableRoomsUpdate(this, RoomList);
-				this.AvailableRoomStatus = false;
+				AvailableRoomStatus = false;
 			}
 
 
@@ -301,7 +298,7 @@ namespace DynFusion
 			#region Room List Response
 			if (args.Sig == _DynFusion.FusionSymbol.ExtenderFusionRoomDataReservedSigs.RoomListResponse)
 			{
-				Debug.Console(2, String.Format("RoomList Response: {0}", args.Sig.StringValue));
+				this.LogVerbose("RoomList Response: {response}", args.Sig.StringValue);
 
 				try
 				{
@@ -326,36 +323,17 @@ namespace DynFusion
 								roomToAdd.RoomID = element.GetElementsByTagName("RoomID").Item(0).InnerXml;
 								roomToAdd.Location = element.GetElementsByTagName("Location").Item(0).InnerXml;
 								RoomList.Add(roomToAdd);
-								Debug.Console(2, String.Format("RoomAdded Name:{0} ID:{1} Location: {2}", roomToAdd.RoomName, roomToAdd.RoomID, roomToAdd.Location));
-								/*
-								if (element.Name == "Room") {
-									XmlReader reader = new XmlReader(element.OuterXml);
-									Debug.Console(2, String.Format("OuterXML {0}", element.OuterXml));
-									Room roomListRoom = new Room();
-
-									roomListRoom = CrestronXMLSerialization.DeSerializeObject<Room>(reader);
-									Debug.Console(2, String.Format("Var is: {0}, AssetType: {1}", roomListRoom.RoomName, roomListRoom.GetType()));
-
-									// AvailableRooms.RoomList.Add(roomAvailable); 
-									RoomList.Add(roomListRoom);
-									Debug.Console(2, String.Format("Room added to RoomList"));
-
-									//RoomAvailibility.Add(AvailableRooms);
-									}
-								 */
-
+								this.LogVerbose("RoomAdded Name:{name} ID:{id} Location: {location}", roomToAdd.RoomName, roomToAdd.RoomID, roomToAdd.Location);
 							}
-							getAvailableRooms();
+							GetAvailableRooms();
 						}
 					}
 				}
 				catch (Exception e)
 				{
-					Debug.Console(2, String.Format("Error: {0}, {1}, {2}", e.Message, e.InnerException, e.StackTrace));
-					Debug.Console(2, String.Format("E: {0}", e));
+					this.LogError("Exception in RoomListResponse: {message}", e.Message);
+					this.LogDebug(e, "Stack Trace: ");
 				}
-
-				//getAvailableRooms();
 			}
 			#endregion
 		}
