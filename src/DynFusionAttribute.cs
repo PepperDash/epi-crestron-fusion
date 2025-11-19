@@ -33,33 +33,35 @@ namespace DynFusion
 			Debug.Console(2, "Creating DigitalAttribute {0} {1} {2}", this.JoinNumber, this.Name, this.RwType);
 
 
-			if (deviceKey != null)
+		if (!string.IsNullOrEmpty(deviceKey))
+		{
+			_devicekey = deviceKey;
+			if (!string.IsNullOrEmpty(boolAction))
 			{
-				_devicekey = deviceKey;
-				if (boolAction != null)
-				{
-					_action = boolAction;
-				}
+				_action = boolAction;
+			}
 
-				if (boolFeedback != null)
+			if (!string.IsNullOrEmpty(boolFeedback))
+			{
+				try
 				{
-					try
+					var fb = DeviceJsonApi.GetPropertyByName(deviceKey, boolFeedback) as BoolFeedback;
+					if (fb != null)
 					{
-						var fb = DeviceJsonApi.GetPropertyByName(deviceKey, boolFeedback) as BoolFeedback;
 						fb.OutputChange += ((sender, args) => 
 						{
 							this.BoolValue = args.BoolValue;
 						});
 					}
-					catch (Exception ex)
-					{
-						Debug.Console(0, Debug.ErrorLogLevel.Error, "DynFuison Issue linking Device {0} BoolFB {1}\n{2}", deviceKey, boolFeedback, ex);
-					}
-
 				}
-			}
+				catch (Exception ex)
+				{
+					Debug.Console(0, Debug.ErrorLogLevel.Error, "DynFuison Issue linking Device {0} BoolFB {1}\n{2}", deviceKey, boolFeedback, ex);
+				}
 
+			}
 		}
+	}
 
 		private string _devicekey { get; set; }
 		private string _action { get; set; }
@@ -111,25 +113,29 @@ namespace DynFusion
 		public DynFusionAnalogAttribute(string name, UInt32 joinNumber, string deviceKey, string intAction, string intFeedback)
 			: base(name, eSigType.UShort, joinNumber)
 		{
+			UShortValueFeedback = new IntFeedback( () => { return (int)UShortValue; });
 			Debug.Console(2, "Creating AnalogAttribute {0} {1} {2}", this.JoinNumber, this.Name, this.RwType);
 
-			if (deviceKey != null)
+			if (!string.IsNullOrEmpty(deviceKey))
 			{
 				_devicekey = deviceKey;
-				if (intAction != null)
+				if (!string.IsNullOrEmpty(intAction))
 				{
 					_action = intAction;
 				}
 
-				if (intFeedback != null)
+				if (!string.IsNullOrEmpty(intFeedback))
 				{
 					try
 					{
 						var fb = DeviceJsonApi.GetPropertyByName(deviceKey, intFeedback) as IntFeedback;
-						fb.OutputChange += ((sender, args) =>
+						if (fb != null)
 						{
-							this.UShortValue = args.UShortValue;
-						});
+							fb.OutputChange += ((sender, args) =>
+							{
+								this.UShortValue = args.UShortValue;
+							});
+						}
 					}
 					catch (Exception ex)
 					{
@@ -187,25 +193,29 @@ namespace DynFusion
 		public DynFusionSerialAttribute(string name, UInt32 joinNumber, string deviceKey, string stringAction, string stringFeedback)
 			: base(name, eSigType.String, joinNumber)
 		{
+			StringValueFeedback = new StringFeedback(() => { return StringValue; });
 			Debug.Console(2, "Creating StringAttribute {0} {1} {2}", this.JoinNumber, this.Name, this.RwType);
 
-			if (deviceKey != null)
+			if (!string.IsNullOrEmpty(deviceKey))
 			{
 				_devicekey = deviceKey;
-				if (stringAction != null)
+				if (!string.IsNullOrEmpty(stringAction))
 				{
 					_action = stringAction;
 				}
 
-				if (stringFeedback != null)
+				if (!string.IsNullOrEmpty(stringFeedback))
 				{
 					try
 					{
 						var fb = DeviceJsonApi.GetPropertyByName(deviceKey, stringFeedback) as StringFeedback;
-						fb.OutputChange += ((sender, args) =>
+						if (fb != null)
 						{
-							this.StringValue = args.StringValue;
-						});
+							fb.OutputChange += ((sender, args) =>
+							{
+								this.StringValue = args.StringValue;
+							});
+						}
 					}
 					catch (Exception ex)
 					{
