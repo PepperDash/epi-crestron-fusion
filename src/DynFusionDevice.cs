@@ -1026,6 +1026,8 @@ namespace DynFusion
             Debug.Console(DebugExtensions.Warn, "Linking to Trilist '{0}'", trilist.ID.ToString("X"));
             Debug.Console(DebugExtensions.Trace, "Linking to Bridge AssetType {0}", GetType().Name);
             var joinMap = new DynFusionJoinMap(joinStart);
+            
+            bridge.AddJoinMap(Key, joinMap);
 
             FusionOnlineFeedback.LinkInputSig(trilist.BooleanInput[joinMap.Online.JoinNumber]);
 
