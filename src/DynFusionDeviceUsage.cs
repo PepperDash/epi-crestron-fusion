@@ -1,14 +1,10 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using Crestron.SimplSharp;
-using Crestron.SimplSharpPro;
-using PepperDash.Core;
+using PepperDash.Core.Logging;
 using PepperDash.Essentials.Core;
 namespace DynFusion
 {
-	public class DynFusionDeviceUsage : EssentialsDevice 
+	public class DynFusionDeviceUsage : EssentialsDevice
 	{
 
 		public Dictionary<uint, UsageInfo> deviceUsageInfo = new Dictionary<uint, UsageInfo>();
@@ -29,63 +25,73 @@ namespace DynFusion
 			}
 			catch (Exception ex)
 			{
-				Debug.Console(0, this, "{0}", ex);
+				this.LogError("DynFusionDeviceUsage exception: {message}", ex.Message);
+				this.LogDebug(ex, "Stack Trace: ");
 			}
 		}
 		public void CreateDevice(uint deviceNumber, string type, string name)
 		{
 			try
 			{
-				var NewDev = new UsageInfo();
-				NewDev.name = name;
-				NewDev.type = type;
-				NewDev.usageType = UsageType.Device;
-				NewDev.joinNumber = (ushort)deviceNumber;
+				var NewDev = new UsageInfo
+				{
+					name = name,
+					type = type,
+					usageType = UsageType.Device,
+					joinNumber = (ushort)deviceNumber
+				};
 				var key = string.Format("DEV:{0}", deviceNumber);
 				usageInfoDict.Add(key, NewDev);
-				
-				Debug.Console(1,this, string.Format("DynFusionDeviceUsage Created Device key: {0}", key));
+
+				this.LogDebug("DynFusionDeviceUsage Created Device key: {key}", key);
 			}
 			catch (Exception ex)
 			{
-				Debug.Console(0, this, "{0}", ex);
+				this.LogError("DynFusionDeviceUsage exception: {message}", ex.Message);
+				this.LogDebug(ex, "Stack Trace: ");
 			}
 		}
 		public void CreateDisplay(uint deviceNumber, string name)
 		{
 			try
 			{
-				var NewDisp = new UsageInfo();
-				NewDisp.name = name;
-				NewDisp.type = "Display";
-				NewDisp.sourceNumber = 0;
-				NewDisp.usageType = UsageType.Display;
-				NewDisp.joinNumber = (ushort)deviceNumber;
+				var NewDisp = new UsageInfo
+				{
+					name = name,
+					type = "Display",
+					sourceNumber = 0,
+					usageType = UsageType.Display,
+					joinNumber = (ushort)deviceNumber
+				};
 				var key = string.Format("DISP:{0}", deviceNumber);
 				usageInfoDict.Add(key, NewDisp);
-				Debug.Console(1,this, string.Format("DynFusionDeviceUsage Created Display key: {0}", key));
+				this.LogDebug("DynFusionDeviceUsage Created Display key: {key}", key);
 			}
-			catch (Exception x)
+			catch (Exception ex)
 			{
-				Debug.Console(1,this, "{0}", x);
+				this.LogError("DynFusionDeviceUsage exception: {message}", ex.Message);
+				this.LogDebug(ex, "Stack Trace: ");
 			}
 		}
 		public void CreateSource(uint sourceNumber, string name, string type)
 		{
 			try
 			{
-				var NewSource = new UsageInfo();
-				NewSource.name = name;
-				NewSource.type = type;
-				NewSource.sourceNumber = sourceNumber;
-				NewSource.usageType = UsageType.Source;
+				var NewSource = new UsageInfo
+				{
+					name = name,
+					type = type,
+					sourceNumber = sourceNumber,
+					usageType = UsageType.Source
+				};
 				var key = string.Format("SRC:{0}", sourceNumber);
 				usageInfoDict.Add(key, NewSource);
-				Debug.Console(1,this, "DynFusionDeviceUsage Created Source key: {0}", key);
+				this.LogDebug("DynFusionDeviceUsage Created Source key: {key}", key);
 			}
 			catch (Exception ex)
 			{
-				Debug.Console(0, this, "{0}", ex);
+				this.LogError("DynFusionDeviceUsage exception: {message}", ex.Message);
+				this.LogDebug(ex, "Stack Trace: ");
 			}
 		}
 		public void StartStopDevice(ushort device, bool action)
@@ -105,10 +111,12 @@ namespace DynFusion
 			try
 			{
 				var dispKey = string.Format("DISP:{0}", disp);
-				Debug.Console(1, this, "DynFusionDeviceUsage Change Source {0}", dispKey);
+
+				this.LogDebug("DynFusionDeviceUsage Change Source {dispKey}", dispKey);
+
 				if (usageInfoDict.ContainsKey(dispKey))
 				{
-					Debug.Console(1, this, "DynFusionDeviceUsage Change Source dispKey: {0}, LastSource: {1} New Source: {2}", dispKey, usageInfoDict[dispKey].sourceNumber, source);
+					this.LogDebug("Change Source displayKey: {displayKey}, LastSource: {lastSource} New Source: {newSource}", dispKey, usageInfoDict[dispKey].sourceNumber, source);
 					// get last source
 					var lastSourceNumber = usageInfoDict[dispKey].sourceNumber;
 
@@ -117,7 +125,7 @@ namespace DynFusion
 					{
 						var newSourceKey = string.Format("SRC:{0}", source);
 						StartDevice(newSourceKey);
-						usageInfoDict[dispKey].sourceNumber = (uint)source;
+						usageInfoDict[dispKey].sourceNumber = source;
 					}
 					//Start new device && display
 					else if (lastSourceNumber == 0 && source > 0)
@@ -125,12 +133,12 @@ namespace DynFusion
 						var newSourceKey = string.Format("SRC:{0}", source);
 						StartDevice(dispKey);
 						StartDevice(newSourceKey);
-						usageInfoDict[dispKey].sourceNumber = (uint)source;
+						usageInfoDict[dispKey].sourceNumber = source;
 					}
 					// Stop display
 					else if (lastSourceNumber > 0 && source == 0)
 					{
-						usageInfoDict[dispKey].sourceNumber = (uint)source;
+						usageInfoDict[dispKey].sourceNumber = source;
 						StopDevice(dispKey);
 					}
 					if (lastSourceNumber > 0)
@@ -160,7 +168,8 @@ namespace DynFusion
 			}
 			catch (Exception ex)
 			{
-				Debug.Console(0, this, "{0}", ex);
+				this.LogError("DynFusionDeviceUsage exception: {message}", ex.Message);
+				this.LogDebug(ex, "Stack Trace: ");
 			}
 
 
@@ -173,7 +182,7 @@ namespace DynFusion
 			}
 			else
 			{
-				Debug.Console(1,this, "DynFusionDeviceUsage no device number {0}", key);
+				this.LogWarning("DynFusionDeviceUsage no device number {key}", key);
 			}
 		}
 		public void StopDevice(string key)
@@ -194,16 +203,16 @@ namespace DynFusion
 											"",
 											"");
 						_DynFusionDevice.FusionSymbol.DeviceUsage.InputSig.StringValue = usageString;
-						Debug.Console(1,this, "DynFusionDeviceUsage message \n{0}", usageString);
+						this.LogVerbose("DynFusionDeviceUsage message \n{usageString}", usageString);
 					}
 					else
 					{
-						Debug.Console(1,this, "DynFusionDeviceUsage did not pass threshord {0}", key);
+						this.LogWarning("did not pass threshold {key}", key);
 					}
 				}
 				else
 				{
-					Debug.Console(1,this, "DynFusionDeviceUsage no device number with Start time {0}", key);
+					this.LogWarning("no device number with Start time {key}", key);
 				}
 			}
 		}
@@ -215,7 +224,7 @@ namespace DynFusion
 			}
 			else
 			{
-				Debug.Console(1,this, "DynFusionDeviceUsage no device number {0}", deviceNumber);
+				this.LogWarning("no device number {deviceNumber}", deviceNumber);
 			}
 		}
 		public class UsageInfo

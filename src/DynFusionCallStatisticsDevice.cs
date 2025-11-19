@@ -1,7 +1,7 @@
 using System;
 using Crestron.SimplSharp;
 using Crestron.SimplSharpPro.Fusion;
-using PepperDash.Core;
+using PepperDash.Core.Logging;
 using PepperDash.Essentials.Core;
 
 namespace DynFusion
@@ -36,29 +36,30 @@ namespace DynFusion
             CallTimeFeedback = new StringFeedback(
                 () => !_callTime.IsRunning
                     ? "00:00:00"
-                    : string.Format("{0:00}:{1:00}:{2:00}", 
-                        _callTime.Elapsed.Hours, 
+                    : string.Format("{0:00}:{1:00}:{2:00}",
+                        _callTime.Elapsed.Hours,
                         _callTime.Elapsed.Minutes,
                         _callTime.Elapsed.Seconds));
 
-            Debug.Console(2, this, "DynFusionCallStatistics Created Device: {0}, {1}", name, type);
+            this.LogVerbose("DynFusionCallStatistics Created Device: {name}, {type}", name, type);
         }
 
         public void StartDevice()
         {
             _callTime.Start();
-            if (_useCallTimer)
+
+            if (!_useCallTimer)
             {
-                if (_callTimer == null)
-                {
-                    Debug.Console(2, this, "DynFusionCallStatistics Creating Timer");
-                    _callTimer = new CTimer(o => CallTimeFeedback.FireUpdate(), null, 0, 1000);
-                }
-                else
-                {
-                    Debug.Console(2, this, "DynFusionCallStatistics Resetting CTimer");
-                    _callTimer.Reset(0, 1000);
-                }
+                return;
+            }
+
+            if (_callTimer == null)
+            {
+                _callTimer = new CTimer(o => CallTimeFeedback.FireUpdate(), null, 0, 1000);
+            }
+            else
+            {
+                _callTimer.Reset(0, 1000);
             }
         }
 
@@ -69,7 +70,7 @@ namespace DynFusion
                 _callTime.Stop();
                 var minUsed = _callTime.Elapsed.Minutes;
 
-                Debug.Console(2, this, "DynFusionCallStatistics Stopped: minUsed = {0}", minUsed.ToString("D"));
+                this.LogVerbose("DynFusionCallStatistics Stopped: minUsed = {minUsed}", minUsed.ToString("D"));
 
                 if (_callTimer != null)
                     _callTimer.Stop();
@@ -77,22 +78,6 @@ namespace DynFusion
                 if (minUsed >= UsageMinThreshold)
                 {
                     const string meetingId = "-";
-
-                    // TODO
-                    /*
-                    string MeetingID;
-                    if (_DynFusion.FusionSchedule != null && _postMeetingId == true)
-                    {
-                        if (_DynFusion.FusionSchedule.CurrentMeeting != null)
-                            MeetingID = _DynFusion.FusionSchedule.CurrentMeeting.MeetingID;
-                        else
-                            MeetingID = "-";
-                    }
-                    else
-                    {
-                        MeetingID = "-";
-                    }
-                    */
 
                     var usageString = string.Format("STAT||{0}||{1}||CALL||{2}||{3}||||{4}||Success||-||{5}||",
                         DateTime.Now.ToString("yyyy-MM-dd"),
@@ -109,16 +94,16 @@ namespace DynFusion
                     _callTime.Reset();
                     CallTimeFeedback.FireUpdate();
 
-                    Debug.Console(2, this, "DynFusionCallStatistics message \n{0}", usageString);
+                    this.LogVerbose("DynFusionCallStatistics message {message}", usageString);
                 }
                 else
                 {
-                    Debug.Console(2, this, "DynFusionCallStatistics did not pass threshold");
+                    this.LogVerbose("DynFusionCallStatistics did not pass threshold");
                 }
             }
             else
             {
-                Debug.Console(2, this, "Call Timer not running");
+                this.LogVerbose("Call Timer not running");
             }
         }
     }
