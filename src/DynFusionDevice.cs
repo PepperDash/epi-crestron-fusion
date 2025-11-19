@@ -86,70 +86,11 @@ namespace DynFusion
 
                 // Create Custom Atributes 
                 SetupCustomAtributesDigital();
-
-                foreach (var att in _Config.CustomAttributes.AnalogAttributes)
-                {
-                    FusionSymbol.AddSig(eSigType.UShort, att.JoinNumber - FusionJoinOffset, att.Name,
-                        GetIOMask(att.RwType));
-
-                    if (att.RwType == eReadWrite.ReadWrite || att.RwType == eReadWrite.Read)
-                    {
-                        AnalogAttributesToFusion.Add(att.JoinNumber,
-                            new DynFusionAnalogAttribute(att.Name, att.JoinNumber, att.LinkDeviceKey,
-                                att.LinkDeviceMethod, att.LinkDeviceFeedback));
-
-                        AnalogAttributesToFusion[att.JoinNumber].UShortValueFeedback.LinkInputSig(
-                            FusionSymbol.UserDefinedUShortSigDetails[att.JoinNumber - FusionJoinOffset].InputSig);
-                    }
-                    if (att.RwType == eReadWrite.ReadWrite || att.RwType == eReadWrite.Write)
-                    {
-                        AnalogAttributesToFusion.Add(att.JoinNumber,
-                            new DynFusionAnalogAttribute(att.Name, att.JoinNumber, att.LinkDeviceKey,
-                                att.LinkDeviceMethod, att.LinkDeviceFeedback));
-                    }
-                }
-                foreach (var att in _Config.CustomAttributes.SerialAttributes)
-                {
-                    FusionSymbol.AddSig(eSigType.String, att.JoinNumber - FusionJoinOffset, att.Name,
-                        GetIOMask(att.RwType));
-                    if (att.RwType == eReadWrite.ReadWrite || att.RwType == eReadWrite.Read)
-                    {
-                        SerialAttributesToFusion.Add(att.JoinNumber,
-                            new DynFusionSerialAttribute(att.Name, att.JoinNumber, att.LinkDeviceKey,
-                                att.LinkDeviceMethod, att.LinkDeviceFeedback));
-
-                        SerialAttributesToFusion[att.JoinNumber].StringValueFeedback.LinkInputSig(
-                            FusionSymbol.UserDefinedStringSigDetails[att.JoinNumber - FusionJoinOffset].InputSig);
-                    }
-                    if (att.RwType == eReadWrite.ReadWrite || att.RwType == eReadWrite.Write)
-                    {
-                        SerialAttributesToFusion.Add(att.JoinNumber,
-                            new DynFusionSerialAttribute(att.Name, att.JoinNumber, att.LinkDeviceKey,
-                                att.LinkDeviceMethod, att.LinkDeviceFeedback));
-                    }
-                }
+                SetupCustomAttributesAnalog();
+                SetupCustomAttributesSerial();
 
                 // Create Links for Standard joins 
-                CreateStandardJoin(JoinMapStatic.SystemPowerOn, FusionSymbol.SystemPowerOn);
-                CreateStandardJoin(JoinMapStatic.SystemPowerOff, FusionSymbol.SystemPowerOff);
-                CreateStandardJoin(JoinMapStatic.DisplayPowerOn, FusionSymbol.DisplayPowerOn);
-                CreateStandardJoin(JoinMapStatic.DisplayPowerOff, FusionSymbol.DisplayPowerOff);
-                CreateStandardJoin(JoinMapStatic.MsgBroadcastEnabled, FusionSymbol.MessageBroadcastEnabled);
-                CreateStandardJoin(JoinMapStatic.AuthenticationSucceeded, FusionSymbol.AuthenticateSucceeded);
-                CreateStandardJoin(JoinMapStatic.AuthenticationFailed, FusionSymbol.AuthenticateFailed);
-
-                CreateStandardJoin(JoinMapStatic.DeviceUsage, FusionSymbol.DisplayUsage);
-                CreateStandardJoin(JoinMapStatic.BoradcasetMsgType, FusionSymbol.BroadcastMessageType);
-
-                CreateStandardJoin(JoinMapStatic.HelpMsg, FusionSymbol.Help);
-                CreateStandardJoin(JoinMapStatic.ErrorMsg, FusionSymbol.ErrorMessage);
-                CreateStandardJoin(JoinMapStatic.LogText, FusionSymbol.LogText);
-
-                // Room Data Extender 
-                CreateStandardJoin(JoinMapStatic.ActionQuery,
-                    FusionSymbol.ExtenderFusionRoomDataReservedSigs.ActionQuery);
-                CreateStandardJoin(JoinMapStatic.RoomConfig,
-                    FusionSymbol.ExtenderFusionRoomDataReservedSigs.RoomConfigQuery);
+                SetupStandardJoins();
 
                 SetupCustomProperties();
 
@@ -184,31 +125,166 @@ namespace DynFusion
         {
             try
             {
-                foreach (var att in _Config.CustomAttributes.DigitalAttributes)
+                if (_Config.CustomAttributes?.DigitalAttributes != null)
                 {
-                    FusionSymbol.AddSig(eSigType.Bool, att.JoinNumber - FusionJoinOffset, att.Name,
-                        GetIOMask(att.RwType));
-
-                    if (att.RwType == eReadWrite.ReadWrite || att.RwType == eReadWrite.Read)
+                    foreach (var att in _Config.CustomAttributes.DigitalAttributes)
                     {
-                        DigitalAttributesToFusion.Add(att.JoinNumber,
-                            new DynFusionDigitalAttribute(att.Name, att.JoinNumber, att.LinkDeviceKey,
-                                att.LinkDeviceMethod, att.LinkDeviceFeedback));
+                        if (att != null && !string.IsNullOrEmpty(att.Name))
+                        {
+                            FusionSymbol.AddSig(eSigType.Bool, att.JoinNumber - FusionJoinOffset, att.Name,
+                                GetIOMask(att.RwType));
 
-                        DigitalAttributesToFusion[att.JoinNumber].BoolValueFeedback.LinkInputSig(
-                            FusionSymbol.UserDefinedBooleanSigDetails[att.JoinNumber - FusionJoinOffset].InputSig);
-                    }
-                    if (att.RwType == eReadWrite.ReadWrite || att.RwType == eReadWrite.Write)
-                    {
-                        DigitalAttributesToFusion.Add(att.JoinNumber,
-                            new DynFusionDigitalAttribute(att.Name, att.JoinNumber, att.LinkDeviceKey,
-                                att.LinkDeviceMethod, att.LinkDeviceFeedback));
+                            // Create single attribute instance for all access types
+                            if (att.RwType == eReadWrite.ReadWrite || att.RwType == eReadWrite.Read || att.RwType == eReadWrite.Write)
+                            {
+                                DigitalAttributesToFusion.Add(att.JoinNumber,
+                                    new DynFusionDigitalAttribute(att.Name, att.JoinNumber, att.LinkDeviceKey ?? "",
+                                        att.LinkDeviceMethod ?? "", att.LinkDeviceFeedback ?? ""));
+
+                                // Setup input signal linking for readable attributes
+                                if (att.RwType == eReadWrite.ReadWrite || att.RwType == eReadWrite.Read)
+                                {
+                                    if (FusionSymbol.UserDefinedBooleanSigDetails != null && FusionSymbol.UserDefinedBooleanSigDetails.Count > (att.JoinNumber - FusionJoinOffset))
+                                    {
+                                        DigitalAttributesToFusion[att.JoinNumber].BoolValueFeedback.LinkInputSig(
+                                            FusionSymbol.UserDefinedBooleanSigDetails[att.JoinNumber - FusionJoinOffset].InputSig);
+                                    }
+                                }
+                            }
+                        }
                     }
                 }
             }
             catch (Exception ex)
             {
                 Debug.Console(2, this, "Exception DynFusion SetupCustomAtributesDigital {0}", ex);
+            }
+        }
+
+        private void SetupCustomAttributesAnalog()
+        {
+            try
+            {
+                if (_Config.CustomAttributes?.AnalogAttributes != null)
+                {
+                    foreach (var att in _Config.CustomAttributes.AnalogAttributes)
+                    {
+                        if (att != null && !string.IsNullOrEmpty(att.Name))
+                        {
+                            FusionSymbol.AddSig(eSigType.UShort, att.JoinNumber - FusionJoinOffset, att.Name,
+                                GetIOMask(att.RwType));
+
+                            // Create single attribute instance for all access types
+                            if (att.RwType == eReadWrite.ReadWrite || att.RwType == eReadWrite.Read || att.RwType == eReadWrite.Write)
+                            {
+                                AnalogAttributesToFusion.Add(att.JoinNumber,
+                                    new DynFusionAnalogAttribute(att.Name, att.JoinNumber, att.LinkDeviceKey ?? "",
+                                        att.LinkDeviceMethod ?? "", att.LinkDeviceFeedback ?? ""));
+
+                                // Setup input signal linking for readable attributes
+                                if (att.RwType == eReadWrite.ReadWrite || att.RwType == eReadWrite.Read)
+                                {
+                                    if (FusionSymbol.UserDefinedUShortSigDetails != null)
+                                    {
+                                        var targetFusionJoin = att.JoinNumber - FusionJoinOffset;
+                                        foreach (var sigDetail in FusionSymbol.UserDefinedUShortSigDetails)
+                                        {
+                                            if (sigDetail != null && sigDetail.Number == targetFusionJoin)
+                                            {
+                                                AnalogAttributesToFusion[att.JoinNumber].UShortValueFeedback.LinkInputSig(
+                                                    sigDetail.InputSig);
+                                                break;
+                                            }
+                                        }
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+            catch (Exception ex)
+            {
+                Debug.Console(2, this, "Exception DynFusion SetupCustomAttributesAnalog {0}", ex);
+            }
+        }
+
+        private void SetupCustomAttributesSerial()
+        {
+            try
+            {
+                if (_Config.CustomAttributes?.SerialAttributes != null)
+                {
+                    foreach (var att in _Config.CustomAttributes.SerialAttributes)
+                    {
+                        if (att != null && !string.IsNullOrEmpty(att.Name))
+                        {
+                            FusionSymbol.AddSig(eSigType.String, att.JoinNumber - FusionJoinOffset, att.Name,
+                                GetIOMask(att.RwType));
+                            
+                            // Create single attribute instance for all access types
+                            if (att.RwType == eReadWrite.ReadWrite || att.RwType == eReadWrite.Read || att.RwType == eReadWrite.Write)
+                            {
+                                SerialAttributesToFusion.Add(att.JoinNumber,
+                                    new DynFusionSerialAttribute(att.Name, att.JoinNumber, att.LinkDeviceKey ?? "",
+                                        att.LinkDeviceMethod ?? "", att.LinkDeviceFeedback ?? ""));
+
+                                // Setup input signal linking for readable attributes
+                                if (att.RwType == eReadWrite.ReadWrite || att.RwType == eReadWrite.Read)
+                                {
+                                    var targetFusionJoin = att.JoinNumber - FusionJoinOffset;
+                                    if (FusionSymbol.UserDefinedStringSigDetails != null)
+                                    {
+                                        foreach (var sigDetail in FusionSymbol.UserDefinedStringSigDetails)
+                                        {
+                                            if (sigDetail != null && sigDetail.Number == targetFusionJoin)
+                                            {
+                                                SerialAttributesToFusion[att.JoinNumber].StringValueFeedback.LinkInputSig(
+                                                    sigDetail.InputSig);
+                                                break;
+                                            }
+                                        }
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+            catch (Exception ex)
+            {
+                Debug.Console(2, this, "Exception DynFusion SetupCustomAttributesSerial {0}", ex);
+            }
+        }
+
+        private void SetupStandardJoins()
+        {
+            try
+            {
+                CreateStandardJoin(JoinMapStatic.SystemPowerOn, FusionSymbol.SystemPowerOn);
+                CreateStandardJoin(JoinMapStatic.SystemPowerOff, FusionSymbol.SystemPowerOff);
+                CreateStandardJoin(JoinMapStatic.DisplayPowerOn, FusionSymbol.DisplayPowerOn);
+                CreateStandardJoin(JoinMapStatic.DisplayPowerOff, FusionSymbol.DisplayPowerOff);
+                CreateStandardJoin(JoinMapStatic.MsgBroadcastEnabled, FusionSymbol.MessageBroadcastEnabled);
+                CreateStandardJoin(JoinMapStatic.AuthenticationSucceeded, FusionSymbol.AuthenticateSucceeded);
+                CreateStandardJoin(JoinMapStatic.AuthenticationFailed, FusionSymbol.AuthenticateFailed);
+
+                CreateStandardJoin(JoinMapStatic.DeviceUsage, FusionSymbol.DisplayUsage);
+                CreateStandardJoin(JoinMapStatic.BoradcasetMsgType, FusionSymbol.BroadcastMessageType);
+
+                CreateStandardJoin(JoinMapStatic.HelpMsg, FusionSymbol.Help);
+                CreateStandardJoin(JoinMapStatic.ErrorMsg, FusionSymbol.ErrorMessage);
+                CreateStandardJoin(JoinMapStatic.LogText, FusionSymbol.LogText);
+
+                // Room Data Extender 
+                CreateStandardJoin(JoinMapStatic.ActionQuery,
+                    FusionSymbol.ExtenderFusionRoomDataReservedSigs.ActionQuery);
+                CreateStandardJoin(JoinMapStatic.RoomConfig,
+                    FusionSymbol.ExtenderFusionRoomDataReservedSigs.RoomConfigQuery);
+            }
+            catch (Exception ex)
+            {
+                Debug.Console(2, this, "Exception DynFusion SetupStandardJoins {0}", ex);
             }
         }
 
