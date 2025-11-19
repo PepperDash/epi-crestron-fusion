@@ -9,7 +9,7 @@ namespace DynFusion
         public DynFusionScheduleFactory()
         {
             // Set the minimum Essentials Framework Version
-            MinimumEssentialsFrameworkVersion = "1.5.5";
+            MinimumEssentialsFrameworkVersion = "2.20.5";
 
             // In the constructor we initialize the list with the typenames that will build an instance of this device
             TypeNames = new List<string>() { "DynFusionSchedule" };

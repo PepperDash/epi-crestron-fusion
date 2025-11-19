@@ -2,8 +2,8 @@
   <PropertyGroup>
     <Version>1.0.0-local</Version>
     <InformationalVersion>$(Version)</InformationalVersion>
-    <Authors>PepperDash Technologies</Authors>
-    <Company>PepperDash Technologies</Company>
+    <Authors>PepperDash Technology</Authors>
+    <Company>PepperDash Technology</Company>
     <Product>PepperDash Crestron Fusion</Product>
     <Copyright>Copyright ©  2023</Copyright>
     <RepositoryUrl>https://github.com/PepperDash/epi-crestron-fusion</RepositoryUrl>
