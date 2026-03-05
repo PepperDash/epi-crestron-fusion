@@ -30,7 +30,7 @@
 		<None Remove="PDTDynFusionEPI.projectinfo" />
 	</ItemGroup>
 	<ItemGroup>
-	  <PackageReference Include="PepperDashEssentials" Version="2.20.5">
+	  <PackageReference Include="PepperDashEssentials" Version="2.27.0">
 			<Private>false</Private>
       <ExcludeAssets>runtime</ExcludeAssets>
 		</PackageReference>
