@@ -84,8 +84,10 @@ namespace DynFusion
                 SetupCustomAttributesAnalog();
                 SetupCustomAttributesSerial();
 
-                // Create Links for Standard joins 
-                SetupStandardJoins();
+                // NOTE: SetupStandardJoins() is intentionally NOT called here. It depends on
+                // JoinMapStatic, which is only assigned in LinkToApi() (post-activation, after
+                // CustomActivate). Calling it here threw a NullReferenceException on every startup
+                // (ISS-005). It is now invoked from LinkToApi() once the join map exists.
 
                 SetupCustomProperties();
 
@@ -1072,6 +1074,11 @@ namespace DynFusion
             this.LogDebug("Linking to Bridge AssetType {type}", GetType().Name);
             var joinMap = new DynFusionJoinMap(joinStart);
             JoinMapStatic = joinMap;
+
+            // Wire the standard joins now that JoinMapStatic exists. This populates the
+            // *AttributesToFusion/FromFusion dictionaries that the loops below link to the
+            // trilist, so it must run before them. (Moved out of CustomActivate — see ISS-005.)
+            SetupStandardJoins();
 
             bridge.AddJoinMap(Key, joinMap);
 
