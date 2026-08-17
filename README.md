@@ -280,7 +280,7 @@ DynFusion provides the ability to dynamically create and interact with a Fusion 
 | Join | Type (RW) | Description |
 | --- | --- | --- |
 | 2 | R | DisplayUsage |
-| 22 | R | BoradcasetMsgType |
+| 22 | R | BroadcastMsgType |
 
 #### Serials
 
