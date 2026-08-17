@@ -139,7 +139,6 @@ DynFusion provides the ability to dynamically create and interact with a Fusion 
 ### Minimum Essentials Framework Versions
 
 - 2.20.5
-- 2.20.5
 <!-- END Minimum Essentials Framework Versions -->
 <!-- START Config Example -->
 ### Config Example
