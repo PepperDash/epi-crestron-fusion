@@ -20,7 +20,7 @@ namespace DynFusion
 		[JoinName("PushNotificationRegistered")]
 		public JoinDataComplete PushNotificationRegistered = new JoinDataComplete(new JoinData { JoinNumber = 2, JoinSpan = 1 }, new JoinMetadata { Description = "PushNotificationRegistered", JoinCapabilities = eJoinCapabilities.ToSIMPL, JoinType = eJoinType.Digital });
 		[JoinName("MeetingInProgress")]
-		public JoinDataComplete MeetingInProgress = new JoinDataComplete(new JoinData { JoinNumber = 1, JoinSpan = 1 }, new JoinMetadata { Description = "GetSchedule", JoinCapabilities = eJoinCapabilities.ToSIMPL, JoinType = eJoinType.Digital });
+		public JoinDataComplete MeetingInProgress = new JoinDataComplete(new JoinData { JoinNumber = 1, JoinSpan = 1 }, new JoinMetadata { Description = "MeetingInProgress", JoinCapabilities = eJoinCapabilities.ToSIMPL, JoinType = eJoinType.Digital });
 		[JoinName("ExtendMeeting15Minutes")]
 		public JoinDataComplete ExtendMeeting15Minutes = new JoinDataComplete(new JoinData { JoinNumber = 11, JoinSpan = 1 }, new JoinMetadata { Description = "ExtendMeeting15Minutes", JoinCapabilities = eJoinCapabilities.FromSIMPL, JoinType = eJoinType.Digital });
 		[JoinName("ExtendMeeting30Minutes")]
