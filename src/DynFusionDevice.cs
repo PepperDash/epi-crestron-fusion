@@ -84,8 +84,10 @@ namespace DynFusion
                 SetupCustomAttributesAnalog();
                 SetupCustomAttributesSerial();
 
-                // Create Links for Standard joins 
-                SetupStandardJoins();
+                // NOTE: SetupStandardJoins() is intentionally NOT called here. It depends on
+                // JoinMapStatic, which is only assigned in LinkToApi() (post-activation, after
+                // CustomActivate). Calling it here threw a NullReferenceException on every startup
+                // (ISS-005). It is now invoked from LinkToApi() once the join map exists.
 
                 SetupCustomProperties();
 
@@ -143,6 +145,18 @@ namespace DynFusion
                         new DynFusionDigitalAttribute(att.Name, att.JoinNumber, att.LinkDeviceKey ?? "",
                             att.LinkDeviceMethod ?? "", att.LinkDeviceFeedback ?? ""));
 
+                    // Wire the Fusion -> SIMPL command direction for writable custom attributes.
+                    // Without this, custom attributes were only registered ToFusion, so a Fusion
+                    // write was received/logged but never driven onto the EISC bridge (LinkToApi
+                    // only links trilist.BooleanInput for entries in DigitalAttributesFromFusion).
+                    if ((att.RwType == eReadWrite.Write || att.RwType == eReadWrite.ReadWrite)
+                        && !DigitalAttributesFromFusion.ContainsKey(att.JoinNumber))
+                    {
+                        DigitalAttributesFromFusion.Add(att.JoinNumber,
+                            new DynFusionDigitalAttribute(att.Name, att.JoinNumber, att.LinkDeviceKey ?? "",
+                                att.LinkDeviceMethod ?? "", ""));
+                    }
+
                     // Setup input signal linking for readable attributes
                     if (att.RwType != eReadWrite.ReadWrite && att.RwType != eReadWrite.Read)
                     {
@@ -185,6 +199,14 @@ namespace DynFusion
                             AnalogAttributesToFusion.Add(att.JoinNumber,
                                 new DynFusionAnalogAttribute(att.Name, att.JoinNumber, att.LinkDeviceKey ?? "",
                                     att.LinkDeviceMethod ?? "", att.LinkDeviceFeedback ?? ""));
+
+                            // Wire the Fusion -> SIMPL command direction for writable custom attributes.
+                            if ((att.RwType == eReadWrite.Write || att.RwType == eReadWrite.ReadWrite)
+                                && !AnalogAttributesFromFusion.ContainsKey(att.JoinNumber))
+                            {
+                                AnalogAttributesFromFusion.Add(att.JoinNumber,
+                                    new DynFusionAnalogAttribute(att.Name, att.JoinNumber));
+                            }
 
                             // Setup input signal linking for readable attributes
                             if (att.RwType != eReadWrite.ReadWrite && att.RwType != eReadWrite.Read)
@@ -247,6 +269,14 @@ namespace DynFusion
                     SerialAttributesToFusion.Add(att.JoinNumber,
                         new DynFusionSerialAttribute(att.Name, att.JoinNumber, att.LinkDeviceKey ?? "",
                             att.LinkDeviceMethod ?? "", att.LinkDeviceFeedback ?? ""));
+
+                    // Wire the Fusion -> SIMPL command direction for writable custom attributes.
+                    if ((att.RwType == eReadWrite.Write || att.RwType == eReadWrite.ReadWrite)
+                        && !SerialAttributesFromFusion.ContainsKey(att.JoinNumber))
+                    {
+                        SerialAttributesFromFusion.Add(att.JoinNumber,
+                            new DynFusionSerialAttribute(att.Name, att.JoinNumber));
+                    }
 
                     // Setup input signal linking for readable attributes
                     if (att.RwType != eReadWrite.ReadWrite && att.RwType != eReadWrite.Read)
@@ -1045,6 +1075,11 @@ namespace DynFusion
             this.LogDebug("Linking to Bridge AssetType {type}", GetType().Name);
             var joinMap = new DynFusionJoinMap(joinStart);
             JoinMapStatic = joinMap;
+
+            // Wire the standard joins now that JoinMapStatic exists. This populates the
+            // *AttributesToFusion/FromFusion dictionaries that the loops below link to the
+            // trilist, so it must run before them. (Moved out of CustomActivate — see ISS-005.)
+            SetupStandardJoins();
 
             bridge.AddJoinMap(Key, joinMap);
 
