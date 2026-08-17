@@ -270,7 +270,7 @@ DynFusion provides the ability to dynamically create and interact with a Fusion 
 | 3 | R | SystemPowerOn |
 | 4 | R | SystemPowerOff |
 | 5 | R | DisplayPowerOn |
-| 6 | R | DisplayPowerOoff |
+| 6 | R | DisplayPowerOff |
 | 21 | R | MsgBroadcastEnabled |
 | 30 | R | AuthenticationSucceeded |
 | 31 | R | AuthenticationFailed |
