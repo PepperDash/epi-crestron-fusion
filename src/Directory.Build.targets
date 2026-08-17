@@ -1,4 +1,9 @@
 <Project>
+  <Target Name="EnsureVersionProperty" BeforeTargets="GenerateAssemblyInfo;_GenerateAssemblyInfoInputs">
+    <PropertyGroup Condition="'$(Version)' == ''">
+      <Version>1.0.0-local</Version>
+    </PropertyGroup>
+  </Target>
   <ItemGroup>
     <None Include="$(TargetDir)\$(TargetName).$(Version).cpz" Condition="$(ProjectType) == 'Program'">
       <Pack>true</Pack>
