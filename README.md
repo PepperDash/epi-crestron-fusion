@@ -139,6 +139,7 @@ DynFusion provides the ability to dynamically create and interact with a Fusion 
 ### Minimum Essentials Framework Versions
 
 - 2.20.5
+- 2.20.5
 <!-- END Minimum Essentials Framework Versions -->
 <!-- START Config Example -->
 ### Config Example
@@ -244,6 +245,14 @@ DynFusion provides the ability to dynamically create and interact with a Fusion 
 
 | Join | Type (RW) | Description |
 | --- | --- | --- |
+| 1 | R | Fusion Online |
+| 3 | R | SystemPowerOn |
+| 4 | R | SystemPowerOff |
+| 5 | R | DisplayPowerOn |
+| 6 | R | DisplayPowerOoff |
+| 21 | R | MsgBroadcastEnabled |
+| 30 | R | AuthenticationSucceeded |
+| 31 | R | AuthenticationFailed |
 | 1 | R | Fusion static asset power on |
 | 2 | R | Fusion static asset power off |
 | 3 | R | Fusion static asset connected |
@@ -266,26 +275,33 @@ DynFusion provides the ability to dynamically create and interact with a Fusion 
 | 24 | R | ReserveMeeting60Minutes |
 | 25 | R | ReserveMeeting90Minutes |
 | 35 | R | NextMeetingIsToday |
-| 1 | R | Fusion Online |
-| 3 | R | SystemPowerOn |
-| 4 | R | SystemPowerOff |
-| 5 | R | DisplayPowerOn |
-| 6 | R | DisplayPowerOff |
-| 21 | R | MsgBroadcastEnabled |
-| 30 | R | AuthenticationSucceeded |
-| 31 | R | AuthenticationFailed |
 
 #### Analogs
 
 | Join | Type (RW) | Description |
 | --- | --- | --- |
 | 2 | R | DisplayUsage |
-| 22 | R | BroadcastMsgType |
+| 22 | R | BoradcasetMsgType |
 
 #### Serials
 
 | Join | Type (RW) | Description |
 | --- | --- | --- |
+| 1 | R | Device Name |
+| 1 | R | HelpMsg |
+| 2 | R | ErrorMsg |
+| 3 | R | LogText |
+| 5 | R | DeviceUsage |
+| 6 | R | TextMessage |
+| 22 | R | BroadcastMsg |
+| 23 | R | FreeBusyStatus |
+| 31 | R | GroupMembership |
+| 32 | R | SchedulingQuery |
+| 33 | R | SchedulingCreate |
+| 34 | R | SchedulingRemove |
+| 21 | R | TimeClockQuery |
+| 35 | R | ActionQuery |
+| 14 | R | RoomConfigJoin |
 | 1 | R | Fusion static asset usage |
 | 2 | R | Fusion static asset error |
 | 2 | R | RoomID |
@@ -344,21 +360,6 @@ DynFusion provides the ability to dynamically create and interact with a Fusion 
 | 77 | R | SixthMeetingEndDate |
 | 78 | R | SixthMeetingDuration |
 | 79 | R | SixthMeetingRemainingTime |
-| 1 | R | Device Name |
-| 1 | R | HelpMsg |
-| 2 | R | ErrorMsg |
-| 3 | R | LogText |
-| 5 | R | DeviceUsage |
-| 6 | R | TextMessage |
-| 22 | R | BroadcastMsg |
-| 23 | R | FreeBusyStatus |
-| 31 | R | GroupMembership |
-| 32 | R | SchedulingQuery |
-| 33 | R | SchedulingCreate |
-| 34 | R | SchedulingRemove |
-| 21 | R | TimeClockQuery |
-| 35 | R | ActionQuery |
-| 14 | R | RoomConfigJoin |
 <!-- END Join Maps -->
 <!-- START Interfaces Implemented -->
 ### Interfaces Implemented
@@ -370,33 +371,15 @@ DynFusion provides the ability to dynamically create and interact with a Fusion 
 <!-- START Base Classes -->
 ### Base Classes
 
-- JoinMapBaseAdvanced
 - EssentialsDevice
 - EventArgs
-- DynFusionAttributeBase
+- JoinMapBaseAdvanced
 - EssentialsBridgeableDevice
+- DynFusionAttributeBase
 <!-- END Base Classes -->
 <!-- START Public Methods -->
 ### Public Methods
 
-- public void StartDevice()
-- public void StopDevice()
-- public void StartSchedPushTimer()
-- public void ResetSchedulePushTimer()
-- public void StopSchedPushTimer()
-- public void GetRoomSchedule()
-- public void GetRoomScheduleTimeOut(object unused)
-- public void CallAction(bool value)
-- public void CallAction(uint value)
-- public void CallAction(string value)
-- public void GetRoomConfig()
-- public void SendToLog(IKeyed device, Debug.ErrorLogLevel level, string logMessage)
-- public void SendToLog(IKeyed device, string logMessage)
-- public void SendFreeBusyStatusAvailableUntil(DateTime AvailableUntilTime)
-- public void SendFreeBusyStatusAvailable()
-- public void SendFreeBusyStatusNotAvailable()
-- public void GetRoomList()
-- public void GetAvailableRooms()
 - public void CreateDevice(uint deviceNumber, string type, string name)
 - public void CreateDisplay(uint deviceNumber, string name)
 - public void CreateSource(uint sourceNumber, string name, string type)
@@ -405,14 +388,32 @@ DynFusion provides the ability to dynamically create and interact with a Fusion 
 - public void StartDevice(string key)
 - public void StopDevice(string key)
 - public void NameDevice(ushort deviceNumber, string name)
+- public void StartSchedPushTimer()
+- public void ResetSchedulePushTimer()
+- public void StopSchedPushTimer()
+- public void GetRoomSchedule()
+- public void GetRoomScheduleTimeOut(object unused)
+- public void GetRoomConfig()
+- public void SendToLog(IKeyed device, Debug.ErrorLogLevel level, string logMessage)
+- public void SendToLog(IKeyed device, string logMessage)
+- public void SendFreeBusyStatusAvailableUntil(DateTime AvailableUntilTime)
+- public void SendFreeBusyStatusAvailable()
+- public void SendFreeBusyStatusNotAvailable()
+- public void GetRoomList()
+- public void GetAvailableRooms()
 - public void sendChange(string message)
+- public void StartDevice()
+- public void StopDevice()
 - public void SetupAsset(FusionStaticAssetConfig config)
+- public void CallAction(bool value)
+- public void CallAction(uint value)
+- public void CallAction(string value)
 <!-- END Public Methods -->
 <!-- START Bool Feedbacks -->
 ### Bool Feedbacks
 
-- BoolValueFeedback
 - FusionOnlineFeedback
+- BoolValueFeedback
 <!-- END Bool Feedbacks -->
 <!-- START Int Feedbacks -->
 ### Int Feedbacks
