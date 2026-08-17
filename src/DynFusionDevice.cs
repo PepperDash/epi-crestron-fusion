@@ -153,7 +153,8 @@ namespace DynFusion
                         && !DigitalAttributesFromFusion.ContainsKey(att.JoinNumber))
                     {
                         DigitalAttributesFromFusion.Add(att.JoinNumber,
-                            new DynFusionDigitalAttribute(att.Name, att.JoinNumber));
+                            new DynFusionDigitalAttribute(att.Name, att.JoinNumber, att.LinkDeviceKey ?? "",
+                                att.LinkDeviceMethod ?? "", ""));
                     }
 
                     // Setup input signal linking for readable attributes
