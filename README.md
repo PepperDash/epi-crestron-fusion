@@ -254,7 +254,7 @@ DynFusion provides the ability to dynamically create and interact with a Fusion 
 | 4 | R | GetRoomInfo |
 | 5 | R | GetRoomList |
 | 2 | R | PushNotificationRegistered |
-| 1 | R | GetSchedule |
+| 1 | R | MeetingInProgress |
 | 11 | R | ExtendMeeting15Minutes |
 | 12 | R | ExtendMeeting30Minutes |
 | 13 | R | ExtendMeeting45Minutes |
