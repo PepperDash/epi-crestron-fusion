@@ -1,16 +1,16 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using Crestron.SimplSharpPro;
 using Crestron.SimplSharpPro.DeviceSupport;
 using Crestron.SimplSharpPro.Fusion;
-using DynFusion.Config;
+using PepperDash.Essentials.Plugins.Config;
 using PepperDash.Core;
 using PepperDash.Core.Logging;
 using PepperDash.Essentials.Core;
 using PepperDash.Essentials.Core.Bridges;
 
-namespace DynFusion
+namespace PepperDash.Essentials.Plugins
 {
 	public class DynFusionStaticAsset : EssentialsBridgeableDevice
 	{

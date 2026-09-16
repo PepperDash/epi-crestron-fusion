@@ -1,15 +1,15 @@
-﻿using System.Collections.Generic;
+using System.Collections.Generic;
 using PepperDash.Core;
 using PepperDash.Essentials.Core;
 
-namespace DynFusion
+namespace PepperDash.Essentials.Plugins
 {
     public class DynFusionScheduleFactory : EssentialsPluginDeviceFactory<DynFusionDevice>
     {
         public DynFusionScheduleFactory()
         {
             // Set the minimum Essentials Framework Version
-            MinimumEssentialsFrameworkVersion = "2.20.5";
+            MinimumEssentialsFrameworkVersion = "3.0.0";
 
             // In the constructor we initialize the list with the typenames that will build an instance of this device
             TypeNames = new List<string>() { "DynFusionSchedule" };

@@ -1,7 +1,7 @@
 using System.Collections.Generic;
 using Newtonsoft.Json;
 
-namespace DynFusion.Config
+namespace PepperDash.Essentials.Plugins.Config
 {
     public class CallStatistics
     {

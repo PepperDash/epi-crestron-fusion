@@ -1,11 +1,11 @@
-﻿using System;
+using System;
 using PepperDash.Essentials.Core;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Converters;
 using Crestron.SimplSharpPro;
 using PepperDash.Core;
 
-namespace DynFusion
+namespace PepperDash.Essentials.Plugins
 {
 
 

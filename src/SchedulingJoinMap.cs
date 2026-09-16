@@ -1,6 +1,6 @@
-﻿using PepperDash.Essentials.Core;
+using PepperDash.Essentials.Core;
 
-namespace DynFusion
+namespace PepperDash.Essentials.Plugins
 {
 	public class SchedulingJoinMap : JoinMapBaseAdvanced
 	{

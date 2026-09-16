@@ -1,8 +1,8 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using PepperDash.Core.Logging;
 using PepperDash.Essentials.Core;
-namespace DynFusion
+namespace PepperDash.Essentials.Plugins
 {
 	public class DynFusionDeviceUsage : EssentialsDevice
 	{
