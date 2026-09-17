@@ -1,10 +1,10 @@
-﻿using Crestron.SimplSharpPro.Fusion;
+using Crestron.SimplSharpPro.Fusion;
 using Newtonsoft.Json;
 using PepperDash.Core.Logging;
 using PepperDash.Essentials.Core;
 using PepperDash.Essentials.Core.Bridges;
 
-namespace DynFusion
+namespace PepperDash.Essentials.Plugins
 {
     public class DynFusionAssetOccupancySensor : EssentialsBridgeableDevice
     {

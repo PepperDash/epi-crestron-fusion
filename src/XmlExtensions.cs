@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
@@ -8,7 +8,7 @@ using Crestron.SimplSharp.CrestronXml.Serialization;
 using Crestron.SimplSharp.CrestronXmlLinq;
 using System.Text.RegularExpressions;
 
-namespace DynFusion
+namespace PepperDash.Essentials.Plugins
 {
 	public static class XmlExtensions
 	{

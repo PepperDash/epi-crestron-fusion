@@ -4,7 +4,7 @@ using Crestron.SimplSharpPro.Fusion;
 using PepperDash.Core.Logging;
 using PepperDash.Essentials.Core;
 
-namespace DynFusion
+namespace PepperDash.Essentials.Plugins
 {
     public class DynFusionCallStatisticsDevice : EssentialsDevice
     {

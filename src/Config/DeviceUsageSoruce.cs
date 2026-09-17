@@ -1,6 +1,6 @@
 using Newtonsoft.Json;
 
-namespace DynFusion.Config
+namespace PepperDash.Essentials.Plugins.Config
 {
     public class DeviceUsageSource
     {

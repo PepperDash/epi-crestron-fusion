@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
@@ -14,7 +14,7 @@ using PepperDash.Core.Logging;
 
 using PepperDash.Core;
 
-namespace DynFusion
+namespace PepperDash.Essentials.Plugins
 {
 
 	public class Room : IKeyed

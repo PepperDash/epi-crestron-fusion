@@ -1,8 +1,8 @@
-﻿using System.Collections.Generic;
+using System.Collections.Generic;
 using Newtonsoft.Json;
 using PepperDash.Core;
 
-namespace DynFusion.Config
+namespace PepperDash.Essentials.Plugins.Config
 {
 	public class FusionStaticAssetConfig
 	{

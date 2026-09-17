@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.Text.RegularExpressions;
 using Crestron.SimplSharp.CrestronXml;
@@ -9,7 +9,7 @@ using PepperDash.Core;
 using PepperDash.Essentials.Core;
 using PepperDash.Core.Logging;
 
-namespace DynFusion
+namespace PepperDash.Essentials.Plugins
 {
 	public class DynFusionScheduleChangeEventArgs : EventArgs
 	{
@@ -82,7 +82,7 @@ namespace DynFusion
 		}
 
 
-		public override bool CustomActivate()
+		protected override bool CustomActivate()
 		{
 
 			if (_Config.DynFusionKey != null)

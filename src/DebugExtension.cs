@@ -1,5 +1,5 @@
-﻿
-namespace DynFusion
+
+namespace PepperDash.Essentials.Plugins
 {
 	public static class DebugExtensions
 	{

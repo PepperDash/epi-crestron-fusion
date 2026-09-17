@@ -1,8 +1,7 @@
-﻿using Crestron.SimplSharpPro.DeviceSupport;
-using DynFusion.Config;
+using Crestron.SimplSharpPro.DeviceSupport;
+using PepperDash.Essentials.Plugins.Config;
 using PepperDash.Essentials.Core;
 using PepperDash.Essentials.Core.Bridges;
-using PepperDash.Essentials.Core.Interfaces;
 using PepperDash.Core;
 using System;
 using System.Collections.Generic;
@@ -15,9 +14,9 @@ using Crestron.SimplSharp;
 using PepperDash.Core.Logging;
 
 
-namespace DynFusion
+namespace PepperDash.Essentials.Plugins
 {
-    public class DynFusionDevice : EssentialsBridgeableDevice, ILogStringsWithLevel, ILogStrings
+    public class DynFusionDevice : EssentialsBridgeableDevice
     {
         public const ushort FusionJoinOffset = 49;
         //DynFusion Joins
@@ -43,8 +42,6 @@ namespace DynFusion
 
         public DynFusionDeviceUsage DeviceUsage;
         public FusionRoom FusionSymbol;
-        private CTimer ErrorLogTimer;
-        private string ErrorLogLastMessageSent;
 
         public DynFusionDevice(string key, string name, DynFusionConfigObjectTemplate config)
             : base(key, name)
@@ -66,7 +63,7 @@ namespace DynFusion
             FusionSymbol.ExtenderFusionRoomDataReservedSigs.Use();
         }
 
-        public override bool CustomActivate()
+        protected override bool CustomActivate()
         {
             try
             {
@@ -924,70 +921,6 @@ namespace DynFusion
                 this.LogError("GetRoomConfig exception: {message}", e.Message);
                 this.LogDebug(e, "Stack Trace: ");
             }
-        }
-
-        #endregion
-
-        #region ILogStringsWithLevel Members
-
-        public void SendToLog(IKeyed device, Debug.ErrorLogLevel level, string logMessage)
-        {
-            int fusionLevel;
-            switch (level)
-            {
-                case Debug.ErrorLogLevel.Error:
-                    {
-                        fusionLevel = 3;
-                        break;
-                    }
-                case Debug.ErrorLogLevel.Notice:
-                    {
-                        fusionLevel = 1;
-                        break;
-                    }
-                case Debug.ErrorLogLevel.Warning:
-                    {
-                        fusionLevel = 2;
-                        break;
-                    }
-                case Debug.ErrorLogLevel.None:
-                    {
-                        fusionLevel = 0;
-                        break;
-                    }
-                default:
-                    {
-                        fusionLevel = 0;
-                        break;
-                    }
-            }
-            var tempLogMessage = string.Format("{0}:{1}", fusionLevel, logMessage);
-            long errorlogThrottleTime = 60000;
-            if (ErrorLogLastMessageSent != tempLogMessage)
-            {
-                ErrorLogLastMessageSent = tempLogMessage;
-                if (ErrorLogTimer == null)
-                {
-                    ErrorLogTimer = new CTimer(o =>
-                    {
-                        this.LogVerbose("SendToLog Message:{message}", ErrorLogLastMessageSent);
-                        FusionSymbol.ErrorMessage.InputSig.StringValue = ErrorLogLastMessageSent;
-                    }, errorlogThrottleTime);
-                }
-                else
-                {
-                    ErrorLogTimer.Reset(errorlogThrottleTime);
-                }
-            }
-        }
-
-        #endregion
-
-        #region ILogStrings Members
-
-        public void SendToLog(IKeyed device, string logMessage)
-        {
-            FusionSymbol.LogText.InputSig.StringValue = logMessage;
         }
 
         #endregion
